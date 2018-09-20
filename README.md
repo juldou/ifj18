@@ -5,8 +5,8 @@ Projekt do predmetu IFJ - implementacia prekladaca imperativneho jazyka IFJ18
 
 # Vseobecne informacie
 
-**Pokusne odovzdanie:** piatok 23. novembra 2018, 23:59 (nepovinné)
-**Datum odovzdania:**   streda 5. decembra 2018, 23:59
+- **Pokusne odovzdanie:** piatok 23. novembra 2018, 23:59 (nepovinné)
+- **Datum odovzdania:**   streda 5. decembra 2018, 23:59
 
 ## Casti projektu
 
