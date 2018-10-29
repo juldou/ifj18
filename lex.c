@@ -49,10 +49,24 @@ typedef enum {
 } Types ;
 
 FILE *file;
-char * keyWords[] = {"def","do","else","end","if","not","nil","then","while"};
+
 unsigned int i = 0;
 char *string;
+int checkKeywords(char *tmp){
 
+  char * keyWords[] = {"def","do","else","end","if","not","nil","then","while"};
+  if(strcmp(keyWords[0],tmp)==0) return KEYWORD_DEF;
+  if(strcmp(keyWords[1],tmp)==0) return KEYWORD_DO;
+  if(strcmp(keyWords[2],tmp)==0) return KEYWORD_ELSE;
+  if(strcmp(keyWords[3],tmp)==0) return KEYWORD_END;
+  if(strcmp(keyWords[4],tmp)==0) return KEYWORD_IF;
+  if(strcmp(keyWords[5],tmp)==0) return KEYWORD_NOT;
+  if(strcmp(keyWords[6],tmp)==0) return KEYWORD_NIL;
+  if(strcmp(keyWords[7],tmp)==0) return KEYWORD_THEN;
+  if(strcmp(keyWords[8],tmp)==0) return KEYWORD_WHILE;
+  else return 0;
+
+}
 int addCharToArray(char c,char *str){
 
   if (i>=100){
@@ -67,14 +81,9 @@ int addCharToArray(char c,char *str){
   str[i] = '\0';
   return 0;
 }
-void clearArray(char *tmp){
-  free(tmp);
-}
 int getToken(char *value, int *line){
 
-  clearArray(value);
-
-  int s,state=START;
+  int s,state=START,f;
   while(1){
 
     s = fgetc(file);
@@ -106,6 +115,22 @@ int getToken(char *value, int *line){
                   return MUL;
                 case '/':
                   return DIV;
+                case '<':
+                  s = fgetc(file);
+                  if(s =='='){
+                    return LESS_EQUAL;
+                  }
+                  else {
+                    ungetc(s,file);
+                    return LESS;}
+                case '>':
+                  s = fgetc(file);
+                  if(s =='='){
+                    return MORE_EQUAL;
+                  }
+                  else {
+                    ungetc(s,file);
+                    return MORE;}
                 case '(':
                   return ROUNDL;
                 case ')':
@@ -137,18 +162,54 @@ int getToken(char *value, int *line){
                       return ASSIGN;
                     }
                   }
-
+                default:
+                    printf("LEX_ERR\n");
               }
 
       case IDENTIF:
+        if(islower(s)){
         addCharToArray(s,string);
-        while(!isspace(s)||isalpha(s)||isdigit(s)){
-          s = fgetc(file);
-          addCharToArray(s,value);
         }
-        //TODO check keywords
 
+        if(isalnum(s)|| s=='_'||s=='?'||s=='!'){
+          while(isalnum(s)|| s=='_'){
+          s = fgetc(file);
+          addCharToArray(s,string);
+          }
+          s = fgetc(file);
+          if(s=='?'||s=='!'){
+          addCharToArray(s,string);
+          }
+          else{
+          ungetc(s,file);
+          }
+          int a = checkKeywords(string);
+          if (a == 0){
+            return IDENTIFIER;
+            value = string;
+          }
+          else{
+            return a;
+            value = string;
+          }
+
+      case NUM:
+          f=0;
+          while(isdigit(s)){
+            if(isdigit(s)){
+              addCharToArray(s,value);
+            }
+            else if(s=='.'||s=='e'||s=='E'){
+              f++;
+              addCharToArray(s,value);
+              return FLOAT;
+            }
+          }
+        if(f==0) return INT;
+        else return FLOAT;
+        value=string;
     }
+  }
 }}
 int main() {
   int a;
