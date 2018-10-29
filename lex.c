@@ -3,7 +3,7 @@
 #include<ctype.h>
 #include <string.h>
 
-#define MAX_LENGTH 100
+#define MAX_LENGTH 50
 #define INCREMENT 100
 #define LEX_ERR -1
 
@@ -56,14 +56,14 @@ int checkKeywords(char *tmp){
 
   char * keyWords[] = {"def","do","else","end","if","not","nil","then","while"};
   if(strcmp(keyWords[0],tmp)==0) return KEYWORD_DEF;
-  if(strcmp(keyWords[1],tmp)==0) return KEYWORD_DO;
-  if(strcmp(keyWords[2],tmp)==0) return KEYWORD_ELSE;
-  if(strcmp(keyWords[3],tmp)==0) return KEYWORD_END;
-  if(strcmp(keyWords[4],tmp)==0) return KEYWORD_IF;
-  if(strcmp(keyWords[5],tmp)==0) return KEYWORD_NOT;
-  if(strcmp(keyWords[6],tmp)==0) return KEYWORD_NIL;
-  if(strcmp(keyWords[7],tmp)==0) return KEYWORD_THEN;
-  if(strcmp(keyWords[8],tmp)==0) return KEYWORD_WHILE;
+  else if(strcmp(keyWords[1],tmp)==0) return KEYWORD_DO;
+  else if(strcmp(keyWords[2],tmp)==0) return KEYWORD_ELSE;
+  else if(strcmp(keyWords[3],tmp)==0) return KEYWORD_END;
+  else if(strcmp(keyWords[4],tmp)==0) return KEYWORD_IF;
+  else if(strcmp(keyWords[5],tmp)==0) return KEYWORD_NOT;
+  else if(strcmp(keyWords[6],tmp)==0) return KEYWORD_NIL;
+  else if(strcmp(keyWords[7],tmp)==0) return KEYWORD_THEN;
+  else if(strcmp(keyWords[8],tmp)==0) return KEYWORD_WHILE;
   else return 0;
 
 }
@@ -79,6 +79,7 @@ int addCharToArray(char c,char *str){
   str[i] = c;
   i++;
   str[i] = '\0';
+  printf("string: %s\n",str);
   return 0;
 }
 int getToken(char *value, int *line){
@@ -144,6 +145,7 @@ int getToken(char *value, int *line){
                     }
                     else if(s == 'b'||s == 'e'){
                       while(!isspace(s)){
+
                         s = fgetc(file);
                         addCharToArray(s,string);
                         }
@@ -176,7 +178,7 @@ int getToken(char *value, int *line){
           s = fgetc(file);
           addCharToArray(s,string);
           }
-          s = fgetc(file);
+
           if(s=='?'||s=='!'){
           addCharToArray(s,string);
           }
@@ -184,13 +186,15 @@ int getToken(char *value, int *line){
           ungetc(s,file);
           }
           int a = checkKeywords(string);
+
           if (a == 0){
+            strcpy(value,string);
             return IDENTIFIER;
-            value = string;
+
           }
           else{
+            strcpy(value,string);
             return a;
-            value = string;
           }
 
       case NUM:
@@ -205,9 +209,10 @@ int getToken(char *value, int *line){
               return FLOAT;
             }
           }
+        strcpy(value,string);
         if(f==0) return INT;
         else return FLOAT;
-        value=string;
+        ;
     }
   }
 }}
@@ -225,8 +230,10 @@ int main() {
     printf("file cant open\n");
     return LEX_ERR;
   }
-  while((a=getToken(value,&line))!= EOF){
-    printf("Value: %s\n line: %d\n type: %d",value,line,a);
+
+  while((a=getToken(value,&line))!= LEX_EOF){
+
+    printf("Value: %s line: %d type: %d\n",value,line,a);
     if(a==LEX_ERR){
       break;
     }
