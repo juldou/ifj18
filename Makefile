@@ -1,14 +1,22 @@
-CC      = gcc
-CFLAGS  = -g
-RM      = rm -f
 
+NAME=lex
 
-default: all
+DBG=kdbg
+CC=gcc
+CFLAGS=-std=c99 -Wall -pedantic -Wextra -g
 
-all: hello
+$(NAME): $(NAME).c
+	$(CC) $(CFLAGS) $(NAME).c -lm -o $(NAME)
 
-hello: hello.c
-	$(CC) $(CFLAGS) -o hello hello.c
+run:
+	./$(NAME)
 
-clean veryclean:
-	$(RM) hello
+debug: $(NAME)
+	$(DBG) $(NAME)
+
+clean:
+	rm -f *~ $(NAME) *.bak *.o
+
+edit:
+	vim $(NAME).c
+

@@ -3,79 +3,90 @@
 #include<ctype.h>
 #include <string.h>
 
-#define  EOL '\n'
+#define MAX_LENGTH 100
+#define INCREMENT 100
+#define LEX_ERR -1
 
-//keywords
-#define LEXERR -1 //ERR
-#define KEYWORD 20 //KEYWORD
-#define IDENTIF 21 //IDENTIF
-#define ONECOM 22 //JEDNORIADKOVY KOMENT
-#define COM 23//KOMENTAR
-#define PLUS 24// +
-#define MINUS 25// -
-#define MUL 26// *
-#define DIV 27// /
-#define ROUNDL 28//(
-#define ROUNDR 29//)
-#define SQUAREL 30//[
-#define SQUARER 31//]
-#define DOUAPOS 34//"
-#define ONEAPOS 35//'
-#define EXCL 36//!
-#define LESS 37//<
-#define MORE 38//>
-#define LESSEQ 39 //<=
-#define MOREEQ 40 //>=
-#define EQ 41 //==
-#define IS 42 //=
-#define INTEGER 43 //INT
-#define DOUBLE 44 //DOUBLE
-#define STRING 45 //STRING
-#define PLUS_EQ 46 //+=
-#define MINUS_EQ 47 //-=
-#define COMPOSEDL 48 //{
-#define COMPOSEDR 49 //}
-#define BLOCK_BEGIN 50 //{
-#define BLOCK_END 51 //}
-#define START 51 //}
-#define NUM 52 //}
+typedef enum {
+  KEYWORD_DEF,
+  KEYWORD_DO,
+  KEYWORD_ELSE,
+  KEYWORD_END,
+  KEYWORD_IF,
+  KEYWORD_NOT,
+  KEYWORD_NIL,
+  KEYWORD_THEN,
+  KEYWORD_WHILE,
 
+  ID,
+  INT,
+  FLOAT,
+  STRING,
+  EOL,
+  COMMA,
+  ROUNDL,
+  ROUNDR,
+  ASSIGN,
+  PLUS,
+  MINUS,
+  MUL,
+  DIV,
+  LESS,
+  MORE,
+  LESS_EQUAL,
+  MORE_EQUAL,
+  EQUAL,
+  NOT_EQUAL,
 
+  START,
+  LEX_EOF,
+  NUM,
+  IDENTIFIER,
+  COMMENT,
+  BLOCK_COMMENT,
+  IDENTIF
+
+} Types ;
+
+FILE *file;
 char * keyWords[] = {"def","do","else","end","if","not","nil","then","while"};
 unsigned int i = 0;
+char *string;
 
-void clearArray(char *str){
-  int i=0;
-  while(str[i]!='\0'){
-    str[i]='\0';
-    i++;
+int addCharToArray(char c,char *str){
+
+  if (i>=100){
+    string = realloc(string,INCREMENT);
+    if(string == NULL){
+      printf("realloc err\n");
+      return LEX_ERR;
+    }
   }
-}
-
-void addCharToArray(char c,char *str){
   str[i] = c;
   i++;
-}
-
-int main() {
-  /* code */
+  str[i] = '\0';
   return 0;
 }
-
-int getToken(FILE *file,char *type, char *value, int *line){
+void clearArray(char *tmp){
+  free(tmp);
+}
+int getToken(char *value, int *line){
 
   clearArray(value);
-  clearArray(type);
 
   int s,state=START;
-  int finished = 0;
-
-  while(!finished){
+  while(1){
 
     s = fgetc(file);
 
     switch(state){
       case START:
+        if(s =='\n'){
+          line++;
+        }
+        else if(s == EOF){
+          return LEX_EOF;
+        }
         if (isspace(s))
         ;
         else if(isalpha(s)||s=='_'){
@@ -84,105 +95,81 @@ int getToken(FILE *file,char *type, char *value, int *line){
         else if(isdigit(s)){
           state = NUM;
         }
-        // else if(s == '\'){
-        //   state = BACK_SLASH;
-        // }
         else{
               switch(s){
-            //operatory
-              case '+':
-                  s = fgetc(file);
-                  if(s == '='){
-                    *type = PLUS_EQ;
-                    *value = '+=';
-                  }
-                  else{
-                    ungetc(s,file);
-                    *type = PLUS;
-                    *value = '+';
-                  }
-
-              case '-':
-                  s = fgetc(file);
-                  if(s == '='){
-                    *type = MINUS_EQ;
-                    *value = '-=';
-                  }
-                  else{
-                    ungetc(s,file);
-                    *type = MINUS;
-                    *value = '-';
-                  }
-
-              case '*':
-                *type = MUL;
-                *value = '*';
-
-              case '/':
-                *type = DIV;
-                *value = '/';
-
-              case '(':
-                *type = ROUNDL;
-                *value = '(';
-
-              case ')':
-                *type = ROUNDR;
-                *value = ')';
-
-              case '[':
-                *type = SQUAREL;
-                *value = '[';
-
-              case ']':
-                *type = SQUARER;
-                *value = ']';
-
-              case '{':
-                *type = COMPOSEDL;
-                *value = '{';
-
-              case '}':
-                *type = COMPOSEDR;
-                *value = '}';
-
-              case '=':
-                  s = fgetc(file);
-                  if(s == '='){
-                    *type = EQ;
-                    *value = '==';
-                  }
-                  if(s == 'b'||s == 'e'){
-                    char *tmp;
-                    while(!isspace(s)){
-                      s = fgetc(file);
-                      addCharToArray(s,tmp);
+                //operatory
+                case '+':
+                    return PLUS;
+                case '-':
+                    return MINUS;
+                case '*':
+                  return MUL;
+                case '/':
+                  return DIV;
+                case '(':
+                  return ROUNDL;
+                case ')':
+                  return ROUNDR;
+                case ',':
+                  return COMMA;
+                case '=':
+                    s = fgetc(file);
+                    if(s == '='){
+                      return EQUAL;
                     }
-                    if(strcmp(tmp,"begin")==0){
-                      *type = BLOCK_BEGIN;
-                    }
-                    if(strcmp(tmp,"end")==0){
-                      *type = BLOCK_END;
+                    else if(s == 'b'||s == 'e'){
+                      while(!isspace(s)){
+                        s = fgetc(file);
+                        addCharToArray(s,string);
+                        }
+                        if(strcmp(string,"begin")==0){
+                          state = BLOCK_COMMENT;
+                        }
+                        else if(strcmp(string,"end")==0){
+                          state = START;
+                        }
+                        else{
+                          return LEX_ERR;
+                        }
                     }
                     else{
-                      *type = LEXERR;
+                      ungetc(s,file);
+                      return ASSIGN;
                     }
-                    *type = IS;
-                    *value = '=';
-                    }
-              }
+                  }
 
               }
 
       case IDENTIF:
-        addCharToArray(s,value);
-        while(!isspace(s)||!isalpha(s)||!isdigit(s)){
+        addCharToArray(s,string);
+        while(!isspace(s)||isalpha(s)||isdigit(s)){
           s = fgetc(file);
           addCharToArray(s,value);
         }
         //TODO check keywords
 
-      case NUM:
-
     }
+}}
+int main() {
+  int a;
+  char value[100];
+  int line;
+  string = malloc(sizeof(char) * MAX_LENGTH);
+  if(string == NULL){
+    printf("malloc err\n");
+    return LEX_ERR;
+  }
+  file = stdin;
+  if(file == NULL){
+    printf("file cant open\n");
+    return LEX_ERR;
+  }
+  while((a=getToken(value,&line))!= EOF){
+    printf("Value: %s\n line: %d\n type: %d",value,line,a);
+    if(a==LEX_ERR){
+      break;
+    }
+
+  }
+  return 0;
 }
