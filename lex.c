@@ -5,7 +5,6 @@
 #include "lex.h"
 
 
-FILE *file;
 char *string;
 int i = 0;
 
@@ -47,6 +46,7 @@ int getToken(char *value, int *line) {
         printf("malloc err\n");
         return LEX_ERR;
     }
+
     int s, state = START, f;
     string[0] = '\0';
     while (1) {
@@ -80,19 +80,19 @@ int getToken(char *value, int *line) {
                         case '/':
                             return DIV;
                         case '<':
-                            s = fgetc(file);
+                            s = fgetc(stdin);
                             if (s == '=') {
                                 return LESS_EQUAL;
                             } else {
-                                ungetc(s, file);
+                                ungetc(s, stdin);
                                 return LESS;
                             }
                         case '>':
-                            s = fgetc(file);
+                            s = fgetc(stdin);
                             if (s == '=') {
                                 return MORE_EQUAL;
                             } else {
-                                ungetc(s, file);
+                                ungetc(s, stdin);
                                 return MORE;
                             }
                         case '(':
@@ -102,13 +102,13 @@ int getToken(char *value, int *line) {
                         case ',':
                             return COMMA;
                         case '=':
-                            s = fgetc(file);
+                            s = fgetc(stdin);
                             if (s == '=') {
                                 return EQUAL;
                             } else if (s == 'b' || s == 'e') {
                                 while (!isspace(s)) {
 
-                                    s = fgetc(file);
+                                    s = fgetc(stdin);
                                     addCharToArray(s, string);
                                 }
                                 if (strcmp(string, "begin") == 0) {
@@ -119,7 +119,7 @@ int getToken(char *value, int *line) {
                                     return LEX_ERR;
                                 }
                             } else {
-                                ungetc(s, file);
+                                ungetc(s, stdin);
                                 return ASSIGN;
                             }
                     }
@@ -133,13 +133,13 @@ int getToken(char *value, int *line) {
 
                         printf("pridavam do pola znak %c\n",s);
                         addCharToArray(s, string);
-                        s = fgetc(file);
+                        s = fgetc(stdin);
                     }
 
                     if (s == '?' || s == '!') {
                         addCharToArray(s, string);
                     } else {
-                        ungetc(s, file);
+                        ungetc(s, stdin);
                     }
                     int a = checkKeywords(string);
                     printf("a = %d\n",a);
@@ -174,30 +174,3 @@ int getToken(char *value, int *line) {
         }
     }
 }
-
-
-//int main() {
-//    int a;
-//    char value[100];
-//    int line;
-//    string = malloc(sizeof(char) * MAX_LENGTH);
-//    if (string == NULL) {
-//        printf("malloc err\n");
-//        return LEX_ERR;
-//    }
-//    file = stdin;
-//    if (file == NULL) {
-//        printf("file cant open\n");
-//        return LEX_ERR;
-//    }
-//
-//    while ((a = getToken(value, &line)) != LEX_EOF) {
-//
-//        printf("Value: %s line: %d type: %d\n", value, line, a);
-//        if (a == LEX_ERR) {
-//            break;
-//        }
-//
-//    }
-//    return 0;
-//}

@@ -70,7 +70,7 @@ int fun_params() {
 
         case ROUNDR:
             if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
-            if(token != EOL) return ERR_SYNTAX;
+            if(token != LEX_EOL) return ERR_SYNTAX;
             return SYNTAX_OK;
 
         case ID:

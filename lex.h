@@ -28,7 +28,7 @@ typedef enum {
     INT,
     FLOAT,
     STRING,
-    EOL,
+    LEX_EOL,
     COMMA,
     ROUNDL,
     ROUNDR,
