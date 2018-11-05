@@ -22,7 +22,7 @@ typedef enum {
     INT,
     FLOAT,
     STRING,
-    EOL,
+    LEX_EOL,
     COMMA,
     ROUNDL,
     ROUNDR,
@@ -55,17 +55,17 @@ char *string;
 
 int checkKeywords(char *tmp) {
 
-    char *keyWords[] = {"def", "do", "else", "end", "if", "not", "nil", "then", "while"};
-    if (strcmp(keyWords[0], tmp) == 0) return KEYWORD_DEF;
-    else if (strcmp(keyWords[1], tmp) == 0) return KEYWORD_DO;
-    else if (strcmp(keyWords[2], tmp) == 0) return KEYWORD_ELSE;
-    else if (strcmp(keyWords[3], tmp) == 0) return KEYWORD_END;
-    else if (strcmp(keyWords[4], tmp) == 0) return KEYWORD_IF;
-    else if (strcmp(keyWords[5], tmp) == 0) return KEYWORD_NOT;
-    else if (strcmp(keyWords[6], tmp) == 0) return KEYWORD_NIL;
-    else if (strcmp(keyWords[7], tmp) == 0) return KEYWORD_THEN;
-    else if (strcmp(keyWords[8], tmp) == 0) return KEYWORD_WHILE;
-    else return 0;
+    //char *keyWords[] = {"def", "do", "else", "end", "if", "not", "nil", "then", "while"};
+    if (strcmp("def", tmp) == 0) return KEYWORD_DEF;
+    else if (strcmp("do", tmp) == 0) return KEYWORD_DO;
+    else if (strcmp("else", tmp) == 0) return KEYWORD_ELSE;
+    else if (strcmp("end", tmp) == 0) return KEYWORD_END;
+    else if (strcmp("if", tmp) == 0) return KEYWORD_IF;
+    else if (strcmp("not", tmp) == 0) return KEYWORD_NOT;
+    else if (strcmp("nil", tmp) == 0) return KEYWORD_NIL;
+    else if (strcmp("then", tmp) == 0) return KEYWORD_THEN;
+    else if (strcmp("while", tmp) == 0) return KEYWORD_WHILE;
+    else return -1;
 
 }
 
@@ -88,6 +88,7 @@ int addCharToArray(char c, char *str) {
 int getToken(char *value, int *line) {
 
     int s, state = START, f;
+    string[0] = '\0';
     while (1) {
 
         //todo
@@ -97,11 +98,13 @@ int getToken(char *value, int *line) {
             case START:
                 if (s == '\n') {
                     line++;
+                    return LEX_EOL;
                 } else if (s == EOF) {
                     return LEX_EOF;
                 }
                 if (isspace(s));
-                else if (isalpha(s) || s == '_') {
+                else if (islower(s) || s == '_') {
+                    //addCharToArray(s, string);
                     state = IDENTIF;
                 } else if (isdigit(s)) {
                     state = NUM;
@@ -165,14 +168,12 @@ int getToken(char *value, int *line) {
                 }
 
             case IDENTIF:
-                if (islower(s)) {
-                    addCharToArray(s, string);
-                }
-
                 if (isalnum(s) || s == '_' || s == '?' || s == '!') {
-                    while (isalnum(s) || s == '_') {
-                        s = fgetc(file);
+                    while (isalnum(s) || s == '_' ) {
+
+                        printf("pridavam do pola znak %c\n",s);
                         addCharToArray(s, string);
+                        s = fgetc(file);
                     }
 
                     if (s == '?' || s == '!') {
@@ -181,13 +182,17 @@ int getToken(char *value, int *line) {
                         ungetc(s, file);
                     }
                     int a = checkKeywords(string);
-
-                    if (a == 0) {
+                    printf("a = %d\n",a);
+                    if (a == -1) {
                         strcpy(value, string);
+                        string[0] = '\0';
+                        i=0;
                         return IDENTIFIER;
 
                     } else {
                         strcpy(value, string);
+                        string[0] = '\0';
+                        i=0;
                         return a;
                     }
 
@@ -229,6 +234,7 @@ int main() {
     while ((a = getToken(value, &line)) != LEX_EOF) {
 
         printf("Value: %s line: %d type: %d\n", value, line, a);
+        value[0] = '\0';
         if (a == LEX_ERR) {
             break;
         }
