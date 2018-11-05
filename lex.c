@@ -2,56 +2,12 @@
 #include<stdlib.h>
 #include<ctype.h>
 #include <string.h>
+#include "lex.h"
 
-#define MAX_LENGTH 50
-#define INCREMENT 100
-#define LEX_ERR -1
-
-typedef enum {
-    KEYWORD_DEF,
-    KEYWORD_DO,
-    KEYWORD_ELSE,
-    KEYWORD_END,
-    KEYWORD_IF,
-    KEYWORD_NOT,
-    KEYWORD_NIL,
-    KEYWORD_THEN,
-    KEYWORD_WHILE,
-
-    ID,
-    INT,
-    FLOAT,
-    STRING,
-    EOL,
-    COMMA,
-    ROUNDL,
-    ROUNDR,
-    ASSIGN,
-    PLUS,
-    MINUS,
-    MUL,
-    DIV,
-    LESS,
-    MORE,
-    LESS_EQUAL,
-    MORE_EQUAL,
-    EQUAL,
-    NOT_EQUAL,
-
-    START,
-    LEX_EOF,
-    NUM,
-    IDENTIFIER,
-    COMMENT,
-    BLOCK_COMMENT,
-    IDENTIF
-
-} Types;
 
 FILE *file;
-
-unsigned int i = 0;
 char *string;
+int i = 0;
 
 int checkKeywords(char *tmp) {
 
@@ -86,7 +42,11 @@ int addCharToArray(char c, char *str) {
 }
 
 int getToken(char *value, int *line) {
-
+    string = malloc(sizeof(char) * MAX_LENGTH);
+    if (string == NULL) {
+        printf("malloc err\n");
+        return LEX_ERR;
+    }
     int s, state = START, f;
     while (1) {
 
@@ -169,7 +129,7 @@ int getToken(char *value, int *line) {
                     addCharToArray(s, string);
                 }
 
-                if (isalnum(s) || s == '_' || s == '?' || s == '!') {
+                else if (isalnum(s) || s == '_' || s == '?' || s == '!') {
                     while (isalnum(s) || s == '_') {
                         s = fgetc(file);
                         addCharToArray(s, string);
@@ -211,28 +171,28 @@ int getToken(char *value, int *line) {
 }
 
 
-int main() {
-    int a;
-    char value[100];
-    int line;
-    string = malloc(sizeof(char) * MAX_LENGTH);
-    if (string == NULL) {
-        printf("malloc err\n");
-        return LEX_ERR;
-    }
-    file = stdin;
-    if (file == NULL) {
-        printf("file cant open\n");
-        return LEX_ERR;
-    }
-
-    while ((a = getToken(value, &line)) != LEX_EOF) {
-
-        printf("Value: %s line: %d type: %d\n", value, line, a);
-        if (a == LEX_ERR) {
-            break;
-        }
-
-    }
-    return 0;
-}
+//int main() {
+//    int a;
+//    char value[100];
+//    int line;
+//    string = malloc(sizeof(char) * MAX_LENGTH);
+//    if (string == NULL) {
+//        printf("malloc err\n");
+//        return LEX_ERR;
+//    }
+//    file = stdin;
+//    if (file == NULL) {
+//        printf("file cant open\n");
+//        return LEX_ERR;
+//    }
+//
+//    while ((a = getToken(value, &line)) != LEX_EOF) {
+//
+//        printf("Value: %s line: %d type: %d\n", value, line, a);
+//        if (a == LEX_ERR) {
+//            break;
+//        }
+//
+//    }
+//    return 0;
+//}
