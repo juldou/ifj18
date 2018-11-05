@@ -1,12 +1,12 @@
 
-NAME=lex
+NAME=main
 
 DBG=kdbg
 CC=gcc
 CFLAGS=-std=c99 -Wall -pedantic -Wextra -g
 
 $(NAME): $(NAME).c
-	$(CC) $(CFLAGS) $(NAME).c -lm -o $(NAME)
+	$(CC) $(CFLAGS) lex.c parser.c main.c -lm -o $(NAME)
 
 run:
 	./$(NAME)
