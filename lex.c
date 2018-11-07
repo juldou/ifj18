@@ -65,7 +65,7 @@ int getToken(char *value, int *line) {
                 if (isspace(s));
                 else if (islower(s) || s == '_') {
                     //addCharToArray(s, string);
-                    state = IDENTIF;
+                    state = ID;
                 } else if (isdigit(s)) {
                     state = NUM;
                 } else {
@@ -147,7 +147,7 @@ int getToken(char *value, int *line) {
                         strcpy(value, string);
                         string[0] = '\0';
                         i=0;
-                        return IDENTIFIER;
+                        return ID;
 
                     } else {
                         strcpy(value, string);

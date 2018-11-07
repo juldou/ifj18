@@ -47,7 +47,6 @@ typedef enum {
     START,
     LEX_EOF,
     NUM,
-    IDENTIFIER,
     COMMENT,
     BLOCK_COMMENT,
     IDENTIF
