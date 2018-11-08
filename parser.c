@@ -54,9 +54,39 @@ char *values[] = {
 
 int program();
 
+
 int expr() {
-    //tODO
-    return SYNTAX_OK;
+    switch (token) {
+        case ID:
+            GET_TOKEN();
+            return SYNTAX_OK;
+        default:
+            return ERR_SYNTAX;
+    }
+
+}
+
+int assign() {
+    // pravidlo "ID" = <value>
+    switch (token) {
+        case ID:
+            if (expr() != SYNTAX_OK) return ERR_SYNTAX;
+            GET_TOKEN();
+            if (token != LEX_EOL) return ERR_SYNTAX;
+            GET_TOKEN();
+            return SYNTAX_OK;
+        case INT:
+        case FLOAT:
+        case STRING:
+            GET_TOKEN();
+            if (token != LEX_EOL) return ERR_SYNTAX;
+            GET_TOKEN();
+            return SYNTAX_OK;
+
+        default:
+            return ERR_SYNTAX;
+
+    }
 }
 
 int stat_list() {
@@ -68,8 +98,6 @@ int stat_list() {
                 return LEX_ERR;
 
             if (expr() != SYNTAX_OK) return ERR_SYNTAX;
-            if ((token = getToken(value, &line)) == ERR_LEXICAL)
-                return LEX_ERR;
 
             if (token != KEYWORD_THEN) return ERR_SYNTAX;
 
@@ -82,41 +110,41 @@ int stat_list() {
             if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
 
             if (token != KEYWORD_ELSE) return ERR_SYNTAX;
-
-            if ((token = getToken(value, &line)) == ERR_LEXICAL)
-                return LEX_ERR;
+            GET_TOKEN();
+            if (token != LEX_EOL) return ERR_SYNTAX;
+            GET_TOKEN();
             if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
 
             if (token != KEYWORD_END) return ERR_SYNTAX;
+            GET_TOKEN();
+            if (token != LEX_EOL) return ERR_SYNTAX;
+            GET_TOKEN();
+            return SYNTAX_OK;
 
         case KEYWORD_DO:
         case KEYWORD_WHILE:
 
         case KEYWORD_END:
-        case KEYWORD_DEF:
+        case KEYWORD_ELSE:
+            return SYNTAX_OK;
         case LEX_EOF:
             return SYNTAX_OK;
-        default:
-            return ERR_SYNTAX;
-    }
-}
 
-int declr() {
-    switch (token) {
         case ID:
-            // pravidlo "ID" = <value>
-            if ((token = getToken(value, &line)) == ERR_LEXICAL)
-                return LEX_ERR;
-            if (token != EQUAL)
-                return ERR_SYNTAX;
-            if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
-            return declr();
+            GET_TOKEN();
+            if (token == EQUAL) {
+                GET_TOKEN();
+                return assign();
+            }
+            if (token != LEX_EOL) return ERR_SYNTAX;
+            GET_TOKEN();
+            return SYNTAX_OK;
+
         default:
             return ERR_SYNTAX;
     }
-
-
 }
+
 
 int params() {
     // pravidlo <ITEM><ITEM_LIST
@@ -148,7 +176,9 @@ int fun_params() {
 
 
         case ROUNDR:
-        case LEX_EOL:
+            GET_TOKEN();
+            if(token != LEX_EOL) return ERR_SYNTAX;
+            GET_TOKEN();
             return SYNTAX_OK;
 
         case ID:
@@ -157,8 +187,8 @@ int fun_params() {
             if (token == COMMA) {
                 if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
             }
+            return  fun_params();
 
-            return fun_params();
 
         default:
             return ERR_SYNTAX;
@@ -178,13 +208,13 @@ int fun() {
     }
     if (fun_params() != SYNTAX_OK) return ERR_SYNTAX;
 
-    if (brackets) {
-        if (token != ROUNDR)return ERR_SYNTAX;
-        if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
-    }
-    if (token != LEX_EOL) return ERR_SYNTAX;
+//    if (brackets) {
+//        if (token != ROUNDR)return ERR_SYNTAX;
+//        if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
+//    }
+//    if (token != LEX_EOL) return ERR_SYNTAX;
 
-    if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
+//    if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
 
     if (token == KEYWORD_END) {
         // prazdna funkcia
@@ -194,7 +224,6 @@ int fun() {
     }
     if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
 
-    if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
     if (token != KEYWORD_END) return ERR_SYNTAX;
 
     if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
@@ -209,12 +238,12 @@ int program() {
     switch (token) {
         case KEYWORD_DEF:
             if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
-            if(fun() != SYNTAX_OK) return ERR_SYNTAX;
+            if (fun() != SYNTAX_OK) return ERR_SYNTAX;
             return program();
             //todo
         case ID:
             if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
-            if(stat_list() != SYNTAX_OK) return ERR_SYNTAX;
+            if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
             return program();
         case EOF:
             return SYNTAX_OK;
@@ -241,7 +270,13 @@ int parse() {
     } else {
         result = program();
     }
-    if(result == SYNTAX_OK)
-        printf("DONE\n");
+    if (result == SYNTAX_OK)
+        printf("*****SYNTAX OK\"*****\n");
+    else if (result == ERR_SYNTAX)
+        printf("*****SYNTAX ERROR*****\n");
+    else if (result == ERR_LEXICAL)
+        printf("*****LEX ERROR*****\n");
+
+
     return result;
 }

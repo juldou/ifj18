@@ -36,7 +36,6 @@ int addCharToArray(char c, char *str) {
     str[i] = c;
     i++;
     str[i] = '\0';
-    printf("string: %s\n", str);
     return 0;
 }
 
@@ -131,7 +130,6 @@ int getToken(char *value, int *line) {
                 if (isalnum(s) || s == '_' || s == '?' || s == '!') {
                     while (isalnum(s) || s == '_' ) {
 
-                        printf("pridavam do pola znak %c\n",s);
                         addCharToArray(s, string);
                         s = fgetc(stdin);
                     }
@@ -142,7 +140,6 @@ int getToken(char *value, int *line) {
                         ungetc(s, stdin);
                     }
                     int a = checkKeywords(string);
-                    printf("a = %d\n",a);
                     if (a == -1) {
                         strcpy(value, string);
                         string[0] = '\0';
