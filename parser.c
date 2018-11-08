@@ -6,7 +6,8 @@
 #define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
 return ERR_LEXICAL;} while(0)
 
-#define ACCEPT(type) do{ if(token != type) return ERR_SYNTAX;} while(0)
+#define ACCEPT(type) do{ if(token != type) return ERR_SYNTAX;\
+    GET_TOKEN();} while(0)
 int token;
 
 //temp
@@ -61,29 +62,27 @@ int expr() {
         case INT:
         case FLOAT:
         case ID:
-            if ((token = getToken(value, &line)) == ERR_LEXICAL)
-                return ERR_LEXICAL;
+            GET_TOKEN();
             return SYNTAX_OK;
         default:
             return ERR_SYNTAX;
     }
 
 }
+
 
 int assign() {
     // pravidlo "ID" = <value>
     switch (token) {
         case ID:
             if (expr() != SYNTAX_OK) return ERR_SYNTAX;
-            if (token != LEX_EOL) return ERR_SYNTAX;
-            GET_TOKEN();
+            ACCEPT(LEX_EOL);
             return SYNTAX_OK;
         case INT:
         case FLOAT:
         case STRING:
             GET_TOKEN();
-            if (token != LEX_EOL) return ERR_SYNTAX;
-            GET_TOKEN();
+            ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
         default:
@@ -92,60 +91,52 @@ int assign() {
     }
 }
 
+
 int stat_list() {
     switch (token) {
         case KEYWORD_IF:
-
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
             GET_TOKEN();
-
             if (expr() != SYNTAX_OK) return ERR_SYNTAX;
 
-            if (token != KEYWORD_THEN) return ERR_SYNTAX;
-
-            GET_TOKEN();
-            if (token != LEX_EOL) return ERR_SYNTAX;
-
-            GET_TOKEN();
+            ACCEPT(KEYWORD_THEN);
+            ACCEPT(LEX_EOL);
 
             if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
 
-            if (token != KEYWORD_ELSE) return ERR_SYNTAX;
-            GET_TOKEN();
-            if (token != LEX_EOL) return ERR_SYNTAX;
-            GET_TOKEN();
+            ACCEPT(KEYWORD_ELSE);
+            ACCEPT(LEX_EOL);
+
             if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
 
-            if (token != KEYWORD_END) return ERR_SYNTAX;
-            GET_TOKEN();
-            if (token != LEX_EOL) return ERR_SYNTAX;
-            GET_TOKEN();
+            ACCEPT(KEYWORD_END);
+            ACCEPT(LEX_EOL);
+
             return stat_list();
 
         case KEYWORD_WHILE:
             // pravidlo WHILE <EXPR> DO EOL <STAT_LIST> END
             GET_TOKEN();
-            if (expr() != SYNTAX_OK) {
-                return ERR_SYNTAX;
-            }
+            if (expr() != SYNTAX_OK) return ERR_SYNTAX;
 
-            if (token != KEYWORD_DO) return ERR_SYNTAX;
+            ACCEPT(KEYWORD_DO);
+            ACCEPT(LEX_EOL);
 
-            GET_TOKEN();
-            if (token != LEX_EOL) return ERR_SYNTAX;
 
-            GET_TOKEN();
             if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
 
-            if (token != KEYWORD_END) return ERR_SYNTAX;
-            GET_TOKEN();
-            if (token != LEX_EOL) return ERR_SYNTAX;
-            GET_TOKEN();
+            ACCEPT(KEYWORD_END);
+            ACCEPT(LEX_EOL);
+
             return stat_list();
 
+        case KEYWORD_DEF:
         case KEYWORD_END:
         case KEYWORD_ELSE:
             return SYNTAX_OK;
+
+            //todo temp
+        case KEYWORD_NIL:
         case LEX_EOF:
             return SYNTAX_OK;
 
@@ -156,8 +147,7 @@ int stat_list() {
                 if (assign() != SYNTAX_OK) return ERR_SYNTAX;
                 return stat_list();
             }
-            if (token != LEX_EOL) return ERR_SYNTAX;
-            GET_TOKEN();
+            ACCEPT(LEX_EOL);
             return stat_list();
 
         default:
@@ -169,7 +159,6 @@ int stat_list() {
 int params() {
     // pravidlo <ITEM><ITEM_LIST
     switch (token) {
-
         case INT:
         case FLOAT:
         case STRING:
@@ -177,7 +166,7 @@ int params() {
             GET_TOKEN();
 
             if (token == COMMA) {
-                if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
+                GET_TOKEN();
                 if (token == ID) return params();
                 return ERR_SYNTAX;
             }
@@ -185,20 +174,16 @@ int params() {
             return params();
         default:
             return ERR_SYNTAX;
-
-
     }
 }
+
 
 int fun_params() {
     // pravidlo <ITEM><ITEM_LIST
     switch (token) {
-
-
         case ROUNDR:
             GET_TOKEN();
-            if (token != LEX_EOL) return ERR_SYNTAX;
-            GET_TOKEN();
+            ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
         case ID:
@@ -209,23 +194,16 @@ int fun_params() {
             }
             return fun_params();
 
-
         default:
             return ERR_SYNTAX;
-
-
     }
 }
 
-int fun() {
-    int brackets = 0;
-    if (token != ID) return ERR_SYNTAX;
-    if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
-    if (token == ROUNDL) {
-        brackets = 1;
-        if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
 
-    }
+int fun() {
+    ACCEPT(ID);
+    ACCEPT(ROUNDL);
+
     if (fun_params() != SYNTAX_OK) return ERR_SYNTAX;
 
 //    if (brackets) {
@@ -246,7 +224,7 @@ int fun() {
 
     ACCEPT(KEYWORD_END);
 
-    if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
+    //todo condition
     if (token != LEX_EOL && token != LEX_EOF) return ERR_SYNTAX;
     GET_TOKEN();
     return SYNTAX_OK;
@@ -263,7 +241,6 @@ int program() {
             return program();
             //todo
         case ID:
-            GET_TOKEN();
             if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
             return program();
         case EOF:
@@ -283,19 +260,26 @@ int program() {
     }
 }
 
+
 int parse() {
     int result;
 
     GET_TOKEN();
     result = program();
 
-    if (result == SYNTAX_OK)
-        printf("*****SYNTAX OK\"*****\n");
-    else if (result == ERR_SYNTAX)
-        printf("*****SYNTAX ERROR*****\n");
-    else if (result == ERR_LEXICAL)
-        printf("*****LEX ERROR*****\n");
-
+    switch (result){
+        case SYNTAX_OK:
+            printf("*****SYNTAX OK\"*****\n");
+            break;
+        case ERR_SYNTAX:
+            printf("*****SYNTAX ERROR*****\n");
+            break;
+        case ERR_LEXICAL:
+            printf("*****LEX ERROR*****\n");
+            break;
+        default:
+            printf("Unknown Error\n");
+    }
 
     return result;
 }
