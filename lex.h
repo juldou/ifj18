@@ -11,7 +11,6 @@
 
 #define MAX_LENGTH 50
 #define INCREMENT 100
-#define LEX_ERR -1
 
 typedef enum {
     KEYWORD_DEF,

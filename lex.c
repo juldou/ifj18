@@ -3,6 +3,7 @@
 #include<ctype.h>
 #include <string.h>
 #include "lex.h"
+#include "error.h"
 
 
 char *string;
@@ -30,7 +31,7 @@ int addCharToArray(char c, char *str) {
         string = realloc(string, INCREMENT);
         if (string == NULL) {
             printf("realloc err\n");
-            return LEX_ERR;
+            return ERR_LEXICAL;
         }
     }
     str[i] = c;
@@ -43,7 +44,7 @@ int getToken(char *value, int *line) {
     string = malloc(sizeof(char) * MAX_LENGTH);
     if (string == NULL) {
         printf("malloc err\n");
-        return LEX_ERR;
+        return ERR_LEXICAL;
     }
 
     int s, state = START, f;
@@ -115,7 +116,7 @@ int getToken(char *value, int *line) {
                                 } else if (strcmp(string, "end") == 0) {
                                     state = START;
                                 } else {
-                                    return LEX_ERR;
+                                    return ERR_LEXICAL;
                                 }
                             } else {
                                 ungetc(s, stdin);
