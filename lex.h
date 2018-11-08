@@ -4,6 +4,7 @@
 
 #ifndef IFJ_LEX_H
 #define IFJ_LEX_H
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<ctype.h>
@@ -48,13 +49,19 @@ typedef enum {
     NUM,
     COMMENT,
     BLOCK_COMMENT,
-    IDENTIF
+    IDENTIF,
+    INPUTS,
+    INPUTF,
+    INPUTI,
+    PRINT,
+    ORD,
+    CHR,
+    SUBSTR
 
 } Types;
 
 
-
-int checkKeywords(char *tmp) ;
+int checkKeywords(char *tmp);
 
 int addCharToArray(char c, char *str);
 

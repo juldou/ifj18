@@ -21,6 +21,15 @@ int checkKeywords(char *tmp) {
     else if (strcmp("nil", tmp) == 0) return KEYWORD_NIL;
     else if (strcmp("then", tmp) == 0) return KEYWORD_THEN;
     else if (strcmp("while", tmp) == 0) return KEYWORD_WHILE;
+    else if (strcmp("inputs", tmp) == 0) return INPUTS;
+    else if (strcmp("inputf", tmp) == 0) return INPUTF;
+    else if (strcmp("inputi", tmp) == 0) return INPUTI;
+    else if (strcmp("print", tmp) == 0) return PRINT;
+    else if (strcmp("ord", tmp) == 0) return ORD;
+    else if (strcmp("chr", tmp) == 0) return CHR;
+    else if (strcmp("substr", tmp) == 0) return SUBSTR;
+
+
     else return -1;
 
 }
