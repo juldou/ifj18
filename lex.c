@@ -19,8 +19,9 @@ typedef enum {
     KEYWORD_WHILE,
 
     ID,
-    INT,
-    FLOAT,
+    NUM_INT,
+    NUM_FLOAT,
+    NUM_EXP,
     STRING,
     LEX_EOL,
     COMMA,
@@ -87,28 +88,40 @@ int addCharToArray(char c, char *str) {
 
 int getToken(char *value, int *line) {
 
-    int s, state = START, f;
+    int s, state = START,tmp;
     string[0] = '\0';
     while (1) {
 
         //todo
-        s = fgetc(stdin);
 
+        s = fgetc(stdin);
         switch (state) {
+
             case START:
-                if (s == '\n') {
-                    line++;
-                    return LEX_EOL;
-                } else if (s == EOF) {
+                if (feof(stdin)) {
                     return LEX_EOF;
                 }
-                if (isspace(s));
-                else if (islower(s) || s == '_') {
-                    //addCharToArray(s, string);
+                else if (s == '\n') {
+                    line++;
+                    return LEX_EOL;
+                }
+
+                else if (isspace(s));
+                else if (islower(s) || s == '_' && !isdigit(s)) {
+                    printf("identifier\n");
+                    addCharToArray(s,string);
                     state = IDENTIF;
-                } else if (isdigit(s)) {
+                    break;
+
+
+                }
+                else if (isdigit(s)) {
+                    printf("num\n");
+                    addCharToArray(s,string);
                     state = NUM;
-                } else {
+                    break;
+                }
+                else {
                     switch (s) {
                         //operatory
                         case '+':
@@ -120,7 +133,7 @@ int getToken(char *value, int *line) {
                         case '/':
                             return DIV;
                         case '<':
-                            s = fgetc(file);
+                            s = fgetc(stdin);
                             if (s == '=') {
                                 return LESS_EQUAL;
                             } else {
@@ -128,7 +141,7 @@ int getToken(char *value, int *line) {
                                 return LESS;
                             }
                         case '>':
-                            s = fgetc(file);
+                            s = fgetc(stdin);
                             if (s == '=') {
                                 return MORE_EQUAL;
                             } else {
@@ -141,76 +154,153 @@ int getToken(char *value, int *line) {
                             return ROUNDR;
                         case ',':
                             return COMMA;
+                        case '"':
+                            state = STRING;
+                            break;
+
                         case '=':
-                            s = fgetc(file);
+                            s = fgetc(stdin);
                             if (s == '=') {
                                 return EQUAL;
                             } else if (s == 'b' || s == 'e') {
                                 while (!isspace(s)) {
 
-                                    s = fgetc(file);
+                                    s = fgetc(stdin);
                                     addCharToArray(s, string);
                                 }
                                 if (strcmp(string, "begin") == 0) {
                                     state = BLOCK_COMMENT;
-                                } else if (strcmp(string, "end") == 0) {
-                                    state = START;
-                                } else {
+                                    break;
+                                }
+                                else {
                                     return LEX_ERR;
                                 }
                             } else {
-                                ungetc(s, file);
+                                ungetc(s, stdin);
                                 return ASSIGN;
                             }
                     }
                     default:
                         printf("LEX_ERR\n");
                 }
+            case STRING:
+                tmp = 1;
+                while(1){
+                    s = fgetc(stdin);
+                    if(s == '"'){
+                        break;
+                    }
+                    addCharToArray(s,string);
+                }
+                strcpy(value, string);
+                string[0] = '\0';
+                i = 0;
+                state = START;
+                return STRING;
 
             case IDENTIF:
                 if (isalnum(s) || s == '_' || s == '?' || s == '!') {
-                    while (isalnum(s) || s == '_' ) {
+                    while (isalnum(s) || s == '_') {
 
-                        printf("pridavam do pola znak %c\n",s);
+                        //printf("pridavam do pola znak %c\n", s);
                         addCharToArray(s, string);
-                        s = fgetc(file);
+                        s = fgetc(stdin);
                     }
 
                     if (s == '?' || s == '!') {
                         addCharToArray(s, string);
                     } else {
-                        ungetc(s, file);
+                        ungetc(s, stdin);
                     }
                     int a = checkKeywords(string);
-                    printf("a = %d\n",a);
+                    printf("a = %d\n", a);
                     if (a == -1) {
                         strcpy(value, string);
                         string[0] = '\0';
-                        i=0;
+                        i = 0;
                         return IDENTIFIER;
 
                     } else {
                         strcpy(value, string);
                         string[0] = '\0';
-                        i=0;
+                        i = 0;
                         return a;
                     }
-
-                    case NUM:
-                        f = 0;
-                    while (isdigit(s)) {
-                        if (isdigit(s)) {
-                            addCharToArray(s, value);
-                        } else if (s == '.' || s == 'e' || s == 'E') {
-                            f++;
-                            addCharToArray(s, value);
-                            return FLOAT;
-                        }
-                    }
-                    strcpy(value, string);
-                    if (f == 0) return INT;
-                    else return FLOAT;;
                 }
+//            case BLOCK_COMMENT:
+//                int i = 1;
+//                while(i){
+//                    s = fgetc(stdin);
+//                    if()
+//                }
+            case NUM:
+
+                while (isdigit(s)) {
+                    //printf("pridavam do pola znak %c\n", s);
+                    addCharToArray(s,string);
+                    s = fgetc(stdin);
+                    //printf("nacitam nove s:%c\n", s);
+
+
+                }
+                //printf("vyskocil som z whilu\n");
+                if(s == '.'){
+                    addCharToArray(s,string);
+                    state = NUM_FLOAT;
+                    break;
+                }
+                else if(s == 'e' || s == 'E'){
+                    addCharToArray(s,string);
+                    state = NUM_EXP;
+                    break;
+                }
+                else{
+                    strcpy(value, string);
+                    string[0] = '\0';
+                    i = 0;
+                    ungetc(s,stdin);
+                    state = START;
+                    return NUM_INT;
+                }
+            case NUM_FLOAT:
+
+                while (isdigit(s)) {
+                    addCharToArray(s,string);
+                    s = fgetc(stdin);
+                }
+                if(s == 'e' || s == 'E'){
+                    addCharToArray(s,string);
+                    state = NUM_EXP;
+                    break;
+                }
+                else{
+                    strcpy(value, string);
+                    string[0] = '\0';
+                    i = 0;
+                    ungetc(s,stdin);
+                    state = START;
+                    return NUM_FLOAT;
+                }
+            case NUM_EXP:
+
+                if(s == '+'||s=='-'){
+                    addCharToArray(s,string);
+                    s = fgetc(stdin);
+                }
+                if(!isdigit(s)){
+                    return LEX_ERR;
+                }
+                while(isdigit(s)){
+                    addCharToArray(s,string);
+                    s = fgetc(stdin);
+                }
+                strcpy(value, string);
+                string[0] = '\0';
+                i = 0;
+                ungetc(s,stdin);
+                state = START;
+                return NUM_EXP;
+
         }
     }
 }
