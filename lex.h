@@ -50,7 +50,8 @@ typedef enum {
     IDENTIFIER,
     COMMENT,
     BLOCK_COMMENT,
-    IDENTIF
+    IDENTIF,
+    MAXTOKEN
 
 } Types;
 
