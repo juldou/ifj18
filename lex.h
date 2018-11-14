@@ -4,6 +4,7 @@
 
 #ifndef IFJ_LEX_H
 #define IFJ_LEX_H
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<ctype.h>
@@ -11,7 +12,6 @@
 
 #define MAX_LENGTH 50
 #define INCREMENT 100
-#define LEX_ERR -1
 
 typedef enum {
     KEYWORD_DEF,
@@ -47,17 +47,22 @@ typedef enum {
     START,
     LEX_EOF,
     NUM,
-    IDENTIFIER,
     COMMENT,
     BLOCK_COMMENT,
     IDENTIF,
+    INPUTS,
+    INPUTF,
+    INPUTI,
+    PRINT,
+    ORD,
+    CHR,
+    SUBSTR,
     MAXTOKEN
 
 } Types;
 
 
-
-int checkKeywords(char *tmp) ;
+int checkKeywords(char *tmp);
 
 int addCharToArray(char c, char *str);
 
