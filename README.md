@@ -17,3 +17,9 @@ Projekt do predmetu IFJ - implementacia prekladaca imperativneho jazyka IFJ18
 - generování mezikódu
 - dokumentace
 - testování
+
+## Testy
+- testy spustis nasledovne:
+```
+bash test.sh
+```

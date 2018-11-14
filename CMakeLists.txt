@@ -7,8 +7,10 @@ add_executable(ifj18
         main.c
         lex.h
         lex.c
-        parser.c
         parser.h
+        parser.c
         symtable.h
         symtable.c
-        error.h)
+        error.h
+        semantic.h
+        semantic.c)

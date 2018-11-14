@@ -9,7 +9,9 @@
 typedef char *t_key;
 
 typedef struct elem_data {
-    int some_data;
+    char *id;
+    char **params;
+    size_t params_count;
 } elem_data;
 
 typedef struct st_elem {

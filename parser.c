@@ -1,8 +1,7 @@
 #include "lex.h"
 #include "error.h"
 #include "parser.h"
-
-#define SYNTAX_OK 101
+#include "semantic.h"
 
 #define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
 return ERR_LEXICAL;} while(0)
@@ -91,7 +90,7 @@ int assign() {
 }
 
 
-int fun_params() {
+int fun_params(char *fun_id) {
     // pravidlo <ITEM><ITEM_LIST
     switch (token) {
         case ROUNDR:
@@ -100,13 +99,15 @@ int fun_params() {
             return SYNTAX_OK;
 
         case ID:
+            if (semantic_add_fun_param(fun_id, value) == ERR_INTERNAL) return ERR_INTERNAL;
             GET_TOKEN();
 
             if (token == COMMA) {
                 GET_TOKEN();
-                if (token != ID) return ERR_SYNTAX;
+                if (token != ID)
+                    return ERR_SYNTAX;
             }
-            return fun_params();
+            return fun_params(fun_id);
 
         default:
             return ERR_SYNTAX;
@@ -116,16 +117,16 @@ int fun_params() {
 
 int fun_declr() {
     ACCEPT(ID);
+    char *fun_id; // TODO: find better way
+    fun_id = (char *) malloc(sizeof(value));
+    strcpy(fun_id, value);
+
+    if (semantic_check_fun_defined(fun_id) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
+
     ACCEPT(ROUNDL);
 
-    if (fun_params() != SYNTAX_OK) return ERR_SYNTAX;
+    if (fun_params(fun_id) != SYNTAX_OK) return ERR_SYNTAX;
 
-    if (token == KEYWORD_END) {
-        // prazdna funkcia
-        if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
-        if (token != LEX_EOL && token != LEX_EOF) return ERR_SYNTAX;
-        return SYNTAX_OK;
-    }
     if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
 
     ACCEPT(KEYWORD_END);
@@ -134,8 +135,6 @@ int fun_declr() {
     if (token != LEX_EOL && token != LEX_EOF) return ERR_SYNTAX;
     GET_TOKEN();
     return SYNTAX_OK;
-
-
 }
 
 
@@ -250,15 +249,17 @@ int stat_list() {
         case CHR:
         case SUBSTR:
             GET_TOKEN();
-            fun_call();
+            if (fun_call() != SYNTAX_OK) return ERR_SYNTAX;
+            return stat_list();
     }
 }
 
 int program() {
+    int err;
     switch (token) {
         case KEYWORD_DEF:
             GET_TOKEN();
-            if (fun_declr() != SYNTAX_OK) return ERR_SYNTAX;
+            if (( err = fun_declr() ) != SYNTAX_OK) return err;
             return program();
             //todo
 
@@ -286,19 +287,23 @@ int program() {
 
 int parse() {
     int result;
+    semantic_prepare();
 
     GET_TOKEN();
     result = program();
 
     switch (result) {
         case SYNTAX_OK:
-            printf("*****SYNTAX OK\"*****\n");
+            printf("*****SYNTAX OK*****\n");
             break;
         case ERR_SYNTAX:
             printf("*****SYNTAX ERROR*****\n");
             break;
         case ERR_LEXICAL:
             printf("*****LEX ERROR*****\n");
+            break;
+        case ERR_SEMANTIC_DEFINITION:
+            printf("*****SEMANTIC DEFINITION ERROR*****\n");
             break;
         default:
             printf("Unknown Error\n");
