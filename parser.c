@@ -144,7 +144,9 @@ int params(char *fun_id) {
     switch (token) {
         case LEX_EOL:
         case ROUNDR:
-            if ((err = semantic_check_fun_call_params(fun_id, params_count)) != 0) return err;
+            err = semantic_check_fun_call_params(fun_id, params_count);
+            params_count = 0;
+            if (err != 0) return err;
             else return SYNTAX_OK;
         case INT:
         case FLOAT:
@@ -173,7 +175,8 @@ int fun_call(char *fun_id) {
         GET_TOKEN();
     }
 
-    if (params(fun_id) != SYNTAX_OK) return ERR_SYNTAX;
+    int err = params(fun_id);
+    if (err != SYNTAX_OK) return err;
 
     if (brackets) {
         ACCEPT(ROUNDR);
@@ -184,8 +187,9 @@ int fun_call(char *fun_id) {
 }
 
 int stat_list() {
+    int err;
+    char previous_token_value[100];
     switch (token) {
-        char previous_token_value[100];
         case KEYWORD_IF:
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
             GET_TOKEN();
@@ -233,6 +237,7 @@ int stat_list() {
             return SYNTAX_OK;
 
         case ID:
+            strcpy(previous_token_value, value);
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
@@ -240,7 +245,7 @@ int stat_list() {
                 return stat_list();
             }
             if (token != LEX_EOL) {
-                if (fun_call(previous_token_value) != SYNTAX_OK) return ERR_SYNTAX;
+                if ((err = fun_call(previous_token_value)) != SYNTAX_OK) return err;
                 return stat_list();
 
             }
@@ -259,7 +264,7 @@ int stat_list() {
         case SUBSTR:
             strcpy(previous_token_value, value); // TODO: refactor descend
             GET_TOKEN();
-            if (fun_call(previous_token_value) != SYNTAX_OK) return ERR_SYNTAX;
+            if ((err = fun_call(previous_token_value)) != SYNTAX_OK) return err;
             return stat_list();
     }
 }
@@ -289,7 +294,7 @@ int program() {
             return ERR_LEXICAL;
         default:
         case ID:
-            if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
+            if ((err = stat_list()) != SYNTAX_OK) return err;
             return program();
     }
 }
@@ -314,6 +319,9 @@ int parse() {
             break;
         case ERR_SEMANTIC_DEFINITION:
             printf("*****SEMANTIC DEFINITION ERROR*****\n");
+            break;
+        case ERR_SEMANTIC_PARAMETERS_COUNT:
+            printf("*****SEMANTIC PARAMETERS COUNT*****\n");
             break;
         default:
             printf("Unknown Error\n");

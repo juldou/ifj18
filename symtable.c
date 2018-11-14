@@ -1,5 +1,6 @@
 #include "symtable.h"
 #include "error.h"
+#include <stdio.h>
 
 int hash_code(t_key key) {
     int retval = 1;

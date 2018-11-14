@@ -13,7 +13,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 1 PASSED"
 else
     echo "TEST 1 FAILED"
-    tests_failed=1
+    tests_failed+=1
 fi
 echo "--------------------------------------------------"
 
@@ -23,7 +23,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 2 PASSED"
 else
     echo "TEST 2 FAILED"
-    tests_failed=1
+    tests_failed+=1
 fi
 echo "--------------------------------------------------"
 
@@ -87,7 +87,7 @@ else
 fi
 echo "--------------------------------------------------"
 
-# doesn't work yet
+
 echo "----------------------TEST 9----------------------"
 ./ifj18 < ./programs/valid_programs/8.rb
 if [ $? -eq 0 ]; then
@@ -116,17 +116,44 @@ else
     tests_failed=1
 fi
 
+echo "----------------------TEST 12----------------------"
+./ifj18 < ./programs/return_value_5/1.rb
+if [ $? -eq 5 ]; then
+    echo "TEST 12 PASSED"
+else
+    echo "TEST 12 FAILED"
+    tests_failed=1
+fi
+
+echo "----------------------TEST 13----------------------"
+./ifj18 < ./programs/return_value_5/2.rb
+if [ $? -eq 5 ]; then
+    echo "TEST 13 PASSED"
+else
+    echo "TEST 13 FAILED"
+    tests_failed=1
+fi
+
+echo "----------------------TEST 14----------------------"
+./ifj18 < ./programs/return_value_5/3.rb
+if [ $? -eq 5 ]; then
+    echo "TEST 14 PASSED"
+else
+    echo "TEST 14 FAILED"
+    tests_failed=1
+fi
+
 echo ""
 echo "--------------------SUMMARY-----------------------"
 echo ""
-if [ $tests_failed -eq 1 ]; then
-    echo "                  TESTS FAILED                    "
+if [ $tests_failed -gt 0 ]; then
+    echo "                 TESTS FAILED: "$tests_failed""
+    echo ""
+    echo "--------------------------------------------------"
+    exit 1
 else
     echo "                  TESTS PASSED                    "
+    echo ""
+    echo "--------------------------------------------------"
+    exit 0
 fi
-echo ""
-echo "--------------------------------------------------"
-
-exit $tests_failed
-
-
