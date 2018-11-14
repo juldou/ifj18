@@ -26,7 +26,7 @@ int add_builtin_funcs_to_st() {
 void init_fun_elem_data(elem_data *data, size_t params_count, bool defined, bool is_builtin) {
     data->id = NULL;
     data->params = NULL;
-    data->params_count = 0;
+    data->params_count = params_count;
     data->defined = defined;
     data->is_builtin = is_builtin;
 }
