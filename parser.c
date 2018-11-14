@@ -144,7 +144,7 @@ int params(char *fun_id) {
     switch (token) {
         case LEX_EOL:
         case ROUNDR:
-            if (( err = semantic_check_fun_call_params(fun_id, params_count)) != 0) return err;
+            if ((err = semantic_check_fun_call_params(fun_id, params_count)) != 0) return err;
             else return SYNTAX_OK;
         case INT:
         case FLOAT:
@@ -239,6 +239,11 @@ int stat_list() {
                 if (assign() != SYNTAX_OK) return ERR_SYNTAX;
                 return stat_list();
             }
+            if (token != LEX_EOL) {
+                if (fun_call(previous_token_value) != SYNTAX_OK) return ERR_SYNTAX;
+                return stat_list();
+
+            }
             ACCEPT(LEX_EOL);
             return stat_list();
 
@@ -264,7 +269,7 @@ int program() {
     switch (token) {
         case KEYWORD_DEF:
             GET_TOKEN();
-            if (( err = fun_declr() ) != SYNTAX_OK) return err;
+            if ((err = fun_declr()) != SYNTAX_OK) return err;
             return program();
             //todo
 

@@ -11,9 +11,9 @@ int hash_code(t_key key) {
 
 void st_init(st *st_ptr) {
 //    if (st_ptr) {
-        for (int i = 0; i < SYMTABLE_SIZE; i++) {
-            (*st_ptr)[i] = NULL;
-        }
+    for (int i = 0; i < SYMTABLE_SIZE; i++) {
+        (*st_ptr)[i] = NULL;
+    }
 //    }
 }
 
@@ -31,7 +31,7 @@ st_elem *st_search(st *st_ptr, t_key key) {
     return NULL;
 }
 
-int st_insert(st *st_ptr, t_key key, elem_data * data) {
+int st_insert(st *st_ptr, t_key key, elem_data *data) {
     if (st_ptr == NULL || key == NULL) {
         return ERR_INTERNAL;
     }
@@ -43,7 +43,7 @@ int st_insert(st *st_ptr, t_key key, elem_data * data) {
         if (tmp == NULL) {
             return ERR_INTERNAL;
         }
-        tmp->key = malloc(strlen(key) + 1);
+        tmp->key = malloc(sizeof(char) * (strlen(key) + 1));
         if (tmp->key == NULL) {
             return ERR_INTERNAL;
         }
