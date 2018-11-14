@@ -14,7 +14,7 @@ typedef struct elem_data {
 
 typedef struct st_elem {
     t_key key;
-    elem_data * data;
+    elem_data *data;
     struct st_elem *ptrnext;
 } st_elem;
 

@@ -31,7 +31,7 @@ st_elem *st_search(st *st_ptr, t_key key) {
     return NULL;
 }
 
-int st_insert(st *st_ptr, t_key key, elem_data * data) {
+int st_insert(st *st_ptr, t_key key, elem_data *data) {
     if (st_ptr == NULL || key == NULL) {
         return ERR_INTERNAL;
     }

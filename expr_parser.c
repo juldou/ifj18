@@ -1,3 +1,4 @@
+#include <zconf.h>
 #include "expr_parser.h"
 #include "lex.h"
 
@@ -51,3 +52,41 @@ int decode(int symbol) {
             return -1;
     }
 }
+
+bool check_rule(t_stack *stack, int count, ...) {
+    va_list vaList;
+    va_start(vaList, count);
+
+    int *params = malloc(count * sizeof(int));
+
+    if (params == NULL) {
+        va_end(vaList);
+        return false;
+    }
+
+    for (int i = 0; i < count; ++i) { //give params to array in reverse order
+        params[count - 1 - i] = va_arg(vaList, int);
+    }
+
+    t_stack_item *tmp = stack->top;
+
+    for (int i = 0; i < count; ++i) {
+        if (tmp->symbol != params[i]) {
+            free(params);
+            va_end(vaList);
+            return false;
+        }
+    }
+
+    if (tmp->symbol != GR) {
+        free(params);
+        va_end(vaList);
+        return false;
+    }
+
+    free(params);
+    va_end(vaList);
+    return true;
+}
+
+

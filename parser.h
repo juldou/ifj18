@@ -6,11 +6,16 @@
 #define IFJ_PARSER_H
 
 int assign();
+
 int expr();
+
 int fun_params();
 int params() ;
+
 int fun_declr();
+
 int fun_call();
+
 int stat_list();
 
 int program();
