@@ -10,9 +10,9 @@
 int assign();
 int expr();
 int fun_params(char *func_id);
-int params() ;
+int params(char *func_id);
 int fun_declr();
-int fun_call();
+int fun_call(char *func_id);
 int stat_list();
 
 int program();

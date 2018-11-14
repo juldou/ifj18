@@ -117,15 +117,14 @@ int fun_params(char *fun_id) {
 
 int fun_declr() {
     ACCEPT(ID);
-    char *fun_id; // TODO: find better way
-    fun_id = (char *) malloc(sizeof(value));
-    strcpy(fun_id, value);
+    char previous_token_value[100];  // TODO: refactor descend
+    strcpy(previous_token_value, value);
 
-    if (semantic_check_fun_defined(fun_id) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
+    if (semantic_check_fun_definition(value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
 
     ACCEPT(ROUNDL);
 
-    if (fun_params(fun_id) != SYNTAX_OK) return ERR_SYNTAX;
+    if (fun_params(previous_token_value) != SYNTAX_OK) return ERR_SYNTAX;
 
     if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
 
@@ -138,39 +137,43 @@ int fun_declr() {
 }
 
 
-int params() {
+int params(char *fun_id) {
     // pravidlo <ITEM><ITEM_LIST
+    int err;
+    static size_t params_count = 0;
     switch (token) {
         case LEX_EOL:
         case ROUNDR:
-            return SYNTAX_OK;
+            if (( err = semantic_check_fun_call_params(fun_id, params_count)) != 0) return err;
+            else return SYNTAX_OK;
         case INT:
         case FLOAT:
         case STRING:
         case ID:
+            params_count++;
             GET_TOKEN();
 
             if (token == COMMA) {
                 GET_TOKEN();
                 if (token != ID) return ERR_SYNTAX;
-                return params();
+                return params(fun_id);
             }
 
-            return params();
+            return params(fun_id);
         default:
             return ERR_SYNTAX;
     }
 }
 
 
-int fun_call() {
+int fun_call(char *fun_id) {
     int brackets = 0;
     if (token == ROUNDL) {
         brackets = 1;
         GET_TOKEN();
     }
 
-    if (params() != SYNTAX_OK) return ERR_SYNTAX;
+    if (params(fun_id) != SYNTAX_OK) return ERR_SYNTAX;
 
     if (brackets) {
         ACCEPT(ROUNDR);
@@ -182,6 +185,7 @@ int fun_call() {
 
 int stat_list() {
     switch (token) {
+        char previous_token_value[100];
         case KEYWORD_IF:
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
             GET_TOKEN();
@@ -248,8 +252,9 @@ int stat_list() {
         case ORD:
         case CHR:
         case SUBSTR:
+            strcpy(previous_token_value, value); // TODO: refactor descend
             GET_TOKEN();
-            if (fun_call() != SYNTAX_OK) return ERR_SYNTAX;
+            if (fun_call(previous_token_value) != SYNTAX_OK) return ERR_SYNTAX;
             return stat_list();
     }
 }
@@ -287,7 +292,7 @@ int program() {
 
 int parse() {
     int result;
-    semantic_prepare();
+    if (semantic_prepare() == ERR_INTERNAL) return ERR_INTERNAL;
 
     GET_TOKEN();
     result = program();

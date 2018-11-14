@@ -87,6 +87,28 @@ else
 fi
 echo "--------------------------------------------------"
 
+# doesn't work yet
+#echo "----------------------TEST 9----------------------"
+#./ifj18 < ./programs/valid_programs/8.rb
+#if [ $? -eq 0 ]; then
+#    echo "TEST 9 PASSED"
+#else
+#    echo "TEST 9 FAILED"
+#    tests_failed=1
+#fi
+#echo "--------------------------------------------------"
+#
+#echo "----------------------TEST 10----------------------"
+#./ifj18 < ./programs/valid_programs/9.rb
+#if [ $? -eq 0 ]; then
+#    echo "TEST 10 PASSED"
+#else
+#    echo "TEST 10 FAILED"
+#    tests_failed=1
+#fi
+#echo "--------------------------------------------------"
+
+
 echo ""
 echo "--------------------SUMMARY-----------------------"
 echo ""
