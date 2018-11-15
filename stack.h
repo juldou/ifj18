@@ -22,6 +22,8 @@ bool is_terminal(int token);
 
 t_stack_item *top_term(t_stack *stack);
 
+void multi_pop(t_stack *stack, int count);
+
 void insert_after_first_terminal(t_stack *stack, int symbol);
 
 #endif //IFJ_STACK_H

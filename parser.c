@@ -1,6 +1,7 @@
 #include "lex.h"
 #include "error.h"
 #include "parser.h"
+#include "expr_parser.h"
 
 #define SYNTAX_OK 101
 
@@ -74,8 +75,7 @@ int assign() {
     // pravidlo "ID" = <value>
     switch (token) {
         case ID:
-            if (expr() != SYNTAX_OK) return ERR_SYNTAX;
-            ACCEPT(LEX_EOL);
+            if (math_expr() != SYNTAX_OK) return ERR_SYNTAX;
             return SYNTAX_OK;
         case INT:
         case FLOAT:
@@ -186,7 +186,7 @@ int stat_list() {
         case KEYWORD_IF:
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
             GET_TOKEN();
-            if (expr() != SYNTAX_OK) return ERR_SYNTAX;
+            if (bool_expr() != SYNTAX_OK) return ERR_SYNTAX;
 
             ACCEPT(KEYWORD_THEN);
             ACCEPT(LEX_EOL);
@@ -206,7 +206,7 @@ int stat_list() {
         case KEYWORD_WHILE:
             // pravidlo WHILE <EXPR> DO EOL <STAT_LIST> END
             GET_TOKEN();
-            if (expr() != SYNTAX_OK) return ERR_SYNTAX;
+            if (bool_expr() != SYNTAX_OK) return ERR_SYNTAX;
 
             ACCEPT(KEYWORD_DO);
             ACCEPT(LEX_EOL);

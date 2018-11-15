@@ -1,9 +1,24 @@
 #include <zconf.h>
 #include "expr_parser.h"
-#include "lex.h"
+#include "error.h"
 
 
 #define SIZE 7
+#define SYNTAX_OK 101
+#define MATH 0
+#define BOOL 1
+
+#define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
+return ERR_LEXICAL;} while(0)
+
+#define ACCEPT(type) do{ if(token != type) return ERR_SYNTAX;\
+    GET_TOKEN();} while(0)
+
+extern int token;
+
+//temp
+char value[100];
+int line;
 
 const char prec_table[SIZE][SIZE] = {
 //             0    1   2   3   4   5   6
@@ -89,4 +104,104 @@ bool check_rule(t_stack *stack, int count, ...) {
     return true;
 }
 
+void pop_rule(t_stack *stack, int count) {
+    multi_pop(stack, count + 1); //pop rule and symbol '<'
+}
+
+int rules(t_stack *stack) {
+    if (check_rule(stack, 3, EXPR, PLUS, EXPR)) {
+        pop_rule(stack, 3);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 3, EXPR, MINUS, EXPR)) {
+        pop_rule(stack, 3);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 3, EXPR, MUL, EXPR)) {
+        pop_rule(stack, 3);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 3, EXPR, DIV, EXPR)) {
+        pop_rule(stack, 3);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 3, EXPR, LESS, EXPR)) {
+        pop_rule(stack, 3);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 3, EXPR, MORE, EXPR)) {
+        pop_rule(stack, 3);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 3, EXPR, LESS_EQUAL, EXPR)) {
+        pop_rule(stack, 3);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 3, EXPR, MORE_EQUAL, EXPR)) {
+        pop_rule(stack, 3);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 3, EXPR, NOT_EQUAL, EXPR)) {
+        pop_rule(stack, 3);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 3, EXPR, EQUAL, EXPR)) {
+        pop_rule(stack, 3);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 1, ID)) {
+        pop_rule(stack, 1);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, ROUNDL, EXPR, ROUNDR)) {
+        pop_rule(stack, 3);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 1, INT)) {
+        pop_rule(stack, 1);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 1, FLOAT)) {
+        pop_rule(stack, 1);
+        return SYNTAX_OK;
+    } else return ERR_SYNTAX;
+}
+
+int expresion(int type) {
+    int retval;
+    t_stack *stack;
+    stack_init(stack);
+
+    push(stack, LEX_EOF);
+
+    // printf("%d\n",token);
+
+    do {
+        if (type == BOOL && token == ROUNDR && top_term(stack)->symbol == LEX_EOF) {
+            break;
+        }
+
+        switch (prec_table[decode(top_term(stack)->symbol)][decode(token)]) {
+            case EQ:
+                push(stack, token);
+                GET_TOKEN();
+                break;
+            case LE:
+                insert_after_first_terminal(stack, LE);
+                push(stack, token);
+                GET_TOKEN();
+                break;
+            case GR:
+                retval = rules(stack);
+                if (retval != SYNTAX_OK) {
+                    return retval;
+                }
+                break;
+            case NO:
+            default:
+                while (stack->top != NULL) pop(stack);
+                return ERR_SYNTAX;
+        }
+
+    } while (token != LEX_EOL || top_term(stack)->symbol != LEX_EOF);
+
+
+    return SYNTAX_OK;
+
+}
+
+int bool_expr() {
+    return expresion(BOOL);
+}
+
+int math_expr() {
+    return expresion(MATH);
+}
 

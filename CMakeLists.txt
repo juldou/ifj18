@@ -11,4 +11,8 @@ add_executable(ifj18
         parser.h
         symtable.h
         symtable.c
-        error.h)
+        error.h
+        expr_parser.c
+        expr_parser.h
+        stack.c
+        stack.h)
