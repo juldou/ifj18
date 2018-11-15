@@ -13,7 +13,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 1 PASSED"
 else
     echo "TEST 1 FAILED"
-    tests_failed+=1
+    let tests_failed+=1
 fi
 echo "--------------------------------------------------"
 
@@ -23,7 +23,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 2 PASSED"
 else
     echo "TEST 2 FAILED"
-    tests_failed+=1
+    let tests_failed+=1
 fi
 echo "--------------------------------------------------"
 
@@ -33,7 +33,7 @@ if [ $? -eq 3 ]; then
     echo "TEST 3 PASSED"
 else
     echo "TEST 3 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 echo "--------------------------------------------------"
 
@@ -43,7 +43,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 4 PASSED"
 else
     echo "TEST 4 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 echo "--------------------------------------------------"
 
@@ -53,7 +53,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 5 PASSED"
 else
     echo "TEST 5 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 echo "--------------------------------------------------"
 
@@ -63,7 +63,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 6 PASSED"
 else
     echo "TEST 6 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 echo "--------------------------------------------------"
 
@@ -73,7 +73,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 7 PASSED"
 else
     echo "TEST 7 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 echo "--------------------------------------------------"
 
@@ -83,7 +83,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 8 PASSED"
 else
     echo "TEST 8 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 echo "--------------------------------------------------"
 
@@ -94,7 +94,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 9 PASSED"
 else
     echo "TEST 9 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 echo "--------------------------------------------------"
 
@@ -104,7 +104,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 10 PASSED"
 else
     echo "TEST 10 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 echo "--------------------------------------------------"
 echo "----------------------TEST 11----------------------"
@@ -113,7 +113,7 @@ if [ $? -eq 0 ]; then
     echo "TEST 11 PASSED"
 else
     echo "TEST 11 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 
 echo "----------------------TEST 12----------------------"
@@ -122,7 +122,7 @@ if [ $? -eq 5 ]; then
     echo "TEST 12 PASSED"
 else
     echo "TEST 12 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 
 echo "----------------------TEST 13----------------------"
@@ -131,7 +131,7 @@ if [ $? -eq 5 ]; then
     echo "TEST 13 PASSED"
 else
     echo "TEST 13 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 
 echo "----------------------TEST 14----------------------"
@@ -140,7 +140,7 @@ if [ $? -eq 5 ]; then
     echo "TEST 14 PASSED"
 else
     echo "TEST 14 FAILED"
-    tests_failed=1
+    let tests_failed+=1
 fi
 
 echo ""
