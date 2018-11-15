@@ -45,6 +45,7 @@ t_stack_item *top_term(t_stack *stack) {
             tmp = tmp->next;
         }
     }
+    return NULL;
 }
 
 void insert_after_first_terminal(t_stack *stack, int symbol) {
@@ -67,7 +68,6 @@ void insert_after_first_terminal(t_stack *stack, int symbol) {
             return;
         } else { //symbol is not terminal
             prev = tmp;
-            tmp = tmp->next;
         }
     }
 }
