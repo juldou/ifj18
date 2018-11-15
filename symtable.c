@@ -1,20 +1,21 @@
 #include "symtable.h"
 #include "error.h"
+#include <stdio.h>
 
 int hash_code(t_key key) {
     int retval = 1;
-    int idlen = strlen(key);
+    size_t idlen = strlen(key);
     for (int i = 0; i < idlen; i++)
         retval += key[i];
     return (retval % SYMTABLE_SIZE);
 }
 
 void st_init(st *st_ptr) {
-    if (st_ptr) {
-        for (int i = 0; i < SYMTABLE_SIZE; i++) {
-            (*st_ptr)[i] = NULL;
-        }
+//    if (st_ptr) {
+    for (int i = 0; i < SYMTABLE_SIZE; i++) {
+        (*st_ptr)[i] = NULL;
     }
+//    }
 }
 
 st_elem *st_search(st *st_ptr, t_key key) {
@@ -38,13 +39,12 @@ int st_insert(st *st_ptr, t_key key, elem_data *data) {
     st_elem *tmp = st_search(st_ptr, key);
     if (tmp) {
         tmp->data = data;
-    } else { //item with id doesnt exist
-
+    } else { // item with id doesnt exist
         tmp = malloc(sizeof(struct st_elem));
         if (tmp == NULL) {
             return ERR_INTERNAL;
         }
-        tmp->key = malloc(strlen(key) + 1);
+        tmp->key = malloc(sizeof(char) * (strlen(key) + 1));
         if (tmp->key == NULL) {
             return ERR_INTERNAL;
         }
@@ -52,7 +52,7 @@ int st_insert(st *st_ptr, t_key key, elem_data *data) {
         tmp->data = data;
         tmp->ptrnext = NULL;
         int index = hash_code(key);
-        if ((*st_ptr)[index]) { //insert before first item
+        if ((*st_ptr)[index]) { // insert before first item
             tmp->ptrnext = (*st_ptr)[index];
         }
         (*st_ptr)[index] = tmp;

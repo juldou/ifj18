@@ -15,4 +15,7 @@ add_executable(ifj18
         expr_parser.c
         expr_parser.h
         stack.c
-        stack.h)
+        stack.h
+        error.h
+        semantic.h
+        semantic.c)
