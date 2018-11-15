@@ -18,4 +18,6 @@ int semantic_add_fun_param(char *fun_id, char *param);
 int semantic_check_fun_definition(char *fun_id);
 int semantic_check_fun_call_params(char *fun_id, size_t params_count);
 
+bool semantic_token_is_function(char *fun_id);
+
 #endif //IFJ_SEMANTIC_H

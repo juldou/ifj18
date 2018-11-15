@@ -244,7 +244,7 @@ int stat_list() {
                 if (assign() != SYNTAX_OK) return ERR_SYNTAX;
                 return stat_list();
             }
-            if (token != LEX_EOL) {
+            if (token != LEX_EOL || semantic_token_is_function(previous_token_value)) {
                 if ((err = fun_call(previous_token_value)) != SYNTAX_OK) return err;
                 return stat_list();
 
