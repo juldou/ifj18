@@ -5,12 +5,14 @@
 #ifndef IFJ_PARSER_H
 #define IFJ_PARSER_H
 
+#define SYNTAX_OK 101
+
 int assign();
 int expr();
-int fun_params();
-int params() ;
+int fun_params(char *func_id);
+int params(char *func_id);
 int fun_declr();
-int fun_call();
+int fun_call(char *func_id);
 int stat_list();
 
 int program();

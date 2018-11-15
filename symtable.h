@@ -3,13 +3,18 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define SYMTABLE_SIZE 101
 
 typedef char *t_key;
 
 typedef struct elem_data {
-    int some_data;
+    char *id;
+    char **params;
+    size_t params_count;
+    bool defined;
+    bool is_builtin;
 } elem_data;
 
 typedef struct st_elem {
