@@ -24,16 +24,22 @@ const char prec_table[SIZE][SIZE] = {
 //             0    1   2   3   4   5   6
 //             + - * / rel  (   )  ID   $
 /*  0 + - */ {GR, LE, GR, LE, GR, LE, GR},
+
 /*  1 * / */
              {GR, GR, GR, LE, GR, LE, GR},
+
 /*  2 rel */
              {LE, LE, NO, LE, GR, LE, GR},
+
 /*  3 (   */
              {LE, LE, LE, LE, EQ, LE, NO},
+
 /*  4 )   */
              {GR, GR, GR, NO, GR, NO, GR},
+
 /*  5 id  */
              {GR, GR, GR, NO, GR, NO, GR},
+
 /*  6 $   */
              {LE, LE, LE, LE, NO, LE, NO}
 };
@@ -62,6 +68,9 @@ int decode(int symbol) {
         case ID:
             return 5;
         case LEX_EOF:
+        case LEX_EOL:
+        case KEYWORD_DO:
+        case KEYWORD_THEN:
             return 6;
         default:
             return -1;
@@ -91,9 +100,17 @@ bool check_rule(t_stack *stack, int count, ...) {
             va_end(vaList);
             return false;
         }
+
+        if (tmp->next == NULL) {
+            free(params);
+            va_end(vaList);
+            return false;
+        }
+
+        tmp = tmp->next;
     }
 
-    if (tmp->symbol != GR) {
+    if (tmp->symbol != LE) {
         free(params);
         va_end(vaList);
         return false;
@@ -104,59 +121,62 @@ bool check_rule(t_stack *stack, int count, ...) {
     return true;
 }
 
-void pop_rule(t_stack *stack, int count) {
+void pop_rule(t_stack *stack, int count, int symbol) {
     multi_pop(stack, count + 1); //pop rule and symbol '<'
+    push(stack, symbol);
 }
+
 
 int rules(t_stack *stack) {
     if (check_rule(stack, 3, EXPR, PLUS, EXPR)) {
-        pop_rule(stack, 3);
+        pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, MINUS, EXPR)) {
-        pop_rule(stack, 3);
+        pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, MUL, EXPR)) {
-        pop_rule(stack, 3);
+        pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, DIV, EXPR)) {
-        pop_rule(stack, 3);
+        pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, LESS, EXPR)) {
-        pop_rule(stack, 3);
+        pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, MORE, EXPR)) {
-        pop_rule(stack, 3);
+        pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, LESS_EQUAL, EXPR)) {
-        pop_rule(stack, 3);
+        pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, MORE_EQUAL, EXPR)) {
-        pop_rule(stack, 3);
+        pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, NOT_EQUAL, EXPR)) {
-        pop_rule(stack, 3);
+        pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, EQUAL, EXPR)) {
-        pop_rule(stack, 3);
+        pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 1, ID)) {
-        pop_rule(stack, 1);
+        pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, ROUNDL, EXPR, ROUNDR)) {
-        pop_rule(stack, 3);
+        pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 1, INT)) {
-        pop_rule(stack, 1);
+        pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 1, FLOAT)) {
-        pop_rule(stack, 1);
+        pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
     } else return ERR_SYNTAX;
 }
 
+
 int expresion(int type) {
     int retval;
-    t_stack *stack;
+    t_stack *stack = malloc(sizeof(t_stack));
     stack_init(stack);
 
     push(stack, LEX_EOF);
@@ -164,9 +184,11 @@ int expresion(int type) {
     // printf("%d\n",token);
 
     do {
-        if (type == BOOL && token == ROUNDR && top_term(stack)->symbol == LEX_EOF) {
+        if (type == BOOL && (token == ROUNDR || token == KEYWORD_THEN || token == KEYWORD_DO) &&
+            top_term(stack)->symbol == LEX_EOF) {
             break;
         }
+
 
         switch (prec_table[decode(top_term(stack)->symbol)][decode(token)]) {
             case EQ:
@@ -181,18 +203,22 @@ int expresion(int type) {
             case GR:
                 retval = rules(stack);
                 if (retval != SYNTAX_OK) {
+                    while (stack->top != NULL) pop(stack);
+                    free(stack);
                     return retval;
                 }
                 break;
             case NO:
             default:
                 while (stack->top != NULL) pop(stack);
+                free(stack);
                 return ERR_SYNTAX;
         }
 
     } while (token != LEX_EOL || top_term(stack)->symbol != LEX_EOF);
 
-
+    while (stack->top != NULL) pop(stack);
+    free(stack);
     return SYNTAX_OK;
 
 }

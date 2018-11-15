@@ -2,8 +2,8 @@
 #define _ERROR_H_
 
 //todo zmenit
-#define ERR_LEXICAL 111111
-#define ERR_SYNTAX 22222
+#define ERR_LEXICAL 200
+#define ERR_SYNTAX 201
 #define ERR_SEMANTIC_DEFINITION 3
 #define ERR_SEMANTIC_TYPE 4
 #define ERR_SEMANTIC_PARAMETERS_COUNT 5

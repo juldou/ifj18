@@ -55,26 +55,13 @@ char *values[] = {
 
 };
 
-
-int expr() {
-    switch (token) {
-        case INT:
-        case FLOAT:
-        case ID:
-            GET_TOKEN();
-            return SYNTAX_OK;
-        default:
-            return ERR_SYNTAX;
-    }
-
-}
-
-
 int assign() {
     // pravidlo "ID" = <value>
     switch (token) {
+        case ROUNDL:
         case ID:
             if (math_expr() != SYNTAX_OK) return ERR_SYNTAX;
+            ACCEPT(LEX_EOL);
             return SYNTAX_OK;
         case INT:
         case FLOAT:
