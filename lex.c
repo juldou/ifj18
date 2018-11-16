@@ -5,15 +5,53 @@
 #include "lex.h"
 #include "error.h"
 
-#define MAX_LENGTH 50
-#define INCREMENT 100
+char *valuess[] = {
+        "KEYWORD_DEF",
+        "KEYWORD_DO",
+        "KEYWORD_ELSE",
+        "KEYWORD_END",
+        "KEYWORD_IF",
+        "KEYWORD_NOT",
+        "KEYWORD_NIL",
+        "KEYWORD_THEN",
+        "KEYWORD_WHILE",
+        "ID",
+        "NUM_INT",
+        "NUM_FLOAT",
+        "NUM_EXP",
+        "STRING",
+        "LEX_EOL",
+        "COMMA",
+        "ROUNDL",
+        "ROUNDR",
+        "ASSIGN",
+        "PLUS",
+        "MINUS",
+        "MUL",
+        "DIV",
+        "LESS",
+        "MORE",
+        "LESS_EQUAL",
+        "MORE_EQUAL",
+        "EQUAL",
+        "NOT_EQUAL",
 
+        "START",
+        "LEX_EOF",
+        "NUM",
+        "COMMENT",
+        "BLOCK_COMMENT",
+        "IDENTIF",
+        "INPUTS",
+        "INPUTF",
+        "INPUTI",
+        "PRINT",
+        "ORD",
+        "CHR",
+        "SUBSTR",
+        "MAXTOKEN"
 
-FILE *file;
-
-unsigned int i = 0;
-char *string;
-
+};
 
 int checkKeywords(char *tmp) {
 
@@ -40,31 +78,10 @@ int checkKeywords(char *tmp) {
 
 }
 
-int addCharToArray(char c, char *str) {
-
-    if (i >= INCREMENT) {
-        string = realloc(string, sizeof(str) + INCREMENT*sizeof(char));
-        if (string == NULL) {
-            printf("realloc err\n");
-            return ERR_LEXICAL;
-        }
-
-    }
-    str[i] = c;
-    i++;
-    str[i] = '\0';
-    return 0;
-}
-
-int getToken(char *value, int *line) {
-    string = malloc(sizeof(char) * MAX_LENGTH);
-    if (string == NULL) {
-        printf("malloc err\n");
-        return ERR_LEXICAL;
-    }
-
-    int s, state = START, tmp;
-    string[0] = '\0';
+int getToken(string *value, int *line) {
+    static int matovaPremenna = 0;
+    int s, state = START;
+    strClear(value);
     while (1) {
 
         s = fgetc(stdin);
@@ -76,21 +93,20 @@ int getToken(char *value, int *line) {
             case START:
 
                 if (s == '\n') {
-                    line++;
+                    matovaPremenna++;
+                    (*line) = matovaPremenna;
                     return LEX_EOL;
                 }
                 else if (isspace(s));
                 else if (islower(s) || s == '_') {
-                    addCharToArray(s, string);
+                    strAddChar(value, s);
                     s = fgetc(stdin);
                     if (isalnum(s) || s == '_' || s == '?' || s == '!') {
                         ungetc(s, stdin);
                         state = IDENTIF;
                     } else {
                         ungetc(s, stdin);
-                        strcpy(value, string);
-                        string[0] = '\0';
-                        i = 0;
+                        //strcpy(value, string);
                         state = START;
                         return ID;
                     }
@@ -98,7 +114,7 @@ int getToken(char *value, int *line) {
 
 
                 } else if (isdigit(s)) {
-                    addCharToArray(s, string);
+                    strAddChar(value, s);
                     state = NUM;
                     break;
                 } else {
@@ -151,12 +167,10 @@ int getToken(char *value, int *line) {
                                 return EQUAL;
                             } else if (s == 'b' || s == 'e') {
                                 while (!isspace(s)) {
-                                    addCharToArray(s, string);
-                                    if (strcmp(string, "begin") == 0) {
+                                    strAddChar(value, s);
+                                    if (strcmp(value->str, "begin") == 0) {
                                         //printf("block comment\n");
                                         state = BLOCK_COMMENT;
-                                        string[0] = '\0';
-                                        i = 0;
                                         break;
                                     }
                                     s = fgetc(stdin);
@@ -175,17 +189,15 @@ int getToken(char *value, int *line) {
                 }
                 break;
             case STRING:
-                addCharToArray(s, string);
+                strAddChar(value, s);
                 while (1) {
                     s = fgetc(stdin);
                     if (s == '"') {
                         break;
                     }
-                    addCharToArray(s, string);
+                    strAddChar(value, s);
                 }
-                strcpy(value, string);
-                string[0] = '\0';
-                i = 0;
+                //strcpy(value, string);
                 state = START;
                 return STRING;
 
@@ -193,28 +205,24 @@ int getToken(char *value, int *line) {
                 if (isalnum(s) || s == '_' || s == '?' || s == '!') {
                     while (isalnum(s) || s == '_') {
 
-                        addCharToArray(s, string);
+                        strAddChar(value, s);
                         s = fgetc(stdin);
                     }
 
                     if (s == '?' || s == '!') {
-                        addCharToArray(s, string);
+                        strAddChar(value, s);
                     } else {
                         ungetc(s, stdin);
                     }
-                    int a = checkKeywords(string);
-                    printf("a = %d\n",a);
+                    int a = checkKeywords(value->str);
+                    //printf("a = %d\n",a);
                     if (a == -1) {
-                        strcpy(value, string);
-                        string[0] = '\0';
-                        i = 0;
+                        //strcpy(value, string);
                         state = START;
                         return ID;
 
                     } else {
-                        strcpy(value, string);
-                        string[0] = '\0';
-                        i = 0;
+                        //strcpy(value, string);
                         state = START;
                         return a;
                     }
@@ -246,7 +254,7 @@ int getToken(char *value, int *line) {
 
                 while (isdigit(s)) {
                     //printf("pridavam do pola znak %c\n", s);
-                    addCharToArray(s, string);
+                    strAddChar(value, s);
                     s = fgetc(stdin);
                     //printf("nacitam nove s:%c\n", s);
 
@@ -254,17 +262,15 @@ int getToken(char *value, int *line) {
                 }
                 //printf("vyskocil som z whilu\n");
                 if (s == '.') {
-                    addCharToArray(s, string);
+                    strAddChar(value, s);
                     state = NUM_FLOAT;
                     break;
                 } else if (s == 'e' || s == 'E') {
-                    addCharToArray(s, string);
+                    strAddChar(value, s);
                     state = NUM_EXP;
                     break;
                 } else {
-                    strcpy(value, string);
-                    string[0] = '\0';
-                    i = 0;
+                    //strcpy(value, string);
                     ungetc(s, stdin);
                     state = START;
                     return NUM_INT;
@@ -274,17 +280,15 @@ int getToken(char *value, int *line) {
             case NUM_FLOAT:
 
                 while (isdigit(s)) {
-                    addCharToArray(s, string);
+                    strAddChar(value, s);
                     s = fgetc(stdin);
                 }
                 if (s == 'e' || s == 'E') {
-                    addCharToArray(s, string);
+                    strAddChar(value, s);
                     state = NUM_EXP;
                     break;
                 } else {
-                    strcpy(value, string);
-                    string[0] = '\0';
-                    i = 0;
+                    //strcpy(value, string);
                     ungetc(s, stdin);
                     state = START;
                     return NUM_FLOAT;
@@ -292,19 +296,17 @@ int getToken(char *value, int *line) {
             case NUM_EXP:
 
                 if (s == '+' || s == '-') {
-                    addCharToArray(s, string);
+                    strAddChar(value, s);
                     s = fgetc(stdin);
                 }
                 if (!isdigit(s)) {
                     return ERR_LEXICAL;
                 }
                 while (isdigit(s)) {
-                    addCharToArray(s, string);
+                    strAddChar(value, s);
                     s = fgetc(stdin);
                 }
-                strcpy(value, string);
-                string[0] = '\0';
-                i = 0;
+                //strcpy(value, string);
                 ungetc(s, stdin);
                 state = START;
                 return NUM_EXP;
@@ -316,23 +318,15 @@ int getToken(char *value, int *line) {
 
 // int main() {
 //     int a;
-//     char value[100];
-//     int line;
-//     string = malloc(sizeof(char) * MAX_LENGTH);
-//     if (string == NULL) {
-//         printf("malloc err\n");
-//         return ERR_LEXICAL;
-//     }
-//     file = stdin;
-//     if (file == NULL) {
-//         printf("file cant open\n");
-//         return ERR_LEXICAL;
-//     }
+//     string *value;
+//     value = malloc(sizeof(string));
+//     if (value == NULL) return ERR_INTERNAL;
+//     if (strInit(value) == STR_ERROR) return ERR_INTERNAL;
+//     int line = 0;
 //
 //     do {
 //         a = getToken(value, &line);
-//         printf("Value: %s line: %d type: %d\n", value, line, a);
-//         value[0] = '\0';
+//         printf("Value: %15s line: %5d type: %s\n", value->str, line, valuess[a]);
 //         if (a == ERR_LEXICAL) {
 //             break;
 //         }

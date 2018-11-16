@@ -12,7 +12,7 @@ return ERR_LEXICAL;} while(0)
 int token;
 
 //temp
-char value[100];
+string *value;
 int line;
 
 char *values[] = {
@@ -94,7 +94,7 @@ int fun_params(char *fun_id) {
             return SYNTAX_OK;
 
         case ID:
-            if (semantic_add_fun_param(fun_id, value) == ERR_INTERNAL) return ERR_INTERNAL;
+            if (semantic_add_fun_param(fun_id, value->str) == ERR_INTERNAL) return ERR_INTERNAL;
             GET_TOKEN();
 
             if (token == COMMA) {
@@ -111,11 +111,11 @@ int fun_params(char *fun_id) {
 
 
 int fun_declr() {
-    ACCEPT(ID);
     char previous_token_value[100];  // TODO: refactor descend
-    strcpy(previous_token_value, value);
+    strcpy(previous_token_value, value->str);
+    ACCEPT(ID);
 
-    if (semantic_check_fun_definition(value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
+    if (semantic_check_fun_definition(previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
 
     ACCEPT(ROUNDL);
 
@@ -235,7 +235,7 @@ int stat_list() {
             return SYNTAX_OK;
 
         case ID:
-            strcpy(previous_token_value, value);
+            strcpy(previous_token_value, value->str);
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
@@ -260,7 +260,7 @@ int stat_list() {
         case ORD:
         case CHR:
         case SUBSTR:
-            strcpy(previous_token_value, value); // TODO: refactor descend
+            strcpy(previous_token_value, value->str); // TODO: refactor descend
             GET_TOKEN();
             if ((err = fun_call(previous_token_value)) != SYNTAX_OK) return err;
             return stat_list();
@@ -300,6 +300,9 @@ int program() {
 
 int parse() {
     int result;
+    value = malloc(sizeof(string));
+    if (value == NULL) return ERR_INTERNAL;
+    if (strInit(value) == STR_ERROR) return ERR_INTERNAL;
     if (semantic_prepare() == ERR_INTERNAL) return ERR_INTERNAL;
 
     GET_TOKEN();

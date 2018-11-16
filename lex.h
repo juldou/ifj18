@@ -9,6 +9,7 @@
 #include<stdlib.h>
 #include<ctype.h>
 #include <string.h>
+#include "str.h"
 
 #define MAX_LENGTH 50
 #define INCREMENT 100
@@ -65,9 +66,9 @@ typedef enum {
 
 int checkKeywords(char *tmp);
 
-int addCharToArray(char c, char *str);
+int addCharToArray(char c, char **str);
 
-int getToken(char *value, int *line);
+int getToken(string *value, int *line);
 
 
 #endif //IFJ_LEX_H

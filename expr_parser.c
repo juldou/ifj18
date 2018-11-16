@@ -16,8 +16,8 @@ return ERR_LEXICAL;} while(0)
 
 extern int token;
 
-//temp
-char value[100];
+
+string *value;
 int line;
 
 const char prec_table[SIZE][SIZE] = {
@@ -181,6 +181,9 @@ int expresion(int type) {
     int retval;
     t_stack *stack = malloc(sizeof(t_stack));
     stack_init(stack);
+    value = malloc(sizeof(string));
+    if (value == NULL) return ERR_INTERNAL;
+    if (strInit(value) == STR_ERROR) return ERR_INTERNAL;
 
     push(stack, LEX_EOF);
 
