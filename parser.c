@@ -2,6 +2,7 @@
 #include "error.h"
 #include "parser.h"
 #include "semantic.h"
+#include "expr_parser.h"
 
 #define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
 return ERR_LEXICAL;} while(0)
@@ -54,26 +55,12 @@ char *values[] = {
 
 };
 
-
-int expr() {
-    switch (token) {
-        case INT:
-        case FLOAT:
-        case ID:
-            GET_TOKEN();
-            return SYNTAX_OK;
-        default:
-            return ERR_SYNTAX;
-    }
-
-}
-
-
 int assign() {
     // pravidlo "ID" = <value>
     switch (token) {
+        case ROUNDL:
         case ID:
-            if (expr() != SYNTAX_OK) return ERR_SYNTAX;
+            if (math_expr() != SYNTAX_OK) return ERR_SYNTAX;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
         case INT:
@@ -193,7 +180,7 @@ int stat_list() {
         case KEYWORD_IF:
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
             GET_TOKEN();
-            if (expr() != SYNTAX_OK) return ERR_SYNTAX;
+            if (bool_expr() != SYNTAX_OK) return ERR_SYNTAX;
 
             ACCEPT(KEYWORD_THEN);
             ACCEPT(LEX_EOL);
@@ -213,7 +200,7 @@ int stat_list() {
         case KEYWORD_WHILE:
             // pravidlo WHILE <EXPR> DO EOL <STAT_LIST> END
             GET_TOKEN();
-            if (expr() != SYNTAX_OK) return ERR_SYNTAX;
+            if (bool_expr() != SYNTAX_OK) return ERR_SYNTAX;
 
             ACCEPT(KEYWORD_DO);
             ACCEPT(LEX_EOL);
@@ -225,7 +212,9 @@ int stat_list() {
             ACCEPT(LEX_EOL);
 
             return stat_list();
-
+        case LEX_EOL:
+            GET_TOKEN();
+            return stat_list();
         case KEYWORD_DEF:
         case KEYWORD_END:
         case KEYWORD_ELSE:

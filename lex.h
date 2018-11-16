@@ -56,7 +56,8 @@ typedef enum {
     PRINT,
     ORD,
     CHR,
-    SUBSTR
+    SUBSTR,
+    MAXTOKEN
 
 } Types;
 

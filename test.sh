@@ -143,6 +143,24 @@ else
     let tests_failed+=1
 fi
 
+echo "----------------------TEST 15----------------------"
+./ifj18 < ./programs/return_value_2/1.rb
+if [ $? -eq 201 ]; then
+    echo "TEST 15 PASSED"
+else
+    echo "TEST 15 FAILED"
+    let tests_failed+=1
+fi
+
+echo "----------------------TEST 16----------------------"
+./ifj18 < ./programs/valid_programs/12.rb
+if [ $? -eq 0 ]; then
+    echo "TEST 16 PASSED"
+else
+    echo "TEST 16 FAILED"
+    let tests_failed+=1
+fi
+
 echo ""
 echo "--------------------SUMMARY-----------------------"
 echo ""
