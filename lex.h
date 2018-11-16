@@ -25,8 +25,9 @@ typedef enum {
     KEYWORD_WHILE,
 
     ID,
-    INT,
-    FLOAT,
+    NUM_INT,
+    NUM_FLOAT,
+    NUM_EXP,
     STRING,
     LEX_EOL,
     COMMA,

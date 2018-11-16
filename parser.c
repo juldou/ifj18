@@ -27,8 +27,9 @@ char *values[] = {
         "KEYWORD_WHILE",
 
         "ID",
-        "INT",
-        "FLOAT",
+        "NUM_INT",
+        "NUM_FLOAT",
+        "NUM_EXP",
         "STRING",
         "LEX_EOL",
         "COMMA",
@@ -51,7 +52,15 @@ char *values[] = {
         "NUM",
         "COMMENT",
         "BLOCK_COMMENT",
-        "IDENTIF"
+        "IDENTIF",
+        "INPUTS",
+        "INPUTF",
+        "INPUTI",
+        "PRINT",
+        "ORD",
+        "CHR",
+        "SUBSTR",
+        "MAXTOKEN"
 
 };
 
@@ -63,8 +72,8 @@ int assign() {
             if (math_expr() != SYNTAX_OK) return ERR_SYNTAX;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
-        case INT:
-        case FLOAT:
+        case NUM_INT:
+        case NUM_FLOAT:
         case STRING:
             GET_TOKEN();
             ACCEPT(LEX_EOL);
@@ -135,8 +144,8 @@ int params(char *fun_id) {
             params_count = 0;
             if (err != 0) return err;
             else return SYNTAX_OK;
-        case INT:
-        case FLOAT:
+        case NUM_INT:
+        case NUM_FLOAT:
         case STRING:
         case ID:
             params_count++;

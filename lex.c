@@ -7,53 +7,13 @@
 
 #define MAX_LENGTH 50
 #define INCREMENT 100
-typedef enum {
-    KEYWORD_DEF,    //0
-    KEYWORD_DO,     //1
-    KEYWORD_ELSE,   //2
-    KEYWORD_END,    //3
-    KEYWORD_IF,     //4
-    KEYWORD_NOT,    //5
-    KEYWORD_NIL,    //6
-    KEYWORD_THEN,   //7
-    KEYWORD_WHILE,  //8
 
-    ID,             //9
-    NUM_INT,        //10
-    NUM_FLOAT,      //11
-    NUM_EXP,        //12
-    STRING,         //13
-    LEX_EOL,        //14
-    COMMA,          //15
-    ROUNDL,         //16
-    ROUNDR,         //17
-    ASSIGN,         //18
-    PLUS,           //19
-    MINUS,          //20
-    MUL,            //21
-    DIV,            //22
-    LESS,           //23
-    MORE,           //24
-    LESS_EQUAL,     //25
-    MORE_EQUAL,     //26
-    EQUAL,          //27
-    NOT_EQUAL,      //28
-
-    START,          //29
-    LEX_EOF,        //30
-    NUM,            //31
-    IDENTIFIER,     //32
-    COMMENT,        //33
-    BLOCK_COMMENT,  //34
-    IDENTIF         //35
-
-} Types;
 
 FILE *file;
 
 unsigned int i = 0;
 char *string;
-int i = 0;
+
 
 int checkKeywords(char *tmp) {
 
@@ -132,7 +92,7 @@ int getToken(char *value, int *line) {
                         string[0] = '\0';
                         i = 0;
                         state = START;
-                        return IDENTIFIER;
+                        return ID;
                     }
                     break;
 
@@ -175,11 +135,11 @@ int getToken(char *value, int *line) {
                         case ',':
                             return COMMA;
                         case '"':
-                            printf("string\n");
+                            //printf("string\n");
                             state = STRING;
                             break;
                         case '#':
-                            printf("line comment\n");
+                            //printf("line comment\n");
                             s = fgetc(stdin);
                             while (s != '\n') {
                                 s = fgetc(stdin);
@@ -193,7 +153,7 @@ int getToken(char *value, int *line) {
                                 while (!isspace(s)) {
                                     addCharToArray(s, string);
                                     if (strcmp(string, "begin") == 0) {
-                                        printf("block comment\n");
+                                        //printf("block comment\n");
                                         state = BLOCK_COMMENT;
                                         string[0] = '\0';
                                         i = 0;
@@ -209,8 +169,7 @@ int getToken(char *value, int *line) {
                             break;
 
                         default:
-                            printf("LEX_ERR\n");
-                            break;
+                            return ERR_LEXICAL;
                     }
 
                 }
@@ -250,7 +209,7 @@ int getToken(char *value, int *line) {
                         string[0] = '\0';
                         i = 0;
                         state = START;
-                        return IDENTIFIER;
+                        return ID;
 
                     } else {
                         strcpy(value, string);
@@ -337,7 +296,7 @@ int getToken(char *value, int *line) {
                     s = fgetc(stdin);
                 }
                 if (!isdigit(s)) {
-                    return LEX_ERR;
+                    return ERR_LEXICAL;
                 }
                 while (isdigit(s)) {
                     addCharToArray(s, string);
@@ -362,19 +321,19 @@ int getToken(char *value, int *line) {
 //     string = malloc(sizeof(char) * MAX_LENGTH);
 //     if (string == NULL) {
 //         printf("malloc err\n");
-//         return LEX_ERR;
+//         return ERR_LEXICAL;
 //     }
 //     file = stdin;
 //     if (file == NULL) {
 //         printf("file cant open\n");
-//         return LEX_ERR;
+//         return ERR_LEXICAL;
 //     }
 //
 //     do {
 //         a = getToken(value, &line);
 //         printf("Value: %s line: %d type: %d\n", value, line, a);
 //         value[0] = '\0';
-//         if (a == LEX_ERR) {
+//         if (a == ERR_LEXICAL) {
 //             break;
 //         }
 //

@@ -164,10 +164,10 @@ int rules(t_stack *stack) {
     } else if (check_rule(stack, 3, ROUNDL, EXPR, ROUNDR)) {
         pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
-    } else if (check_rule(stack, 1, INT)) {
+    } else if (check_rule(stack, 1, NUM_INT)) {
         pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
-    } else if (check_rule(stack, 1, FLOAT)) {
+    } else if (check_rule(stack, 1, NUM_FLOAT)) {
         pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
     } else return ERR_SYNTAX;
