@@ -1,3 +1,7 @@
 language: c
 compiler: gcc
 script: make
+
+language: bash
+script:
+    - bash test.sh

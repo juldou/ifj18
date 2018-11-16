@@ -1,22 +1,19 @@
+#Author: Ján Vavro
+#Login: xvavro05
 
-NAME=lex
-
-DBG=kdbg
+OBJECTS := $(patsubst %.c,%.o,$(wildcard *.c)) 
 CC=gcc
+NAME=ifj18
 CFLAGS=-std=c99 -Wall -pedantic -Wextra -g
 
-$(NAME): $(NAME).c
-	$(CC) $(CFLAGS) $(NAME).c -lm -o $(NAME)
+all: $(NAME)
+
+$(NAME): $(OBJECTS)
+	$(CC) $(CFLAGS) $^ -o $@
 
 run:
 	./$(NAME)
 
-debug: $(NAME)
-	$(DBG) $(NAME)
-
 clean:
-	rm -f *~ $(NAME) *.bak *.o
-
-edit:
-	vim $(NAME).c
+	rm -f $(NAME) *.o
 

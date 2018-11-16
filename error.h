@@ -1,9 +1,9 @@
 #ifndef _ERROR_H_
 #define _ERROR_H_
 
-#define SYNTAX_OK 0
-#define ERR_LEXICAL 1
-#define ERR_SYNTAX 2
+//todo zmenit
+#define ERR_LEXICAL 200
+#define ERR_SYNTAX 201
 #define ERR_SEMANTIC_DEFINITION 3
 #define ERR_SEMANTIC_TYPE 4
 #define ERR_SEMANTIC_PARAMETERS_COUNT 5
