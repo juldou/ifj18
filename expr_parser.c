@@ -161,7 +161,7 @@ int rules(t_stack *stack) {
     } else if (check_rule(stack, 1, ID)) {
         pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
-    } else if (check_rule(stack, ROUNDL, EXPR, ROUNDR)) {
+    } else if (check_rule(stack, 3, ROUNDL, EXPR, ROUNDR)) {
         pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 1, INT)) {
