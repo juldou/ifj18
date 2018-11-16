@@ -25,7 +25,6 @@ char *values[] = {
         "KEYWORD_NIL",
         "KEYWORD_THEN",
         "KEYWORD_WHILE",
-
         "ID",
         "NUM_INT",
         "NUM_FLOAT",
@@ -146,6 +145,7 @@ int params(char *fun_id) {
             else return SYNTAX_OK;
         case NUM_INT:
         case NUM_FLOAT:
+        case NUM_EXP:
         case STRING:
         case ID:
             params_count++;
@@ -153,7 +153,7 @@ int params(char *fun_id) {
 
             if (token == COMMA) {
                 GET_TOKEN();
-                if (token != ID) return ERR_SYNTAX;
+                if (token != ID && token != NUM_INT && token != NUM_FLOAT && token != NUM_EXP && token != STRING) return ERR_SYNTAX;
                 return params(fun_id);
             }
 

@@ -66,6 +66,9 @@ int decode(int symbol) {
         case ROUNDR:
             return 4;
         case ID:
+        case NUM_EXP:
+        case NUM_FLOAT:
+        case NUM_INT:
             return 5;
         case LEX_EOF:
         case LEX_EOL:
