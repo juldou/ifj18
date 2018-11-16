@@ -212,7 +212,9 @@ int stat_list() {
             ACCEPT(LEX_EOL);
 
             return stat_list();
-
+        case LEX_EOL:
+            GET_TOKEN();
+            return stat_list();
         case KEYWORD_DEF:
         case KEYWORD_END:
         case KEYWORD_ELSE:
