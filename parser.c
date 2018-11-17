@@ -28,6 +28,7 @@ char *values[] = {
         "KEYWORD_THEN",
         "KEYWORD_WHILE",
         "ID",
+        "IDF",
         "NUM_INT",
         "NUM_FLOAT",
         "NUM_EXP",
@@ -77,6 +78,7 @@ int assign() {
 
         case ID:
             if (semantic_token_is_function(temp->str)) {
+                GET_TOKEN();
                 if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
                 return SYNTAX_OK;
             }
@@ -93,11 +95,13 @@ int assign() {
         case LENGTH:
         case CHR:
         case ORD:
+            GET_TOKEN();
             if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
             return SYNTAX_OK;
 
         case NUM_INT:
         case NUM_FLOAT:
+        case NUM_EXP:
         case STRING:
             if ((err = math_expr()) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
@@ -141,7 +145,9 @@ int fun_params(char *fun_id) {
 
 int fun_declr() {
     strCopyString(temp, value);
-    ACCEPT(ID);
+    if (token != ID && token != IDF)
+        return ERR_SYNTAX;
+    GET_TOKEN();
 
     if (semantic_check_fun_definition(temp->str) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
 
@@ -194,7 +200,6 @@ int params(char *fun_id) {
 
 
 int fun_call(char *fun_id) {
-    GET_TOKEN();
     int brackets = 0;
     if (token == ROUNDL) {
         brackets = 1;
@@ -252,24 +257,41 @@ int stat_list() {
         case LEX_EOL:
             GET_TOKEN();
             return stat_list();
+        case KEYWORD_NIL: //todo remove
         case KEYWORD_DEF:
         case KEYWORD_END:
         case KEYWORD_ELSE:
             return SYNTAX_OK;
 
-            //todo temp
-        case KEYWORD_NIL:
         case LEX_EOF:
             return SYNTAX_OK;
 
+        case IDF:
+            GET_TOKEN();
+            if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
+            return stat_list();
         case ID:
             strCopyString(temp, value);
 
             if (semantic_token_is_function(value->str)) {
+                GET_TOKEN();
                 if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
                 return stat_list();
             }
+            strCopyString(temp, value);
+
+            //todo temp, kym julo nespravi
             GET_TOKEN();
+            switch (token) {
+                case ID:
+                case ROUNDL:
+                case NUM_EXP:
+                case NUM_FLOAT:
+                case STRING:
+                case NUM_INT:
+                    if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
+                    return stat_list();
+            }
             if (token == ASSIGN) {
                 GET_TOKEN();
                 if ((err = assign()) != SYNTAX_OK) return err;
@@ -279,11 +301,13 @@ int stat_list() {
 
             ACCEPT(LEX_EOL);
             return stat_list();
-        case ERR_LEXICAL:
-            return ERR_LEXICAL;
-        default:
-            return ERR_SYNTAX;
 
+        case NUM_EXP:
+        case NUM_FLOAT:
+        case STRING:
+        case NUM_INT:
+            GET_TOKEN();
+            return stat_list();
         case INPUTS:
         case INPUTF:
         case INPUTI:
@@ -292,8 +316,13 @@ int stat_list() {
         case CHR:
         case SUBSTR:
             strCopyString(temp, value);
+            GET_TOKEN();
             if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
             return stat_list();
+        case ERR_LEXICAL:
+            return ERR_LEXICAL;
+        default:
+            return ERR_SYNTAX;
     }
 }
 
@@ -331,6 +360,8 @@ int parse() {
 
     if (value == NULL || temp == NULL) return ERR_INTERNAL;
     if (strInit(value) == STR_ERROR) return ERR_INTERNAL;
+    if (strInit(temp) == STR_ERROR) return ERR_INTERNAL;
+
     if (semantic_prepare() == ERR_INTERNAL) return ERR_INTERNAL;
 
     GET_TOKEN();
@@ -356,5 +387,10 @@ int parse() {
             printf("Unknown Error\n");
     }
 
+    strFree(value);
+    free(value);
+
+    strFree(temp);
+    free(temp);
     return result;
 }
