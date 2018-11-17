@@ -161,6 +161,36 @@ else
     let tests_failed+=1
 fi
 
+echo "----------------------TEST sample1.rb---------------------"
+./ifj18 < ./programs/valid_programs/sample1.rb
+if [ $? -eq 0 ]; then
+    echo "TEST PASSED"
+else
+    echo "TEST FAILED"
+    let tests_failed+=1
+fi
+
+echo "----------------------TEST sample2.rb----------------------"
+./ifj18 < ./programs/valid_programs/sample2.rb
+if [ $? -eq 0 ]; then
+    echo "TEST PASSED"
+else
+
+    echo "TEST FAILED"
+    let tests_failed+=1
+fi
+
+
+echo "----------------------TEST 13.rb----------------------"
+./ifj18 < ./programs/valid_programs/13.rb
+if [ $? -eq 0 ]; then
+    echo "TEST PASSED"
+else
+
+    echo "TEST FAILED"
+    let tests_failed+=1
+fi
+
 echo ""
 echo "--------------------SUMMARY-----------------------"
 echo ""

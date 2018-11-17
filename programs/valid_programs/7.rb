@@ -9,4 +9,3 @@ def factorial (n)
 	result
 end
 print a
-nil

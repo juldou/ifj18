@@ -4,7 +4,7 @@ def abc(a,b,c)
 	if a then
 		if b then
 		else
-			while 1 do
+			while 1  do
 				a = b
 				a
 				b = b
@@ -16,4 +16,3 @@ end
 a = a
 a
 b
-nil

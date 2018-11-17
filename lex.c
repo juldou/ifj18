@@ -5,9 +5,53 @@
 #include "lex.h"
 #include "error.h"
 
+char *valuess[] = {
+        "KEYWORD_DEF",
+        "KEYWORD_DO",
+        "KEYWORD_ELSE",
+        "KEYWORD_END",
+        "KEYWORD_IF",
+        "KEYWORD_NOT",
+        "KEYWORD_NIL",
+        "KEYWORD_THEN",
+        "KEYWORD_WHILE",
+        "ID",
+        "NUM_INT",
+        "NUM_FLOAT",
+        "NUM_EXP",
+        "STRING",
+        "LEX_EOL",
+        "COMMA",
+        "ROUNDL",
+        "ROUNDR",
+        "ASSIGN",
+        "PLUS",
+        "MINUS",
+        "MUL",
+        "DIV",
+        "LESS",
+        "MORE",
+        "LESS_EQUAL",
+        "MORE_EQUAL",
+        "EQUAL",
+        "NOT_EQUAL",
 
-char *string;
-int i = 0;
+        "START",
+        "LEX_EOF",
+        "NUM",
+        "COMMENT",
+        "BLOCK_COMMENT",
+        "IDENTIF",
+        "INPUTS",
+        "INPUTF",
+        "INPUTI",
+        "PRINT",
+        "ORD",
+        "CHR",
+        "SUBSTR",
+        "MAXTOKEN"
+
+};
 
 int checkKeywords(char *tmp) {
 
@@ -34,49 +78,44 @@ int checkKeywords(char *tmp) {
 
 }
 
-int addCharToArray(char c, char *str) {
-
-    if (i >= 100) {
-        string = realloc(string, INCREMENT);
-        if (string == NULL) {
-            printf("realloc err\n");
-            return ERR_LEXICAL;
-        }
-    }
-    str[i] = c;
-    i++;
-    str[i] = '\0';
-    return 0;
-}
-
-int getToken(char *value, int *line) {
-    string = malloc(sizeof(char) * MAX_LENGTH);
-    if (string == NULL) {
-        printf("malloc err\n");
-        return ERR_LEXICAL;
-    }
-
-    int s, state = START, f;
-    string[0] = '\0';
+int getToken(string *value, int *line) {
+    static int lineCount = 0;
+    int s, state = START;
+    strClear(value);
     while (1) {
 
-        //todo
         s = fgetc(stdin);
-
+        if (s == EOF) {
+            (*line) = lineCount;
+            return LEX_EOF;
+        }
         switch (state) {
+
             case START:
+
                 if (s == '\n') {
-                    line++;
+                    lineCount++;
+                    (*line) = lineCount;
                     return LEX_EOL;
-                } else if (s == EOF) {
-                    return LEX_EOF;
                 }
-                if (isspace(s));
+                else if (isspace(s));
                 else if (islower(s) || s == '_') {
-                    //addCharToArray(s, string);
-                    state = ID;
+                    strAddChar(value, s);
+                    s = fgetc(stdin);
+                    if (isalnum(s) || s == '_' || s == '?' || s == '!') {
+                        ungetc(s, stdin);
+                        state = IDENTIF;
+                    } else {
+                        ungetc(s, stdin);
+                        return ID;
+                    }
+                    break;
+
+
                 } else if (isdigit(s)) {
+                    strAddChar(value, s);
                     state = NUM;
+                    break;
                 } else {
                     switch (s) {
                         //operatory
@@ -110,74 +149,176 @@ int getToken(char *value, int *line) {
                             return ROUNDR;
                         case ',':
                             return COMMA;
+                        case '"':
+                            //printf("string\n");
+                            state = STRING;
+                            break;
+                        case '#':
+                            //printf("line comment\n");
+                            s = fgetc(stdin);
+                            while (s != '\n') {
+                                if(s == EOF)
+                                    return LEX_EOF;
+                                s = fgetc(stdin);
+                            }
+                            return  LEX_EOL;
                         case '=':
                             s = fgetc(stdin);
                             if (s == '=') {
                                 return EQUAL;
                             } else if (s == 'b' || s == 'e') {
                                 while (!isspace(s)) {
-
+                                    strAddChar(value, s);
+                                    if (strcmp(value->str, "begin") == 0) {
+                                        //printf("block comment\n");
+                                        state = BLOCK_COMMENT;
+                                        break;
+                                    }
                                     s = fgetc(stdin);
-                                    addCharToArray(s, string);
-                                }
-                                if (strcmp(string, "begin") == 0) {
-                                    state = BLOCK_COMMENT;
-                                } else if (strcmp(string, "end") == 0) {
-                                    state = START;
-                                } else {
-                                    return ERR_LEXICAL;
                                 }
                             } else {
                                 ungetc(s, stdin);
+
                                 return ASSIGN;
                             }
+                            break;
+
+                        default:
+                            return ERR_LEXICAL;
                     }
-                    default:
-                        printf("LEX_ERR\n");
+
                 }
+                break;
+            case STRING:
+                strAddChar(value, s);
+                while (1) {
+                    s = fgetc(stdin);
+                    if (s == '"') {
+                        break;
+                    }
+                    strAddChar(value, s);
+                }
+                return STRING;
 
             case IDENTIF:
                 if (isalnum(s) || s == '_' || s == '?' || s == '!') {
-                    while (isalnum(s) || s == '_' ) {
+                    while (isalnum(s) || s == '_') {
 
-                        addCharToArray(s, string);
+                        strAddChar(value, s);
                         s = fgetc(stdin);
                     }
 
                     if (s == '?' || s == '!') {
-                        addCharToArray(s, string);
+                        strAddChar(value, s);
                     } else {
                         ungetc(s, stdin);
                     }
-                    int a = checkKeywords(string);
+                    int a = checkKeywords(value->str);
+                    //printf("a = %d\n",a);
                     if (a == -1) {
-                        strcpy(value, string);
-                        string[0] = '\0';
-                        i=0;
                         return ID;
 
                     } else {
-                        strcpy(value, string);
-                        string[0] = '\0';
-                        i=0;
                         return a;
                     }
+                }
+                break;
+            case BLOCK_COMMENT:
 
-                    case NUM:
-                        f = 0;
-                    while (isdigit(s)) {
-                        if (isdigit(s)) {
-                            addCharToArray(s, value);
-                        } else if (s == '.' || s == 'e' || s == 'E') {
-                            f++;
-                            addCharToArray(s, value);
-                            return FLOAT;
+                while (1) {
+                    s = fgetc(stdin);
+                    if(s == '\n') {
+                        s = fgetc(stdin);
+                        if (s == '='){
+                            s = fgetc(stdin);
+                            if (s == 'e') {
+                                s = fgetc(stdin);
+                                if (s == 'n') {
+                                    s = fgetc(stdin);
+                                    if (s == 'd') {
+                                        state = START;
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
-                    strcpy(value, string);
-                    if (f == 0) return INT;
-                    else return FLOAT;;
                 }
+                break;
+            case NUM:
+
+                while (isdigit(s)) {
+                    //printf("pridavam do pola znak %c\n", s);
+                    strAddChar(value, s);
+                    s = fgetc(stdin);
+                    //printf("nacitam nove s:%c\n", s);
+
+
+                }
+                //printf("vyskocil som z whilu\n");
+                if (s == '.') {
+                    strAddChar(value, s);
+                    state = NUM_FLOAT;
+                    break;
+                } else if (s == 'e' || s == 'E') {
+                    strAddChar(value, s);
+                    state = NUM_EXP;
+                    break;
+                } else {
+                    ungetc(s, stdin);
+                    return NUM_INT;
+                }
+
+
+            case NUM_FLOAT:
+
+                while (isdigit(s)) {
+                    strAddChar(value, s);
+                    s = fgetc(stdin);
+                }
+                if (s == 'e' || s == 'E') {
+                    strAddChar(value, s);
+                    state = NUM_EXP;
+                    break;
+                } else {
+                    ungetc(s, stdin);
+                    return NUM_FLOAT;
+                }
+            case NUM_EXP:
+
+                if (s == '+' || s == '-') {
+                    strAddChar(value, s);
+                    s = fgetc(stdin);
+                }
+                if (!isdigit(s)) {
+                    return ERR_LEXICAL;
+                }
+                while (isdigit(s)) {
+                    strAddChar(value, s);
+                    s = fgetc(stdin);
+                }
+                ungetc(s, stdin);
+                return NUM_EXP;
         }
     }
 }
+
+
+// int main() {
+//     int a;
+//     string *value;
+//     value = malloc(sizeof(string));
+//     if (value == NULL) return ERR_INTERNAL;
+//     if (strInit(value) == STR_ERROR) return ERR_INTERNAL;
+//     int line = 0;
+//
+//     do {
+//         a = getToken(value, &line);
+//         printf("Value: %15s line: %5d type: %s\n", value->str, line, valuess[a]);
+//         if (a == ERR_LEXICAL) {
+//             break;
+//         }
+//
+//     } while (a != LEX_EOF);
+//     return 0;
+// }

@@ -4,4 +4,3 @@ else
 	vysl =  a
 	print a
 end
-nil

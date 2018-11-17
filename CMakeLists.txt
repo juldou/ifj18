@@ -18,4 +18,6 @@ add_executable(ifj18
         stack.h
         error.h
         semantic.h
-        semantic.c)
+        semantic.c
+        str.c
+        str.h)
