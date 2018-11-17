@@ -59,6 +59,7 @@ typedef enum {
     ORD,
     CHR,
     SUBSTR,
+    LENGTH,
     MAXTOKEN
 
 } Types;

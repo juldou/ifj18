@@ -5,6 +5,6 @@ if n < 2 then
 =end
 else
     decremented_n = n - 1
-    temp_result = inputi decremented_n
+    temp_result = inputi
     result = n * temp_result
 end # if

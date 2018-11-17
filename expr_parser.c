@@ -69,6 +69,7 @@ int decode(int symbol) {
         case NUM_EXP:
         case NUM_FLOAT:
         case NUM_INT:
+        case STRING:
             return 5;
         case LEX_EOF:
         case LEX_EOL:
@@ -171,6 +172,9 @@ int rules(t_stack *stack) {
         pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 1, NUM_FLOAT)) {
+        pop_rule(stack, 1, EXPR);
+        return SYNTAX_OK;
+    } else if (check_rule(stack, 1, STRING)) {
         pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
     } else return ERR_SYNTAX;
