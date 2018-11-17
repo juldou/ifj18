@@ -79,13 +79,14 @@ int checkKeywords(char *tmp) {
 }
 
 int getToken(string *value, int *line) {
-    static int matovaPremenna = 0;
+    static int lineCount = 0;
     int s, state = START;
     strClear(value);
     while (1) {
 
         s = fgetc(stdin);
         if (s == EOF) {
+            (*line) = lineCount;
             return LEX_EOF;
         }
         switch (state) {
@@ -93,8 +94,8 @@ int getToken(string *value, int *line) {
             case START:
 
                 if (s == '\n') {
-                    matovaPremenna++;
-                    (*line) = matovaPremenna;
+                    lineCount++;
+                    (*line) = lineCount;
                     return LEX_EOL;
                 }
                 else if (isspace(s));
@@ -106,8 +107,6 @@ int getToken(string *value, int *line) {
                         state = IDENTIF;
                     } else {
                         ungetc(s, stdin);
-                        //strcpy(value, string);
-                        state = START;
                         return ID;
                     }
                     break;
@@ -158,9 +157,11 @@ int getToken(string *value, int *line) {
                             //printf("line comment\n");
                             s = fgetc(stdin);
                             while (s != '\n') {
+                                if(s == EOF)
+                                    return LEX_EOF;
                                 s = fgetc(stdin);
                             }
-                            break;
+                            return  LEX_EOL;
                         case '=':
                             s = fgetc(stdin);
                             if (s == '=') {
@@ -197,8 +198,6 @@ int getToken(string *value, int *line) {
                     }
                     strAddChar(value, s);
                 }
-                //strcpy(value, string);
-                state = START;
                 return STRING;
 
             case IDENTIF:
@@ -217,13 +216,9 @@ int getToken(string *value, int *line) {
                     int a = checkKeywords(value->str);
                     //printf("a = %d\n",a);
                     if (a == -1) {
-                        //strcpy(value, string);
-                        state = START;
                         return ID;
 
                     } else {
-                        //strcpy(value, string);
-                        state = START;
                         return a;
                     }
                 }
@@ -270,9 +265,7 @@ int getToken(string *value, int *line) {
                     state = NUM_EXP;
                     break;
                 } else {
-                    //strcpy(value, string);
                     ungetc(s, stdin);
-                    state = START;
                     return NUM_INT;
                 }
 
@@ -288,9 +281,7 @@ int getToken(string *value, int *line) {
                     state = NUM_EXP;
                     break;
                 } else {
-                    //strcpy(value, string);
                     ungetc(s, stdin);
-                    state = START;
                     return NUM_FLOAT;
                 }
             case NUM_EXP:
@@ -306,11 +297,8 @@ int getToken(string *value, int *line) {
                     strAddChar(value, s);
                     s = fgetc(stdin);
                 }
-                //strcpy(value, string);
                 ungetc(s, stdin);
-                state = START;
                 return NUM_EXP;
-
         }
     }
 }

@@ -8,4 +8,3 @@ def factorial (n)
 	end
 	result
 end
-nil

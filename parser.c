@@ -13,7 +13,9 @@ int token;
 
 //temp
 string *value;
+string *temp;
 int line;
+int err;
 
 char *values[] = {
         "KEYWORD_DEF",
@@ -67,10 +69,29 @@ int assign() {
     // pravidlo "ID" = <value>
     switch (token) {
         case ROUNDL:
-        case ID:
             if (math_expr() != SYNTAX_OK) return ERR_SYNTAX;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
+
+        case ID:
+            strCopyString(temp, value);
+            if (semantic_token_is_function(temp ->str)) {
+                if ((err = fun_call(temp ->str)) != SYNTAX_OK) return err;
+                return SYNTAX_OK;
+            }
+
+            if (math_expr() != SYNTAX_OK)
+                return ERR_SYNTAX;
+            ACCEPT(LEX_EOL);
+            return SYNTAX_OK;
+
+        case PRINT:
+        case INPUTF:
+        case INPUTI:
+        case INPUTS:
+            if ((err = fun_call(value ->str)) != SYNTAX_OK) return err;
+            return SYNTAX_OK;
+
         case NUM_INT:
         case NUM_FLOAT:
         case STRING:
@@ -111,15 +132,14 @@ int fun_params(char *fun_id) {
 
 
 int fun_declr() {
-    char previous_token_value[100];  // TODO: refactor descend
-    strcpy(previous_token_value, value->str);
+    strCopyString(temp, value);
     ACCEPT(ID);
 
-    if (semantic_check_fun_definition(previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
+    if (semantic_check_fun_definition(temp ->str) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
 
     ACCEPT(ROUNDL);
 
-    if (fun_params(previous_token_value) != SYNTAX_OK) return ERR_SYNTAX;
+    if (fun_params(temp ->str) != SYNTAX_OK) return ERR_SYNTAX;
 
     if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
 
@@ -134,7 +154,6 @@ int fun_declr() {
 
 int params(char *fun_id) {
     // pravidlo <ITEM><ITEM_LIST
-    int err;
     static size_t params_count = 0;
     switch (token) {
         case LEX_EOL:
@@ -153,7 +172,8 @@ int params(char *fun_id) {
 
             if (token == COMMA) {
                 GET_TOKEN();
-                if (token != ID && token != NUM_INT && token != NUM_FLOAT && token != NUM_EXP && token != STRING) return ERR_SYNTAX;
+                if (token != ID && token != NUM_INT && token != NUM_FLOAT && token != NUM_EXP && token != STRING)
+                    return ERR_SYNTAX;
                 return params(fun_id);
             }
 
@@ -165,6 +185,7 @@ int params(char *fun_id) {
 
 
 int fun_call(char *fun_id) {
+    GET_TOKEN();
     int brackets = 0;
     if (token == ROUNDL) {
         brackets = 1;
@@ -183,8 +204,6 @@ int fun_call(char *fun_id) {
 }
 
 int stat_list() {
-    int err;
-    char previous_token_value[100];
     switch (token) {
         case KEYWORD_IF:
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
@@ -235,18 +254,19 @@ int stat_list() {
             return SYNTAX_OK;
 
         case ID:
-            strcpy(previous_token_value, value->str);
+            strCopyString(temp, value);
+
+            if(semantic_token_is_function(value ->str)){
+                if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
+                return stat_list();
+            }
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
                 if (assign() != SYNTAX_OK) return ERR_SYNTAX;
                 return stat_list();
             }
-            if (token != LEX_EOL || semantic_token_is_function(previous_token_value)) {
-                if ((err = fun_call(previous_token_value)) != SYNTAX_OK) return err;
-                return stat_list();
 
-            }
             ACCEPT(LEX_EOL);
             return stat_list();
 
@@ -260,15 +280,13 @@ int stat_list() {
         case ORD:
         case CHR:
         case SUBSTR:
-            strcpy(previous_token_value, value->str); // TODO: refactor descend
-            GET_TOKEN();
-            if ((err = fun_call(previous_token_value)) != SYNTAX_OK) return err;
+            strCopyString(temp, value);
+            if ((err = fun_call(temp -> str)) != SYNTAX_OK) return err;
             return stat_list();
     }
 }
 
 int program() {
-    int err;
     switch (token) {
         case KEYWORD_DEF:
             GET_TOKEN();
@@ -276,17 +294,9 @@ int program() {
             return program();
             //todo
 
-        case EOF:
-            return SYNTAX_OK;
-
-            //todo temp kym nejde EOF
-        case KEYWORD_NIL:
+        case LEX_EOF:
             printf("END\n");
             return SYNTAX_OK;
-
-            if ((token = getToken(value, &line)) == ERR_LEXICAL) return ERR_LEXICAL;
-            //todo temp
-            return program();
 
         case ERR_LEXICAL:
             return ERR_LEXICAL;
@@ -301,7 +311,9 @@ int program() {
 int parse() {
     int result;
     value = malloc(sizeof(string));
-    if (value == NULL) return ERR_INTERNAL;
+    temp = malloc(sizeof(string));
+
+    if (value == NULL || temp == NULL) return ERR_INTERNAL;
     if (strInit(value) == STR_ERROR) return ERR_INTERNAL;
     if (semantic_prepare() == ERR_INTERNAL) return ERR_INTERNAL;
 

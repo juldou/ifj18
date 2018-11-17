@@ -4,4 +4,3 @@ def abc(a,b)
 	end
 end
 abc(1,2)
-nil
