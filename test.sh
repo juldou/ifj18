@@ -191,6 +191,17 @@ else
     let tests_failed+=1
 fi
 
+#TODO matov dojebany scanner (escape sequence)
+#echo "----------------------TEST sample3.rb---------------------"
+#./ifj18 < ./programs/valid_programs/sample3.rb
+#if [ $? -eq 0 ]; then
+#    echo "TEST PASSED"
+#else
+#    echo "TEST FAILED"
+#    let tests_failed+=1
+#fi
+
+
 echo ""
 echo "--------------------SUMMARY-----------------------"
 echo ""

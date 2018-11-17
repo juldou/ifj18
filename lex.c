@@ -49,6 +49,7 @@ char *valuess[] = {
         "ORD",
         "CHR",
         "SUBSTR",
+        "LENGTH",
         "MAXTOKEN"
 
 };
@@ -72,7 +73,7 @@ int checkKeywords(char *tmp) {
     else if (strcmp("ord", tmp) == 0) return ORD;
     else if (strcmp("chr", tmp) == 0) return CHR;
     else if (strcmp("substr", tmp) == 0) return SUBSTR;
-
+    else if (strcmp("length", tmp) == 0) return LENGTH;
 
     else return -1;
 
@@ -97,8 +98,7 @@ int getToken(string *value, int *line) {
                     lineCount++;
                     (*line) = lineCount;
                     return LEX_EOL;
-                }
-                else if (isspace(s));
+                } else if (isspace(s));
                 else if (islower(s) || s == '_') {
                     strAddChar(value, s);
                     s = fgetc(stdin);
@@ -157,11 +157,11 @@ int getToken(string *value, int *line) {
                             //printf("line comment\n");
                             s = fgetc(stdin);
                             while (s != '\n') {
-                                if(s == EOF)
+                                if (s == EOF)
                                     return LEX_EOF;
                                 s = fgetc(stdin);
                             }
-                            return  LEX_EOL;
+                            return LEX_EOL;
                         case '=':
                             s = fgetc(stdin);
                             if (s == '=') {
@@ -183,6 +183,12 @@ int getToken(string *value, int *line) {
                             }
                             break;
 
+                        case '!':
+                            s = fgetc(stdin);
+                            if (s == '=')
+                                return NOT_EQUAL;
+                            ungetc(s, stdin);
+                            return ERR_LEXICAL;
                         default:
                             return ERR_LEXICAL;
                     }
@@ -227,9 +233,9 @@ int getToken(string *value, int *line) {
 
                 while (1) {
                     s = fgetc(stdin);
-                    if(s == '\n') {
+                    if (s == '\n') {
                         s = fgetc(stdin);
-                        if (s == '='){
+                        if (s == '=') {
                             s = fgetc(stdin);
                             if (s == 'e') {
                                 s = fgetc(stdin);
@@ -315,9 +321,9 @@ int getToken(string *value, int *line) {
 //     do {
 //         a = getToken(value, &line);
 //         printf("Value: %15s line: %5d type: %s\n", value->str, line, valuess[a]);
-//         if (a == ERR_LEXICAL) {
-//             break;
-//         }
+////         if (a == LEX_EOF) {
+////             break;
+////         }
 //
 //     } while (a != LEX_EOF);
 //     return 0;
