@@ -20,4 +20,4 @@ add_executable(ifj18
         semantic.h
         semantic.c
         str.c
-        str.h)
+        str.h code_gen.c code_gen.h)
