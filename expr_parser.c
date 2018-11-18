@@ -17,7 +17,7 @@ return ERR_LEXICAL;} while(0)
 extern int token;
 
 
-string *value;
+extern string *value;
 int line;
 
 const char prec_table[SIZE][SIZE] = {
@@ -43,8 +43,6 @@ const char prec_table[SIZE][SIZE] = {
 /*  6 $   */
              {LE, LE, LE, LE, NO, LE, NO}
 };
-
-t_stack *stack;
 
 int decode(int symbol) {
     switch (symbol) {
@@ -177,6 +175,9 @@ int rules(t_stack *stack) {
     } else if (check_rule(stack, 1, STRING)) {
         pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
+    } else if (check_rule(stack, 1, NUM_EXP)) {
+        pop_rule(stack, 1, EXPR);
+        return SYNTAX_OK;
     } else return ERR_SYNTAX;
 }
 
@@ -185,9 +186,6 @@ int expresion(int type) {
     int retval;
     t_stack *stack = malloc(sizeof(t_stack));
     stack_init(stack);
-    value = malloc(sizeof(string));
-    if (value == NULL) return ERR_INTERNAL;
-    if (strInit(value) == STR_ERROR) return ERR_INTERNAL;
 
     push(stack, LEX_EOF);
 

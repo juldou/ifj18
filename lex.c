@@ -16,6 +16,7 @@ char *valuess[] = {
         "KEYWORD_THEN",
         "KEYWORD_WHILE",
         "ID",
+        "IDF",
         "NUM_INT",
         "NUM_FLOAT",
         "NUM_EXP",
@@ -222,6 +223,8 @@ int getToken(string *value, int *line) {
                     int a = checkKeywords(value->str);
                     //printf("a = %d\n",a);
                     if (a == -1) {
+                        if(value->str[value->length - 1] == '?' ||value->str[value->length - 1] == '!')
+                            return IDF;
                         return ID;
 
                     } else {
