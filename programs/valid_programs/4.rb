@@ -5,4 +5,3 @@ def abc(a,b,c)
 		b = c
 	end
 end
-nil

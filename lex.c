@@ -16,6 +16,7 @@ char *valuess[] = {
         "KEYWORD_THEN",
         "KEYWORD_WHILE",
         "ID",
+        "IDF",
         "NUM_INT",
         "NUM_FLOAT",
         "NUM_EXP",
@@ -49,6 +50,7 @@ char *valuess[] = {
         "ORD",
         "CHR",
         "SUBSTR",
+        "LENGTH",
         "MAXTOKEN"
 
 };
@@ -72,20 +74,21 @@ int checkKeywords(char *tmp) {
     else if (strcmp("ord", tmp) == 0) return ORD;
     else if (strcmp("chr", tmp) == 0) return CHR;
     else if (strcmp("substr", tmp) == 0) return SUBSTR;
-
+    else if (strcmp("length", tmp) == 0) return LENGTH;
 
     else return -1;
 
 }
 
 int getToken(string *value, int *line) {
-    static int matovaPremenna = 0;
+    static int lineCount = 0;
     int s, state = START;
     strClear(value);
     while (1) {
 
         s = fgetc(stdin);
         if (s == EOF) {
+            (*line) = lineCount;
             return LEX_EOF;
         }
         switch (state) {
@@ -93,11 +96,10 @@ int getToken(string *value, int *line) {
             case START:
 
                 if (s == '\n') {
-                    matovaPremenna++;
-                    (*line) = matovaPremenna;
+                    lineCount++;
+                    (*line) = lineCount;
                     return LEX_EOL;
-                }
-                else if (isspace(s));
+                } else if (isspace(s));
                 else if (islower(s) || s == '_') {
                     strAddChar(value, s);
                     s = fgetc(stdin);
@@ -106,8 +108,6 @@ int getToken(string *value, int *line) {
                         state = IDENTIF;
                     } else {
                         ungetc(s, stdin);
-                        //strcpy(value, string);
-                        state = START;
                         return ID;
                     }
                     break;
@@ -158,9 +158,11 @@ int getToken(string *value, int *line) {
                             //printf("line comment\n");
                             s = fgetc(stdin);
                             while (s != '\n') {
+                                if (s == EOF)
+                                    return LEX_EOF;
                                 s = fgetc(stdin);
                             }
-                            break;
+                            return LEX_EOL;
                         case '=':
                             s = fgetc(stdin);
                             if (s == '=') {
@@ -182,6 +184,12 @@ int getToken(string *value, int *line) {
                             }
                             break;
 
+                        case '!':
+                            s = fgetc(stdin);
+                            if (s == '=')
+                                return NOT_EQUAL;
+                            ungetc(s, stdin);
+                            return ERR_LEXICAL;
                         default:
                             return ERR_LEXICAL;
                     }
@@ -197,8 +205,6 @@ int getToken(string *value, int *line) {
                     }
                     strAddChar(value, s);
                 }
-                //strcpy(value, string);
-                state = START;
                 return STRING;
 
             case IDENTIF:
@@ -217,13 +223,11 @@ int getToken(string *value, int *line) {
                     int a = checkKeywords(value->str);
                     //printf("a = %d\n",a);
                     if (a == -1) {
-                        //strcpy(value, string);
-                        state = START;
+                        if(value->str[value->length - 1] == '?' ||value->str[value->length - 1] == '!')
+                            return IDF;
                         return ID;
 
                     } else {
-                        //strcpy(value, string);
-                        state = START;
                         return a;
                     }
                 }
@@ -232,9 +236,9 @@ int getToken(string *value, int *line) {
 
                 while (1) {
                     s = fgetc(stdin);
-                    if(s == '\n') {
+                    if (s == '\n') {
                         s = fgetc(stdin);
-                        if (s == '='){
+                        if (s == '=') {
                             s = fgetc(stdin);
                             if (s == 'e') {
                                 s = fgetc(stdin);
@@ -270,9 +274,7 @@ int getToken(string *value, int *line) {
                     state = NUM_EXP;
                     break;
                 } else {
-                    //strcpy(value, string);
                     ungetc(s, stdin);
-                    state = START;
                     return NUM_INT;
                 }
 
@@ -288,9 +290,7 @@ int getToken(string *value, int *line) {
                     state = NUM_EXP;
                     break;
                 } else {
-                    //strcpy(value, string);
                     ungetc(s, stdin);
-                    state = START;
                     return NUM_FLOAT;
                 }
             case NUM_EXP:
@@ -306,11 +306,8 @@ int getToken(string *value, int *line) {
                     strAddChar(value, s);
                     s = fgetc(stdin);
                 }
-                //strcpy(value, string);
                 ungetc(s, stdin);
-                state = START;
                 return NUM_EXP;
-
         }
     }
 }
@@ -327,9 +324,9 @@ int getToken(string *value, int *line) {
 //     do {
 //         a = getToken(value, &line);
 //         printf("Value: %15s line: %5d type: %s\n", value->str, line, valuess[a]);
-//         if (a == ERR_LEXICAL) {
-//             break;
-//         }
+////         if (a == LEX_EOF) {
+////             break;
+////         }
 //
 //     } while (a != LEX_EOF);
 //     return 0;

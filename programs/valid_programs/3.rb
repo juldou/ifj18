@@ -16,4 +16,3 @@ end
 a = a
 a
 b
-nil
