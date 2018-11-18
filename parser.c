@@ -87,6 +87,7 @@ int assign() {
 
 int fun_params(char *fun_id) {
     // pravidlo <ITEM><ITEM_LIST
+    int err;
     switch (token) {
         case ROUNDR:
             GET_TOKEN();
@@ -94,7 +95,8 @@ int fun_params(char *fun_id) {
             return SYNTAX_OK;
 
         case ID:
-            if (semantic_add_fun_param(fun_id, value->str) == ERR_INTERNAL) return ERR_INTERNAL;
+            err = semantic_add_fun_param(fun_id, value->str);
+            if (err != 0) return err;
             GET_TOKEN();
 
             if (token == COMMA) {
@@ -119,9 +121,10 @@ int fun_declr() {
 
     ACCEPT(ROUNDL);
 
-    if (fun_params(previous_token_value) != SYNTAX_OK) return ERR_SYNTAX;
+    int err = fun_params(previous_token_value);
+    if (err != SYNTAX_OK) return err;
 
-    if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
+    if ((err = stat_list(previous_token_value)) != SYNTAX_OK) return err;
 
     ACCEPT(KEYWORD_END);
 
@@ -132,9 +135,10 @@ int fun_declr() {
 }
 
 
-int params(char *fun_id) {
+int params(char *fun_id, char *called_from_fun) {
     // pravidlo <ITEM><ITEM_LIST
     int err;
+    char previous_token_value[100];
     static size_t params_count = 0;
     switch (token) {
         case LEX_EOL:
@@ -143,35 +147,39 @@ int params(char *fun_id) {
             params_count = 0;
             if (err != 0) return err;
             else return SYNTAX_OK;
+        case ID:
+            strcpy(previous_token_value, value->str);
+            if (semantic_check_var_defined(called_from_fun, previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
         case NUM_INT:
         case NUM_FLOAT:
         case NUM_EXP:
         case STRING:
-        case ID:
             params_count++;
+            // check if param is defined
+
             GET_TOKEN();
 
             if (token == COMMA) {
                 GET_TOKEN();
                 if (token != ID && token != NUM_INT && token != NUM_FLOAT && token != NUM_EXP && token != STRING) return ERR_SYNTAX;
-                return params(fun_id);
+                return params(fun_id, called_from_fun);
             }
 
-            return params(fun_id);
+            return params(fun_id, called_from_fun);
         default:
             return ERR_SYNTAX;
     }
 }
 
 
-int fun_call(char *fun_id) {
+int fun_call(char *fun_id, char *called_from_fun) {
     int brackets = 0;
     if (token == ROUNDL) {
         brackets = 1;
         GET_TOKEN();
     }
 
-    int err = params(fun_id);
+    int err = params(fun_id, called_from_fun);
     if (err != SYNTAX_OK) return err;
 
     if (brackets) {
@@ -182,7 +190,7 @@ int fun_call(char *fun_id) {
 
 }
 
-int stat_list() {
+int stat_list(char *fun_id) {
     int err;
     char previous_token_value[100];
     switch (token) {
@@ -194,17 +202,17 @@ int stat_list() {
             ACCEPT(KEYWORD_THEN);
             ACCEPT(LEX_EOL);
 
-            if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
+            if (( err = stat_list(fun_id)) != SYNTAX_OK) return err;
 
             ACCEPT(KEYWORD_ELSE);
             ACCEPT(LEX_EOL);
 
-            if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
+            if (stat_list(fun_id) != SYNTAX_OK) return ERR_SYNTAX;
 
             ACCEPT(KEYWORD_END);
             ACCEPT(LEX_EOL);
 
-            return stat_list();
+            return stat_list(fun_id);
 
         case KEYWORD_WHILE:
             // pravidlo WHILE <EXPR> DO EOL <STAT_LIST> END
@@ -215,15 +223,15 @@ int stat_list() {
             ACCEPT(LEX_EOL);
 
 
-            if (stat_list() != SYNTAX_OK) return ERR_SYNTAX;
+            if (( err = stat_list(fun_id)) != SYNTAX_OK) return err;
 
             ACCEPT(KEYWORD_END);
             ACCEPT(LEX_EOL);
 
-            return stat_list();
+            return stat_list(fun_id);
         case LEX_EOL:
             GET_TOKEN();
-            return stat_list();
+            return stat_list(fun_id);
         case KEYWORD_DEF:
         case KEYWORD_END:
         case KEYWORD_ELSE:
@@ -239,16 +247,18 @@ int stat_list() {
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
+                insert_var_to_st(previous_token_value, fun_id, true);
                 if (assign() != SYNTAX_OK) return ERR_SYNTAX;
-                return stat_list();
+                return stat_list(fun_id);
             }
             if (token != LEX_EOL || semantic_token_is_function(previous_token_value)) {
-                if ((err = fun_call(previous_token_value)) != SYNTAX_OK) return err;
-                return stat_list();
+                if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+                return stat_list(fun_id);
 
             }
+            if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
             ACCEPT(LEX_EOL);
-            return stat_list();
+            return stat_list(fun_id);
 
         default:
             return ERR_SYNTAX;
@@ -262,8 +272,8 @@ int stat_list() {
         case SUBSTR:
             strcpy(previous_token_value, value->str); // TODO: refactor descend
             GET_TOKEN();
-            if ((err = fun_call(previous_token_value)) != SYNTAX_OK) return err;
-            return stat_list();
+            if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+            return stat_list(fun_id);
     }
 }
 
@@ -292,7 +302,7 @@ int program() {
             return ERR_LEXICAL;
         default:
         case ID:
-            if ((err = stat_list()) != SYNTAX_OK) return err;
+            if ((err = stat_list("")) != SYNTAX_OK) return err;
             return program();
     }
 }
@@ -321,12 +331,20 @@ int parse() {
         case ERR_SEMANTIC_DEFINITION:
             printf("*****SEMANTIC DEFINITION ERROR*****\n");
             break;
+        case ERR_SEMANTIC_TYPE:
+            printf("*****SEMANTIC TYPE ERROR*****\n");
+            break;
         case ERR_SEMANTIC_PARAMETERS_COUNT:
-            printf("*****SEMANTIC PARAMETERS COUNT*****\n");
+            printf("*****SEMANTIC PARAMETERS COUNT ERROR*****\n");
+            break;
+        case ERR_SEMANTIC_OTHER:
+            printf("*****SEMANTIC OTHER ERROR*****\n");
             break;
         default:
             printf("Unknown Error\n");
     }
+
+    if (semantic_clean() == ERR_INTERNAL) return ERR_INTERNAL;
 
     return result;
 }

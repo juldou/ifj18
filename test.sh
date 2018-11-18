@@ -161,6 +161,51 @@ else
     let tests_failed+=1
 fi
 
+echo "----------------------TEST 17----------------------"
+./ifj18 < ./programs/valid_programs/11.rb
+if [ $? -eq 0 ]; then
+    echo "TEST 17 PASSED"
+else
+    echo "TEST 17 FAILED"
+    let tests_failed+=1
+fi
+
+echo "----------------------TEST 18----------------------"
+./ifj18 < ./programs/return_value_5/4.rb
+if [ $? -eq 5 ]; then
+    echo "TEST 18 PASSED"
+else
+    echo "TEST 18 FAILED"
+    let tests_failed+=1
+fi
+
+echo "----------------------TEST 19----------------------"
+./ifj18 < ./programs/return_value_5/5.rb
+if [ $? -eq 5 ]; then
+    echo "TEST 19 PASSED"
+else
+    echo "TEST 19 FAILED"
+    let tests_failed+=1
+fi
+
+echo "----------------------TEST 20----------------------"
+./ifj18 < ./programs/return_value_6/1.rb
+if [ $? -eq 6 ]; then
+    echo "TEST 20 PASSED"
+else
+    echo "TEST 20 FAILED"
+    let tests_failed+=1
+fi
+
+echo "----------------------TEST 21----------------------"
+./ifj18 < ./programs/return_value_3/2.rb
+if [ $? -eq 3 ]; then
+    echo "TEST 21 PASSED"
+else
+    echo "TEST 21 FAILED"
+    let tests_failed+=1
+fi
+
 echo ""
 echo "--------------------SUMMARY-----------------------"
 echo ""

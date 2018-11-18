@@ -5,7 +5,7 @@
 int hash_code(t_key key) {
     int retval = 1;
     size_t idlen = strlen(key);
-    for (int i = 0; i < idlen; i++)
+    for (size_t i = 0; i < idlen; i++)
         retval += key[i];
     return (retval % SYMTABLE_SIZE);
 }
@@ -32,7 +32,7 @@ st_elem *st_search(st *st_ptr, t_key key) {
     return NULL;
 }
 
-int st_insert(st *st_ptr, t_key key, elem_data *data) {
+int st_insert(st *st_ptr, t_key key, st_elem_types elem_type,elem_data *data) {
     if (st_ptr == NULL || key == NULL) {
         return ERR_INTERNAL;
     }
@@ -49,6 +49,7 @@ int st_insert(st *st_ptr, t_key key, elem_data *data) {
             return ERR_INTERNAL;
         }
         strcpy(tmp->key, key);
+        tmp->elem_type = elem_type;
         tmp->data = data;
         tmp->ptrnext = NULL;
         int index = hash_code(key);
@@ -94,17 +95,29 @@ void st_delete(st *st_ptr, t_key key) {
     }
 }
 
+void st_clear_elem_data(st_elem *elem) {
+    free(elem->data->id);
+    if (elem->elem_type == FUNCTION  && !elem->data->is_builtin) {
+        for (size_t j = 0; j < elem->data->params_count; j++) {
+            free(elem->data->params[j]);
+        }
+        free(elem->data->params);
+        free(elem->data);
+    }
+}
+
 void st_clear_all(st *st_ptr) {
     if (st_ptr == NULL) {
         return;
     }
     st_elem *tmp, *next;
-    for (int i = 0; i < SYMTABLE_SIZE; ++i) {
+    for (size_t i = 0; i < SYMTABLE_SIZE; ++i) {
         next = (*st_ptr)[i];
         while (next) {
             tmp = next;
             next = tmp->ptrnext;
             free(tmp->key);
+            st_clear_elem_data(tmp);
             free(tmp);
         }
         (*st_ptr)[i] = NULL;
