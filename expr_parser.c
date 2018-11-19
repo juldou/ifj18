@@ -1,7 +1,7 @@
 #include <zconf.h>
 #include "expr_parser.h"
 #include "error.h"
-
+#include "semantic.h"
 
 #define SIZE 7
 #define SYNTAX_OK 101
@@ -182,7 +182,7 @@ int rules(t_stack *stack) {
 }
 
 
-int expresion(int type) {
+int expresion(int type, char *fun_id) {
     int retval;
     t_stack *stack = malloc(sizeof(t_stack));
     stack_init(stack);
@@ -197,7 +197,6 @@ int expresion(int type) {
             break;
         }
 
-
         switch (prec_table[decode(top_term(stack)->symbol)][decode(token)]) {
             case EQ:
                 push(stack, token);
@@ -205,6 +204,10 @@ int expresion(int type) {
                 break;
             case LE:
                 insert_after_first_terminal(stack, LE);
+                if (token == ID) {
+                    if (semantic_check_var_defined(fun_id, value->str) == ERR_SEMANTIC_DEFINITION)
+                        return ERR_SEMANTIC_DEFINITION;
+                }
                 push(stack, token);
                 GET_TOKEN();
                 break;
@@ -231,11 +234,11 @@ int expresion(int type) {
 
 }
 
-int bool_expr() {
-    return expresion(BOOL);
+int bool_expr(char *fun_id) {
+    return expresion(BOOL, fun_id);
 }
 
-int math_expr() {
-    return expresion(MATH);
+int math_expr(char *fun_id) {
+    return expresion(MATH, fun_id);
 }
 

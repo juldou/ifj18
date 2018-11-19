@@ -75,7 +75,7 @@ int assign(char *fun_id) {
 
     switch (token) {
         case ROUNDL:
-            if ((err = math_expr()) != SYNTAX_OK) return err;
+            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -86,7 +86,7 @@ int assign(char *fun_id) {
                 return SYNTAX_OK;
             }
 
-            if ((err = math_expr()) != SYNTAX_OK) return err;
+            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -106,7 +106,7 @@ int assign(char *fun_id) {
         case NUM_FLOAT:
         case NUM_EXP:
         case STRING:
-            if ((err = math_expr()) != SYNTAX_OK) return err;
+            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -235,7 +235,7 @@ int stat_list(char *fun_id) {
         case KEYWORD_IF:
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
             GET_TOKEN();
-            if ((err = bool_expr()) != SYNTAX_OK) return err;
+            if ((err = bool_expr(fun_id)) != SYNTAX_OK) return err;
 
             ACCEPT(KEYWORD_THEN);
             ACCEPT(LEX_EOL);
@@ -255,7 +255,7 @@ int stat_list(char *fun_id) {
         case KEYWORD_WHILE:
             // pravidlo WHILE <EXPR> DO EOL <STAT_LIST> END
             GET_TOKEN();
-            if ((err = bool_expr()) != SYNTAX_OK) return err;
+            if ((err = bool_expr(fun_id)) != SYNTAX_OK) return err;
 
             ACCEPT(KEYWORD_DO);
             ACCEPT(LEX_EOL);
