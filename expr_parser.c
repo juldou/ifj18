@@ -129,7 +129,7 @@ void pop_rule(t_stack *stack, int count, int symbol) {
 }
 
 
-int rules(t_stack *stack) {
+int rules(t_stack *stack, char *fun_id) {
     if (check_rule(stack, 3, EXPR, PLUS, EXPR)) {
         pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
@@ -161,6 +161,7 @@ int rules(t_stack *stack) {
         pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 1, ID)) {
+
         pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, ROUNDL, EXPR, ROUNDR)) {
@@ -182,7 +183,7 @@ int rules(t_stack *stack) {
 }
 
 
-int expresion(int type) {
+int expresion(int type, char *fun_id) {
     int retval;
     t_stack *stack = malloc(sizeof(t_stack));
     stack_init(stack);
@@ -209,7 +210,7 @@ int expresion(int type) {
                 GET_TOKEN();
                 break;
             case GR:
-                retval = rules(stack);
+                retval = rules(stack, fun_id);
                 if (retval != SYNTAX_OK) {
                     while (stack->top != NULL) pop(stack);
                     free(stack);
@@ -231,11 +232,11 @@ int expresion(int type) {
 
 }
 
-int bool_expr() {
-    return expresion(BOOL);
+int bool_expr(char *fun_id) {
+    return expresion(BOOL, fun_id);
 }
 
-int math_expr() {
-    return expresion(MATH);
+int math_expr(char *fun_id) {
+    return expresion(MATH, fun_id);
 }
 

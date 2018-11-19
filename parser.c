@@ -72,7 +72,7 @@ int assign() {
     strCopyString(temp, value);
     switch (token) {
         case ROUNDL:
-            if ((err = math_expr()) != SYNTAX_OK) return err;
+            if ((err = math_expr(temp->str)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -83,7 +83,7 @@ int assign() {
                 return SYNTAX_OK;
             }
 
-            if ((err = math_expr()) != SYNTAX_OK) return err;
+            if ((err = math_expr(temp->str)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -103,7 +103,7 @@ int assign() {
         case NUM_FLOAT:
         case NUM_EXP:
         case STRING:
-            if ((err = math_expr()) != SYNTAX_OK) return err;
+            if ((err = math_expr(temp->str)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -222,7 +222,7 @@ int stat_list() {
         case KEYWORD_IF:
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
             GET_TOKEN();
-            if ((err = bool_expr()) != SYNTAX_OK) return err;
+            if ((err = bool_expr("")) != SYNTAX_OK) return err;
 
             ACCEPT(KEYWORD_THEN);
             ACCEPT(LEX_EOL);
@@ -242,7 +242,7 @@ int stat_list() {
         case KEYWORD_WHILE:
             // pravidlo WHILE <EXPR> DO EOL <STAT_LIST> END
             GET_TOKEN();
-            if ((err = bool_expr()) != SYNTAX_OK) return err;
+            if ((err = bool_expr("")) != SYNTAX_OK) return err;
 
             ACCEPT(KEYWORD_DO);
             ACCEPT(LEX_EOL);
