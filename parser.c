@@ -67,9 +67,12 @@ char *values[] = {
 
 };
 
-int assign() {
+int assign(char *fun_id) {
     // pravidlo "ID" = <value>
+    char previous_token_value[value->length + 1];  // TODO: refactor descend
+    strcpy(previous_token_value, value->str);
     strCopyString(temp, value);
+
     switch (token) {
         case ROUNDL:
             if ((err = math_expr()) != SYNTAX_OK) return err;
@@ -79,7 +82,7 @@ int assign() {
         case ID:
             if (semantic_token_is_function(temp->str)) {
                 GET_TOKEN();
-                if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
+                if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return SYNTAX_OK;
             }
 
@@ -96,7 +99,7 @@ int assign() {
         case CHR:
         case ORD:
             GET_TOKEN();
-            if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
+            if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
             return SYNTAX_OK;
 
         case NUM_INT:
@@ -125,7 +128,8 @@ int fun_params(char *fun_id) {
             return SYNTAX_OK;
 
         case ID:
-            if (semantic_add_fun_param(fun_id, value->str) == ERR_INTERNAL) return ERR_INTERNAL;
+            err = semantic_add_fun_param(fun_id, value->str);
+            if (err != 0) return err;
             GET_TOKEN();
 
             if (token == COMMA) {
@@ -144,18 +148,21 @@ int fun_params(char *fun_id) {
 
 
 int fun_declr() {
+    char previous_token_value[value->length + 1];  // TODO: refactor descend
+    strcpy(previous_token_value, value->str);
     strCopyString(temp, value);
     if (token != ID && token != IDF)
         return ERR_SYNTAX;
     GET_TOKEN();
 
-    if (semantic_check_fun_definition(temp->str) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
+    if (semantic_check_fun_definition(previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
 
     ACCEPT(ROUNDL);
 
-    if ((err = fun_params(temp->str)) != SYNTAX_OK) return err;
+    if ((err = fun_params(previous_token_value)) != SYNTAX_OK) return err;
 
-    if ((err = stat_list()) != SYNTAX_OK) return err;
+    if ((err = stat_list(previous_token_value)) != SYNTAX_OK) return err;
+
     ACCEPT(KEYWORD_END);
 
     //todo condition
@@ -165,8 +172,9 @@ int fun_declr() {
 }
 
 
-int params(char *fun_id) {
+int params(char *fun_id, char *called_from_fun) {
     // pravidlo <ITEM><ITEM_LIST
+    char previous_token_value[value->length + 1];
     static size_t params_count = 0;
     switch (token) {
         case LEX_EOL:
@@ -175,22 +183,25 @@ int params(char *fun_id) {
             params_count = 0;
             if (err != 0) return err;
             return SYNTAX_OK;
+        case ID:
+            strcpy(previous_token_value, value->str);
+            if (semantic_check_var_defined(called_from_fun, previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
         case NUM_INT:
         case NUM_FLOAT:
         case NUM_EXP:
         case STRING:
-        case ID:
             params_count++;
+            // check if param is defined
+
             GET_TOKEN();
 
             if (token == COMMA) {
                 GET_TOKEN();
-                if (token != ID && token != NUM_INT && token != NUM_FLOAT && token != NUM_EXP && token != STRING)
-                    return ERR_SYNTAX;
-                return params(fun_id);
+                if (token != ID && token != NUM_INT && token != NUM_FLOAT && token != NUM_EXP && token != STRING) return ERR_SYNTAX;
+                return params(fun_id, called_from_fun);
             }
 
-            return params(fun_id);
+            return params(fun_id, called_from_fun);
         case ERR_LEXICAL:
             return ERR_LEXICAL;
         default:
@@ -199,14 +210,14 @@ int params(char *fun_id) {
 }
 
 
-int fun_call(char *fun_id) {
+int fun_call(char *fun_id, char *called_from_fun) {
     int brackets = 0;
     if (token == ROUNDL) {
         brackets = 1;
         GET_TOKEN();
     }
 
-    int err = params(fun_id);
+    int err = params(fun_id, called_from_fun);
     if (err != SYNTAX_OK) return err;
 
     if (brackets) {
@@ -217,7 +228,9 @@ int fun_call(char *fun_id) {
 
 }
 
-int stat_list() {
+int stat_list(char *fun_id) {
+    char previous_token_value[value->length + 1];
+    strcpy(previous_token_value, value->str);
     switch (token) {
         case KEYWORD_IF:
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
@@ -227,17 +240,17 @@ int stat_list() {
             ACCEPT(KEYWORD_THEN);
             ACCEPT(LEX_EOL);
 
-            if ((err = stat_list()) != SYNTAX_OK) return err;
+            if ((err = stat_list(fun_id)) != SYNTAX_OK) return err;
 
             ACCEPT(KEYWORD_ELSE);
             ACCEPT(LEX_EOL);
 
-            if ((err = stat_list()) != SYNTAX_OK) return err;
+            if ((err = stat_list(fun_id)) != SYNTAX_OK) return err;
 
             ACCEPT(KEYWORD_END);
             ACCEPT(LEX_EOL);
 
-            return stat_list();
+            return stat_list(fun_id);
 
         case KEYWORD_WHILE:
             // pravidlo WHILE <EXPR> DO EOL <STAT_LIST> END
@@ -248,15 +261,15 @@ int stat_list() {
             ACCEPT(LEX_EOL);
 
 
-            if ((err = stat_list()) != SYNTAX_OK) return err;
+            if ((err = stat_list(fun_id)) != SYNTAX_OK) return err;
 
             ACCEPT(KEYWORD_END);
             ACCEPT(LEX_EOL);
 
-            return stat_list();
+            return stat_list(fun_id);
         case LEX_EOL:
             GET_TOKEN();
-            return stat_list();
+            return stat_list(fun_id);
         case KEYWORD_NIL: //todo remove
         case KEYWORD_DEF:
         case KEYWORD_END:
@@ -268,46 +281,41 @@ int stat_list() {
 
         case IDF:
             GET_TOKEN();
-            if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
-            return stat_list();
+            if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+            return stat_list(fun_id);
         case ID:
-            strCopyString(temp, value);
+            strcpy(previous_token_value, value->str);
 
             if (semantic_token_is_function(value->str)) {
                 GET_TOKEN();
-                if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
-                return stat_list();
+                if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+                return stat_list(fun_id);
             }
-            strCopyString(temp, value);
+            strcpy(previous_token_value, value->str);
 
             //todo temp, kym julo nespravi
             GET_TOKEN();
-            switch (token) {
-                case ID:
-                case ROUNDL:
-                case NUM_EXP:
-                case NUM_FLOAT:
-                case STRING:
-                case NUM_INT:
-                    if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
-                    return stat_list();
-            }
             if (token == ASSIGN) {
                 GET_TOKEN();
-                if ((err = assign()) != SYNTAX_OK) return err;
-
-                return stat_list();
+                insert_var_to_st(previous_token_value, fun_id, true);
+                if ((err = assign(fun_id)) != SYNTAX_OK) return err; // TODO : maybe not
+                return stat_list(fun_id);
             }
+            if (token != LEX_EOL || semantic_token_is_function(previous_token_value)) {
+                if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+                return stat_list(fun_id);
 
+            }
+            if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
             ACCEPT(LEX_EOL);
-            return stat_list();
+            return stat_list(fun_id);
 
         case NUM_EXP:
         case NUM_FLOAT:
         case STRING:
         case NUM_INT:
             GET_TOKEN();
-            return stat_list();
+            return stat_list(fun_id);
         case INPUTS:
         case INPUTF:
         case INPUTI:
@@ -315,10 +323,10 @@ int stat_list() {
         case ORD:
         case CHR:
         case SUBSTR:
-            strCopyString(temp, value);
+            strcpy(previous_token_value, value->str); // TODO: refactor descend
             GET_TOKEN();
-            if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
-            return stat_list();
+            if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+            return stat_list(fun_id);
         case ERR_LEXICAL:
             return ERR_LEXICAL;
         default:
@@ -347,7 +355,8 @@ int program() {
             return program();
 
         default:
-            if ((err = stat_list()) != SYNTAX_OK) return err;
+        case ID:
+            if ((err = stat_list("")) != SYNTAX_OK) return err;
             return program();
     }
 }
@@ -380,12 +389,20 @@ int parse() {
         case ERR_SEMANTIC_DEFINITION:
             printf("*****SEMANTIC DEFINITION ERROR*****\n");
             break;
+        case ERR_SEMANTIC_TYPE:
+            printf("*****SEMANTIC TYPE ERROR*****\n");
+            break;
         case ERR_SEMANTIC_PARAMETERS_COUNT:
-            printf("*****SEMANTIC PARAMETERS COUNT*****\n");
+            printf("*****SEMANTIC PARAMETERS COUNT ERROR*****\n");
+            break;
+        case ERR_SEMANTIC_OTHER:
+            printf("*****SEMANTIC OTHER ERROR*****\n");
             break;
         default:
             printf("Unknown Error\n");
     }
+
+    if (semantic_clean() == ERR_INTERNAL) return ERR_INTERNAL;
 
     strFree(value);
     free(value);

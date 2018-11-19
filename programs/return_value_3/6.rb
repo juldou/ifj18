@@ -8,4 +8,4 @@ def factorial (n)
 	end
 	result
 end
-print "a"
+print a

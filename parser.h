@@ -7,13 +7,13 @@
 
 #define SYNTAX_OK 101
 
-int assign();
+int assign(char *fun_id);
 int expr();
-int fun_params(char *func_id);
-int params(char *func_id);
+int fun_params(char *fun_id);
+int params(char *fun_id, char *called_from_fun);
 int fun_declr();
-int fun_call(char *func_id);
-int stat_list();
+int fun_call(char *fun_id, char *called_from_fun);
+int stat_list(char *fun_id);
 
 int program();
 

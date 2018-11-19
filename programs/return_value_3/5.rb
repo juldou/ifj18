@@ -1,7 +1,7 @@
 def abc(a,b,c)
 	while a do
 		a = b
-		print(a,b,c)
+		print(k,o,k)
 		b = c
 	end
 end
