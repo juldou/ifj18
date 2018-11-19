@@ -3,7 +3,6 @@
 #include "parser.h"
 #include "semantic.h"
 #include "expr_parser.h"
-#include "str.h"
 
 #define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
 return ERR_LEXICAL;} while(0)
@@ -68,8 +67,10 @@ char *values[] = {
 
 };
 
-int assign() {
+int assign(char *fun_id) {
     // pravidlo "ID" = <value>
+    char previous_token_value[value->length + 1];  // TODO: refactor descend
+    strcpy(previous_token_value, value->str);
     strCopyString(temp, value);
 
     switch (token) {
@@ -81,7 +82,7 @@ int assign() {
         case ID:
             if (semantic_token_is_function(temp->str)) {
                 GET_TOKEN();
-                if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
+                if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return SYNTAX_OK;
             }
 
@@ -98,7 +99,7 @@ int assign() {
         case CHR:
         case ORD:
             GET_TOKEN();
-            if ((err = fun_call(temp->str)) != SYNTAX_OK) return err;
+            if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
             return SYNTAX_OK;
 
         case NUM_INT:
@@ -147,7 +148,7 @@ int fun_params(char *fun_id) {
 
 
 int fun_declr() {
-    char previous_token_value[100];  // TODO: refactor descend
+    char previous_token_value[value->length + 1];  // TODO: refactor descend
     strcpy(previous_token_value, value->str);
     strCopyString(temp, value);
     if (token != ID && token != IDF)
@@ -173,7 +174,7 @@ int fun_declr() {
 
 int params(char *fun_id, char *called_from_fun) {
     // pravidlo <ITEM><ITEM_LIST
-    char previous_token_value[100];
+    char previous_token_value[value->length + 1];
     static size_t params_count = 0;
     switch (token) {
         case LEX_EOL:
@@ -228,7 +229,8 @@ int fun_call(char *fun_id, char *called_from_fun) {
 }
 
 int stat_list(char *fun_id) {
-    char previous_token_value[100];
+    char previous_token_value[value->length + 1];
+    strcpy(previous_token_value, value->str);
     switch (token) {
         case KEYWORD_IF:
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
@@ -296,7 +298,7 @@ int stat_list(char *fun_id) {
             if (token == ASSIGN) {
                 GET_TOKEN();
                 insert_var_to_st(previous_token_value, fun_id, true);
-                if ((err = assign()) != SYNTAX_OK) return err;
+                if ((err = assign(fun_id)) != SYNTAX_OK) return err; // TODO : maybe not
                 return stat_list(fun_id);
             }
             if (token != LEX_EOL || semantic_token_is_function(previous_token_value)) {

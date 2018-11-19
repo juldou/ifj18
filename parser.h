@@ -7,7 +7,7 @@
 
 #define SYNTAX_OK 101
 
-int assign();
+int assign(char *fun_id);
 int expr();
 int fun_params(char *fun_id);
 int params(char *fun_id, char *called_from_fun);
