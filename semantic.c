@@ -48,6 +48,16 @@ void init_fun_elem_data(elem_data *data, size_t params_count, bool defined, bool
 
 /* insert var to symtable */
 int insert_var_to_st(char *var_id, char *fun_id, bool defined) {
+    size_t size = strlen(var_id) + strlen(fun_id) + 2;
+    char var_key_in_ht[size];
+    strcpy(var_key_in_ht, "\0");
+    strcat(var_key_in_ht, var_id);
+    strcat(var_key_in_ht, "_");
+    strcat(var_key_in_ht, fun_id);
+
+    st_elem *var = st_search(&st_local, var_key_in_ht);
+    if (var != NULL) return 0;
+
     elem_data *data = (elem_data *) malloc(sizeof(elem_data));
     if (data == NULL) return ERR_INTERNAL;
     st_elem *fun = st_search(&st_global, fun_id);
@@ -57,15 +67,8 @@ int insert_var_to_st(char *var_id, char *fun_id, bool defined) {
     if (data->id == NULL) return ERR_INTERNAL;
     strcpy(data->id, var_id);
 
-    size_t size = strlen(var_id) + strlen(fun_id) + 2;
-    char var_key_in_ht[size];
-    strcpy(var_key_in_ht, "\0");
-    strcat(var_key_in_ht, var_id);
-    strcat(var_key_in_ht, "_");
-    strcat(var_key_in_ht, fun_id);
-
     if (st_insert(&st_local, var_key_in_ht, VARIABLE, data) == ERR_INTERNAL) return ERR_INTERNAL;
-    else return 0;
+    return 0;
 }
 
 /* insert function to symtable */
