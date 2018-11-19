@@ -30,7 +30,7 @@ int add_builtin_funcs_to_st() {
     return 0;
 }
 
-/* initialize fun elem data */
+/* initialize var elem data */
 void init_var_elem_data(elem_data *data, st_elem *fun,bool defined) {
     data->id = NULL;
     data->defined = defined;
@@ -57,7 +57,14 @@ int insert_var_to_st(char *var_id, char *fun_id, bool defined) {
     if (data->id == NULL) return ERR_INTERNAL;
     strcpy(data->id, var_id);
 
-    if (st_insert(&st_local, var_id, VARIABLE, data) == ERR_INTERNAL) return ERR_INTERNAL;
+    size_t size = strlen(var_id) + strlen(fun_id) + 2;
+    char var_key_in_ht[size];
+    strcpy(var_key_in_ht, "\0");
+    strcat(var_key_in_ht, var_id);
+    strcat(var_key_in_ht, "_");
+    strcat(var_key_in_ht, fun_id);
+
+    if (st_insert(&st_local, var_key_in_ht, VARIABLE, data) == ERR_INTERNAL) return ERR_INTERNAL;
     else return 0;
 }
 
@@ -78,8 +85,15 @@ int insert_fun_to_st(char *fun_id, size_t params_count, bool defined, bool is_bu
 
 /* check is variable is defined */ // TODO: that function is bad! problem with ""
 int semantic_check_var_defined(char *fun_id, char *var_id) {
+    size_t size = strlen(var_id) + strlen(fun_id) + 2;
+    char var_key_in_ht[size];
+    strcpy(var_key_in_ht, "\0");
+    strcat(var_key_in_ht, var_id);
+    strcat(var_key_in_ht, "_");
+    strcat(var_key_in_ht, fun_id);
+
     st_elem *fun = st_search(&st_global, fun_id);
-    st_elem *var = st_search(&st_local, var_id);
+    st_elem *var = st_search(&st_local, var_key_in_ht);
 
     /* handle of case when var doesn't exist and we are not in any function decl */
     if (var == NULL && ( strcmp(fun_id, "") == 0 )) return ERR_SEMANTIC_DEFINITION;

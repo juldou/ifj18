@@ -102,7 +102,6 @@ void st_clear_elem_data(st_elem *elem) {
             free(elem->data->params[j]);
         }
         free(elem->data->params);
-        free(elem->data);
     }
 }
 
@@ -118,6 +117,7 @@ void st_clear_all(st *st_ptr) {
             next = tmp->ptrnext;
             free(tmp->key);
             st_clear_elem_data(tmp);
+            free(tmp->data);
             free(tmp);
         }
         (*st_ptr)[i] = NULL;
