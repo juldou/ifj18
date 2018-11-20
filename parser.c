@@ -3,6 +3,7 @@
 #include "parser.h"
 #include "semantic.h"
 #include "expr_parser.h"
+#include "code_gen.h"
 
 #define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
 return ERR_LEXICAL;} while(0)
@@ -320,6 +321,7 @@ int stat_list(char *fun_id) {
         case INPUTF:
         case INPUTI:
         case PRINT:
+            generate_print();
         case ORD:
         case CHR:
         case SUBSTR:
@@ -373,6 +375,7 @@ int parse() {
 
     if (semantic_prepare() == ERR_INTERNAL) return ERR_INTERNAL;
 
+    generate_header();
     GET_TOKEN();
     result = program();
 
