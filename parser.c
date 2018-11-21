@@ -3,6 +3,10 @@
 #include "parser.h"
 #include "semantic.h"
 #include "expr_parser.h"
+#include "code_gen.h"
+
+#define GEN_INSTR(param) do {if (ERR_INTERNAL == gen_instr((param)))\
+return ERR_INTERNAL;} while(0)
 
 #define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
 return ERR_LEXICAL;} while(0)
@@ -157,6 +161,8 @@ int fun_declr() {
 
     if (semantic_check_fun_definition(previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
 
+    GEN_INSTR(("LABEL %s", previous_token_value));
+
     ACCEPT(ROUNDL);
 
     if ((err = fun_params(previous_token_value)) != SYNTAX_OK) return err;
@@ -168,6 +174,9 @@ int fun_declr() {
     //todo condition
     if (token != LEX_EOL && token != LEX_EOF) return ERR_SYNTAX;
     GET_TOKEN();
+
+    GEN_INSTR(("%s", "RETURN"));
+
     return SYNTAX_OK;
 }
 
@@ -190,9 +199,10 @@ int params(char *fun_id, char *called_from_fun) {
         case NUM_FLOAT:
         case NUM_EXP:
         case STRING:
+//            instr_pushs(value->str);
+
             params_count++;
             // check if param is defined
-
             GET_TOKEN();
 
             if (token == COMMA) {
@@ -211,6 +221,8 @@ int params(char *fun_id, char *called_from_fun) {
 
 
 int fun_call(char *fun_id, char *called_from_fun) {
+    if (!semantic_token_is_function(fun_id)) return ERR_SEMANTIC_DEFINITION;
+
     int brackets = 0;
     if (token == ROUNDL) {
         brackets = 1;
@@ -224,8 +236,10 @@ int fun_call(char *fun_id, char *called_from_fun) {
         ACCEPT(ROUNDR);
     }
     ACCEPT(LEX_EOL);
-    return SYNTAX_OK;
 
+//    instr_call(fun_id);
+
+    return SYNTAX_OK;
 }
 
 int stat_list(char *fun_id) {
@@ -286,7 +300,7 @@ int stat_list(char *fun_id) {
         case ID:
             strcpy(previous_token_value, value->str);
 
-            if (semantic_token_is_function(value->str)) {
+            if (semantic_token_is_function(previous_token_value)) {
                 GET_TOKEN();
                 if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return stat_list(fun_id);
@@ -320,6 +334,7 @@ int stat_list(char *fun_id) {
         case INPUTF:
         case INPUTI:
         case PRINT:
+        case LENGTH:
         case ORD:
         case CHR:
         case SUBSTR:
@@ -344,7 +359,7 @@ int program() {
 
         case KEYWORD_NIL:
         case LEX_EOF:
-            printf("END\n");
+            printf("\nEND\n");
             return SYNTAX_OK;
 
         case ERR_LEXICAL:
@@ -372,7 +387,9 @@ int parse() {
     if (strInit(temp) == STR_ERROR) return ERR_INTERNAL;
 
     if (semantic_prepare() == ERR_INTERNAL) return ERR_INTERNAL;
+    if (code_gen_prepare() == ERR_INTERNAL) return ERR_INTERNAL;
 
+    gen_header();
     GET_TOKEN();
     result = program();
 
@@ -402,7 +419,10 @@ int parse() {
             printf("Unknown Error\n");
     }
 
+    code_generate();
+
     if (semantic_clean() == ERR_INTERNAL) return ERR_INTERNAL;
+    if (code_gen_clean() == ERR_INTERNAL) return ERR_INTERNAL;
 
     strFree(value);
     free(value);

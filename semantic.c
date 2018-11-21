@@ -158,7 +158,7 @@ int semantic_add_fun_param(char *fun_id, char *param) {
     return 0;
 }
 
-bool semantic_token_is_function(char *fun_id) { // TODO: rename to just token_is_function
+bool semantic_token_is_function(char *fun_id) {  // TODO: rename to just token_is_function
     st_elem *elem = st_search(&st_global, fun_id);
     if (elem == NULL) return false;
     else return true;
