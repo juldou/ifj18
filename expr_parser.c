@@ -1,4 +1,4 @@
-#include <zconf.h>
+#include <stdarg.h>
 #include "expr_parser.h"
 #include "error.h"
 #include "semantic.h"
