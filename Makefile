@@ -14,6 +14,9 @@ $(NAME): $(OBJECTS)
 run:
 	./$(NAME)
 
+test:
+	./test.sh
+
 clean:
 	rm -f $(NAME) *.o
 
