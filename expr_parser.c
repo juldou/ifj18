@@ -205,8 +205,11 @@ int expresion(int type, char *fun_id) {
             case LE:
                 insert_after_first_terminal(stack, LE);
                 if (token == ID) {
-                    if (semantic_check_var_defined(fun_id, value->str) == ERR_SEMANTIC_DEFINITION)
+                    if (semantic_check_var_defined(fun_id, value->str) == ERR_SEMANTIC_DEFINITION) {
+                        while (stack->top != NULL) pop(stack);
+                        free(stack);
                         return ERR_SEMANTIC_DEFINITION;
+                    }
                 }
                 push(stack, token);
                 GET_TOKEN();
