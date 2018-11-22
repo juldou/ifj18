@@ -160,7 +160,6 @@ int fun_params(char *fun_id) {
 
 
 int fun_declr() {
-    GEN_INSTR("%s", "CREATEFRAME");
     char previous_token_value[value->length + 1];  // TODO: refactor descend
     strcpy(previous_token_value, value->str);
     strCopyString(temp, value);
@@ -170,7 +169,7 @@ int fun_declr() {
 
     if (semantic_check_fun_definition(previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
 
-    GEN_INSTR("LABEL %s", previous_token_value);
+    if (gen_fun_header(previous_token_value) == ERR_INTERNAL) return ERR_INTERNAL;
 
     ACCEPT(ROUNDL);
 
@@ -184,8 +183,7 @@ int fun_declr() {
     if (token != LEX_EOL && token != LEX_EOF) return ERR_SYNTAX;
     GET_TOKEN();
 
-    GEN_INSTR("%s", "POPFRAME");
-    GEN_INSTR("%s", "RETURN");
+    if (gen_fun_footer() == ERR_INTERNAL) return ERR_INTERNAL;
 
     return SYNTAX_OK;
 }
@@ -212,7 +210,6 @@ int params(char *fun_id, char *called_from_fun) {
         case STRING:
 //            instr_pushs(value->str);
 
-
             params_count++;
             // check if param is defined
             GET_TOKEN();
@@ -235,6 +232,7 @@ int params(char *fun_id, char *called_from_fun) {
 
 int fun_call(char *fun_id, char *called_from_fun) {
     if (!semantic_token_is_function(fun_id)) return ERR_SEMANTIC_DEFINITION;
+    if (is_fun_builtin(fun_id)) gen_builtin_fun(fun_id);
 
     int brackets = 0;
     if (token == ROUNDL) {

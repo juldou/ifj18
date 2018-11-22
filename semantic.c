@@ -164,6 +164,11 @@ bool semantic_token_is_function(char *fun_id) {  // TODO: rename to just token_i
     else return true;
 }
 
+bool is_fun_builtin(char *fun_id) {
+    st_elem *elem = st_search(&st_global, fun_id);
+    return elem->data->is_builtin;
+}
+
 bool semantic_token_is_variable(char *var_id) {
     st_elem *elem = st_search(&st_local, var_id);
     if (elem == NULL) return false;

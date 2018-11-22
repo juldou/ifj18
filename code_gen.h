@@ -22,4 +22,12 @@ int gen_instr(char *c, ...);
 void code_generate();
 void print_code(tList *L);
 
+
+int gen_fun_header(char *label);
+int gen_fun_footer();
+
+int gen_builtin_fun(char *fun_id);
+
+int gen_print();
+
 #endif //IFJ_CODE_GEN_H

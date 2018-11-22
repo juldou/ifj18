@@ -1,5 +1,10 @@
 #include "code_gen.h"
 
+/* CONVENTIONS:
+ * special variables has prefix $
+ *      - return value of function is $retval
+ * function has prefix * (*some_function)
+ */
 
 tList instr;
 
@@ -51,6 +56,30 @@ int gen_instr(char *string, ...) {
     return 0;
 }
 
-// There will be more complex constructs built from instructions (instr.h)
-// like gen while, for, print fun, ...
+int gen_fun_header(char *label) {
+    GEN_INSTR("LABEL %s", label);
+    GEN_INSTR("%s", "PUSHFRAME");
+    GEN_INSTR("DEFVAR LF@%s", "$retval");
+    GEN_INSTR("MOVE LF@%s nil@nil", "$retval");
+    return 0;
+}
 
+int gen_fun_footer() {
+    GEN_INSTR("%s", "POPFRAME");
+    GEN_INSTR("%s", "RETURN");
+    return 0;
+}
+
+int gen_builtin_fun(char *fun_id) {
+    if (strcmp(fun_id, "print") == 0) return gen_print();
+    return 0;
+}
+
+int gen_print() {
+    if (gen_fun_header("*print") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    // TODO:
+
+    if (gen_fun_footer() == ERR_INTERNAL) return ERR_INTERNAL;
+    return 0;
+}
