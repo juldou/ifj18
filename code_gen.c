@@ -1,7 +1,5 @@
 #include "code_gen.h"
 
-#define GEN_INSTR(param) do {if (ERR_INTERNAL == gen_instr((param)))\
-return ERR_INTERNAL;} while(0)
 
 tList instr;
 
@@ -27,7 +25,7 @@ int gen_header() {
 int gen_main() {
     GEN_INSTR("JUMP %s", "$$MAIN");
     GEN_INSTR("LABEL %s", "$$MAIN");
-    GEN_INSTR("CREATEFRAME");
+    GEN_INSTR("%s", "CREATEFRAME");
     return 0;
 }
 

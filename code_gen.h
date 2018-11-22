@@ -4,6 +4,14 @@
 #include <stdio.h>
 #include "list.h"
 
+#define GEN_INSTR(format, ...) do {if (ERR_INTERNAL == gen_instr(format"\n",  __VA_ARGS__)) \
+return ERR_INTERNAL;} while(0)
+
+//does not add newline
+#define ADD_INSTR(...) do {if (ERR_INTERNAL == gen_instr( __VA_ARGS__)) \
+return ERR_INTERNAL;} while(0)
+
+
 FILE *fp;
 
 int code_gen_prepare();

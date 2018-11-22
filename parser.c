@@ -5,13 +5,6 @@
 #include "expr_parser.h"
 #include "code_gen.h"
 
-#define GEN_INSTR(format, args...) do {if (ERR_INTERNAL == gen_instr(format"\n", args)) \
-return ERR_INTERNAL;} while(0)
-
-    //does not add newline
-#define ADD_INSTR(args...) do {if (ERR_INTERNAL == gen_instr(args)) \
-return ERR_INTERNAL;} while(0)
-
 #define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
 return ERR_LEXICAL;} while(0)
 
