@@ -242,7 +242,7 @@ int Active (tList *L) {
 void printList (tList *L) {
     tElemPtr temp = L->First;
     while (temp != NULL) {
-        fprintf(stdout, "%s\n", temp->instruction);
+        fprintf(stdout, "%s", temp->instruction);
         temp = temp->ptr;
     }
 }

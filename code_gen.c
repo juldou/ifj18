@@ -16,14 +16,14 @@ int code_gen_clean() {
 }
 
 int gen_header() {
-    if (gen_instr("%s", ".IFJcode18")) return ERR_INTERNAL;
+    if (gen_instr("%s\n", ".IFJcode18")) return ERR_INTERNAL;
     if (gen_main() == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }
 
 int gen_main() {
-    gen_instr("JUMP %s", "$$MAIN");
-    gen_instr("LABEL %s", "$$MAIN");
+    gen_instr("JUMP %s\n", "$$MAIN");
+    gen_instr("LABEL %s\n", "$$MAIN");
     return 0;
 }
 

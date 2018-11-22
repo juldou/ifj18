@@ -5,7 +5,11 @@
 #include "expr_parser.h"
 #include "code_gen.h"
 
-#define GEN_INSTR(param) do {if (ERR_INTERNAL == gen_instr((param)))\
+#define GEN_INSTR(format, args...) do {if (ERR_INTERNAL == gen_instr(format"\n", args)) \
+return ERR_INTERNAL;} while(0)
+
+    //does not add newline
+#define ADD_INSTR(args...) do {if (ERR_INTERNAL == gen_instr(args)) \
 return ERR_INTERNAL;} while(0)
 
 #define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
@@ -76,7 +80,6 @@ int assign(char *fun_id) {
     char previous_token_value[value->length + 1];  // TODO: refactor descend
     strcpy(previous_token_value, value->str);
     strCopyString(temp, value);
-
     switch (token) {
         case ROUNDL:
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
@@ -107,9 +110,19 @@ int assign(char *fun_id) {
             return SYNTAX_OK;
 
         case NUM_INT:
+            //todo result from precedence analysis
+            GEN_INSTR("int@%s", value->str);
+            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+            ACCEPT(LEX_EOL);
+            return SYNTAX_OK;
         case NUM_FLOAT:
         case NUM_EXP:
+            GEN_INSTR("float@%s", value->str);
+            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+            ACCEPT(LEX_EOL);
+            return SYNTAX_OK;
         case STRING:
+            GEN_INSTR("string@%s", value->str);
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
@@ -134,6 +147,8 @@ int fun_params(char *fun_id) {
         case ID:
             err = semantic_add_fun_param(fun_id, value->str);
             if (err != 0) return err;
+            GEN_INSTR("DEFVAR LF@%s", value->str);
+
             GET_TOKEN();
 
             if (token == COMMA) {
@@ -152,6 +167,7 @@ int fun_params(char *fun_id) {
 
 
 int fun_declr() {
+    GEN_INSTR("%s", "CREATEFRAME");
     char previous_token_value[value->length + 1];  // TODO: refactor descend
     strcpy(previous_token_value, value->str);
     strCopyString(temp, value);
@@ -161,7 +177,7 @@ int fun_declr() {
 
     if (semantic_check_fun_definition(previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
 
-    GEN_INSTR(("LABEL %s", previous_token_value));
+    GEN_INSTR("LABEL %s", previous_token_value);
 
     ACCEPT(ROUNDL);
 
@@ -175,7 +191,8 @@ int fun_declr() {
     if (token != LEX_EOL && token != LEX_EOF) return ERR_SYNTAX;
     GET_TOKEN();
 
-    GEN_INSTR(("%s", "RETURN"));
+    GEN_INSTR("%s", "POPFRAME");
+    GEN_INSTR("%s", "RETURN");
 
     return SYNTAX_OK;
 }
@@ -194,12 +211,14 @@ int params(char *fun_id, char *called_from_fun) {
             return SYNTAX_OK;
         case ID:
             strcpy(previous_token_value, value->str);
-            if (semantic_check_var_defined(called_from_fun, previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
+            if (semantic_check_var_defined(called_from_fun, previous_token_value) == ERR_SEMANTIC_DEFINITION)
+                return ERR_SEMANTIC_DEFINITION;
         case NUM_INT:
         case NUM_FLOAT:
         case NUM_EXP:
         case STRING:
 //            instr_pushs(value->str);
+
 
             params_count++;
             // check if param is defined
@@ -207,7 +226,8 @@ int params(char *fun_id, char *called_from_fun) {
 
             if (token == COMMA) {
                 GET_TOKEN();
-                if (token != ID && token != NUM_INT && token != NUM_FLOAT && token != NUM_EXP && token != STRING) return ERR_SYNTAX;
+                if (token != ID && token != NUM_INT && token != NUM_FLOAT && token != NUM_EXP && token != STRING)
+                    return ERR_SYNTAX;
                 return params(fun_id, called_from_fun);
             }
 
@@ -311,7 +331,11 @@ int stat_list(char *fun_id) {
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
-                insert_var_to_st(previous_token_value, fun_id, true);
+                if (insert_var_to_st(previous_token_value, fun_id, true) != 0) {
+                    GEN_INSTR("DEFVAR LF@%s", previous_token_value);
+                }
+
+                ADD_INSTR("MOVE %s ", previous_token_value);
                 if ((err = assign(fun_id)) != SYNTAX_OK) return err; // TODO : maybe not
                 return stat_list(fun_id);
             }
@@ -320,7 +344,8 @@ int stat_list(char *fun_id) {
                 return stat_list(fun_id);
 
             }
-            if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
+            if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION)
+                return ERR_SEMANTIC_DEFINITION;
             ACCEPT(LEX_EOL);
             return stat_list(fun_id);
 
