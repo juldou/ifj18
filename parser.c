@@ -161,7 +161,8 @@ int fun_declr() {
 
     if (semantic_check_fun_definition(previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
 
-    GEN_INSTR(("LABEL %s", previous_token_value));
+    GEN_INSTR(( "LABEL %s", previous_token_value));
+    GEN_INSTR(("CREATEFRAME"));
 
     ACCEPT(ROUNDL);
 
@@ -307,7 +308,6 @@ int stat_list(char *fun_id) {
             }
             strcpy(previous_token_value, value->str);
 
-            //todo temp, kym julo nespravi
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
@@ -315,11 +315,7 @@ int stat_list(char *fun_id) {
                 if ((err = assign(fun_id)) != SYNTAX_OK) return err; // TODO : maybe not
                 return stat_list(fun_id);
             }
-            if (token != LEX_EOL || semantic_token_is_function(previous_token_value)) {
-                if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
-                return stat_list(fun_id);
 
-            }
             if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
             ACCEPT(LEX_EOL);
             return stat_list(fun_id);
