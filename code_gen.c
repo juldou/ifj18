@@ -1,5 +1,8 @@
 #include "code_gen.h"
 
+#define GEN_INSTR(param) do {if (ERR_INTERNAL == gen_instr((param)))\
+return ERR_INTERNAL;} while(0)
+
 tList instr;
 
 int code_gen_prepare() {
@@ -16,14 +19,15 @@ int code_gen_clean() {
 }
 
 int gen_header() {
-    if (gen_instr("%s\n", ".IFJcode18")) return ERR_INTERNAL;
+    GEN_INSTR("%s", ".IFJcode18");
     if (gen_main() == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }
 
 int gen_main() {
-    gen_instr("JUMP %s\n", "$$MAIN");
-    gen_instr("LABEL %s\n", "$$MAIN");
+    GEN_INSTR("JUMP %s", "$$MAIN");
+    GEN_INSTR("LABEL %s", "$$MAIN");
+    GEN_INSTR("CREATEFRAME");
     return 0;
 }
 
@@ -33,10 +37,17 @@ void code_generate() {
 
 int gen_instr(char *string, ...) {
     va_list vaList;
+
+//    size_t str_len = 0;
+//    for (int i = 0; i < params_count; ++i) {
+//        str_len += strlen(va_arg(vaList, char *));
+//    }
+//    str_len -= (params_count - 1) * 2;
+
     va_start(vaList, string);
-    size_t len = strlen(string);
+//    size_t len = strlen(string);
     char *instruction;
-    if ((instruction = AppendToList(&instr, len)) == NULL) return ERR_INTERNAL;
+    if ((instruction = AppendToList(&instr)) == NULL) return ERR_INTERNAL;
     vsprintf(instruction, string, vaList);
     va_end(vaList);
     return 0;
