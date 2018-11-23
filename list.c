@@ -70,7 +70,7 @@ void DisposeList (tList *L) {
     tElemPtr next = NULL;
 	while (actual != NULL) {  // iterate over list and delete elements (clean up memory)
         next = actual->ptr;
-        free(actual->instruction);
+//        free(actual->instruction);
         free(actual);
         actual = next;
     }
@@ -78,26 +78,15 @@ void DisposeList (tList *L) {
     L->First = NULL;
 }
 
-tElemPtr AllocElem(size_t instr_len) {
-    tElemPtr tElemToAddPtr = (tElemPtr) malloc(sizeof(struct tElem));
-    if (tElemToAddPtr == NULL) return NULL;
-
-    char *instruction = (char *) malloc(sizeof(char) * (instr_len + 1));
-    if (instruction == NULL) return NULL;
-
-    tElemToAddPtr->instruction = instruction;
-    return tElemToAddPtr;
-}
-
-char *AppendToList(tList *L, size_t instr_len) {
+char *AppendToList(tList *L) {
     tElemPtr tElemToAddPtr = (tElemPtr) malloc(sizeof(struct tElem));
     if (tElemToAddPtr == NULL) return NULL;
     tElemToAddPtr->ptr = NULL;
 
-    char *instruction = (char *) malloc(sizeof(char) * (instr_len + 1));
-    if (instruction == NULL) return NULL;
+//    char *instruction = (char *) malloc(sizeof(char) * (instr_len + 1));
+//    if (instruction == NULL) return NULL;
 
-    tElemToAddPtr->instruction = instruction;
+//    tElemToAddPtr->instruction = instruction;
 
     if (L->First == NULL) {
         L->First = tElemToAddPtr;
@@ -123,7 +112,7 @@ int InsertFirst (tList *L, char *val) {
     tElemToAddPtr->ptr = L->First;
     char *instruction = (char *) malloc(sizeof(char) * (strlen(val) + 1));
     if (instruction == NULL) return ERR_INTERNAL;
-    tElemToAddPtr->instruction = instruction;
+//    tElemToAddPtr->instruction = instruction;
     L->First = tElemToAddPtr;
     return 0;
 }
@@ -191,7 +180,7 @@ int PostInsert (tList *L, char *val) {
         toInsert->ptr = L->Act->ptr;
         char *instruction = (char *) malloc(sizeof(char) * (strlen(val) + 1));
         if (instruction == NULL) return ERR_INTERNAL;
-        toInsert->instruction = instruction;
+//        toInsert->instruction = instruction;
         L->Act->ptr = toInsert;  // insert it after active elem.
     }
     return 0;
@@ -216,7 +205,7 @@ void Actualize (tList *L, char *val) {
 ** Pokud seznam L není aktivní, nedělá nic!
 **/
     if (Active(L)) {
-        L->Act->instruction = val;
+//        L->Act->instruction = val;
     }
 }
 
@@ -242,7 +231,7 @@ int Active (tList *L) {
 void printList (tList *L) {
     tElemPtr temp = L->First;
     while (temp != NULL) {
-        fprintf(stdout, "%s\n", temp->instruction);
+        fprintf(stdout, "%s", temp->instruction);
         temp = temp->ptr;
     }
 }

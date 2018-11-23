@@ -19,14 +19,14 @@ int semantic_clean() {
 }
 
 int add_builtin_funcs_to_st() {
-    if (insert_fun_to_st("inputs", 0, true, true) == ERR_INTERNAL) return ERR_INTERNAL;
-    if (insert_fun_to_st("inputi", 0, true, true) == ERR_INTERNAL) return ERR_INTERNAL;
-    if (insert_fun_to_st("inputf", 0, true, true) == ERR_INTERNAL) return ERR_INTERNAL;
-    if (insert_fun_to_st("print", 1, true, true) == ERR_INTERNAL) return ERR_INTERNAL; // variadic, but > 0
-    if (insert_fun_to_st("length", 1, true, true) == ERR_INTERNAL) return ERR_INTERNAL;
-    if (insert_fun_to_st("substr", 3, true, true) == ERR_INTERNAL) return ERR_INTERNAL;
-    if (insert_fun_to_st("ord", 2, true, true) == ERR_INTERNAL) return ERR_INTERNAL;
-    if (insert_fun_to_st("chr", 1, true, true) == ERR_INTERNAL) return ERR_INTERNAL;
+    if (insert_fun_to_st("inputs", 0, false, true) == ERR_INTERNAL) return ERR_INTERNAL;
+    if (insert_fun_to_st("inputi", 0, false, true) == ERR_INTERNAL) return ERR_INTERNAL;
+    if (insert_fun_to_st("inputf", 0, false, true) == ERR_INTERNAL) return ERR_INTERNAL;
+    if (insert_fun_to_st("print", 1, false, true) == ERR_INTERNAL) return ERR_INTERNAL; // variadic, but > 0
+    if (insert_fun_to_st("length", 1, false, true) == ERR_INTERNAL) return ERR_INTERNAL;
+    if (insert_fun_to_st("substr", 3, false, true) == ERR_INTERNAL) return ERR_INTERNAL;
+    if (insert_fun_to_st("ord", 2, false, true) == ERR_INTERNAL) return ERR_INTERNAL;
+    if (insert_fun_to_st("chr", 1, false, true) == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }
 
@@ -158,10 +158,25 @@ int semantic_add_fun_param(char *fun_id, char *param) {
     return 0;
 }
 
+int set_fun_defined(char *fun_id) {
+    st_elem *elem = st_search(&st_global, fun_id);
+    return elem->data->defined = true;
+}
+
 bool semantic_token_is_function(char *fun_id) {  // TODO: rename to just token_is_function
     st_elem *elem = st_search(&st_global, fun_id);
     if (elem == NULL) return false;
     else return true;
+}
+
+bool is_fun_builtin(char *fun_id) {
+    st_elem *elem = st_search(&st_global, fun_id);
+    return elem->data->is_builtin;
+}
+
+bool is_fun_defined(char *fun_id) {
+    st_elem *elem = st_search(&st_global, fun_id);
+    return elem->data->defined;
 }
 
 bool semantic_token_is_variable(char *var_id) {
