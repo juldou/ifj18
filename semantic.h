@@ -22,9 +22,12 @@ int semantic_check_var_defined(char *fun_id, char *var_id);
 int semantic_check_fun_definition(char *fun_id);
 int semantic_check_fun_call_params(char *fun_id, size_t params_count);
 
+int set_fun_defined(char *fun_id);
+
 bool function_parameter_exists(st_elem *elem, char *param);
 bool semantic_token_is_function(char *fun_id);
 bool is_fun_builtin(char *fun_id);
-bool semantic_token_is_variable(char *var_id, char *fun_id);
+bool is_fun_defined(char *fun_id);
+bool semantic_token_is_variable(char *var_id);
 
 #endif //IFJ_SEMANTIC_H

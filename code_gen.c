@@ -1,4 +1,5 @@
 #include "code_gen.h"
+#include "semantic.h"
 
 /* CONVENTIONS:
  * special variables has prefix $
@@ -83,6 +84,7 @@ int gen_fun_footer(char* label) {
 }
 
 int gen_builtin_fun(char *fun_id) {
+    set_fun_defined(fun_id);
 //    if (strcmp(fun_id, "inputs") == 0) return gen_inputs();
 //    if (strcmp(fun_id, "inputi") == 0) return gen_inputi();
 //    if (strcmp(fun_id, "inputf") == 0) return gen_inputf();
