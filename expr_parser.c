@@ -17,6 +17,11 @@ return ERR_LEXICAL;} while(0)
 
 extern int token;
 
+/*
+ * Conventions of odd variables for generating code
+ * %*NUMBER, where NUMBER is global variable which is
+ * incremented after each DEFVAR
+ */
 
 extern string *value;
 int line;
@@ -131,13 +136,16 @@ void pop_rule(t_stack *stack, int count, int symbol) {
 
 
 int rules(t_stack *stack, string prev_value) {
+    static int number = 0;
+
+
     if (check_rule(stack, 3, EXPR, PLUS, EXPR)) {
-        GEN_INSTR("%s","ADDS");
+        GEN_INSTR("%s", "ADDS");
         pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, MINUS, EXPR)) {
         pop_rule(stack, 3, EXPR);
-        GEN_INSTR("%s","SUBS");
+        GEN_INSTR("%s", "SUBS");
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, MUL, EXPR)) {
         pop_rule(stack, 3, EXPR);
@@ -149,48 +157,60 @@ int rules(t_stack *stack, string prev_value) {
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, LESS, EXPR)) {
         pop_rule(stack, 3, EXPR);
-        GEN_INSTR("%s","LTS");
+        GEN_INSTR("%s", "LTS");
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, MORE, EXPR)) {
         pop_rule(stack, 3, EXPR);
-        GEN_INSTR("%s","GTS");
+        GEN_INSTR("%s", "GTS");
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, LESS_EQUAL, EXPR)) {
         pop_rule(stack, 3, EXPR);
-        /*
-         * 1    LT    false
-         * 2           3
-         * 3
-         *
-         * LE:
-         * pop 1
-         * pop 2
-         * push 2
-         * push 1
-         * push 2
-         * push 1
-         * LT --> false
-         *
-         *                  zasobink -> false
-         *                              1
-         *                              2
-         *                  pop vysledok lt
-         *                  EQ--> false
-         *                  push vysledok lt
-         *                  ors
-         *
-         *
-         */
+        //duplicate numbers in stack, call '<' then '==' and 'or' results
+        GEN_INSTR("DEFVAR LF@%%*%d", number);
+        number++;
+        GEN_INSTR("DEFVAR LF@%%*%d", number);
+        number++;
+        GEN_INSTR("POPS LF@%%*%d", number - 2);
+        GEN_INSTR("POPS LF@%%*%d", number - 1);
+        GEN_INSTR("PUSHS LF@%%*%d", number - 1);
+        GEN_INSTR("PUSHS LF@%%*%d", number - 2);
+        GEN_INSTR("PUSHS LF@%%*%d", number - 1);
+        GEN_INSTR("PUSHS LF@%%*%d", number - 2);
+        GEN_INSTR("%s", "LTS");
+        GEN_INSTR("POPS LF@%%*%d", number - 1);
+        GEN_INSTR("%s","EQS");
+        GEN_INSTR("PUSHS LF@%%*%d", number - 1);
+        GEN_INSTR("%s","ORS");
+
+
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, MORE_EQUAL, EXPR)) {
+        //duplicate numbers in stack, call '>' then '==' and 'or' results
+        GEN_INSTR("DEFVAR LF@%%*%d", number);
+        number++;
+        GEN_INSTR("DEFVAR LF@%%*%d", number);
+        number++;
+        GEN_INSTR("POPS LF@%%*%d", number - 2);
+        GEN_INSTR("POPS LF@%%*%d", number - 1);
+        GEN_INSTR("PUSHS LF@%%*%d", number - 1);
+        GEN_INSTR("PUSHS LF@%%*%d", number - 2);
+        GEN_INSTR("PUSHS LF@%%*%d", number - 1);
+        GEN_INSTR("PUSHS LF@%%*%d", number - 2);
+        GEN_INSTR("%s", "GTS");
+        GEN_INSTR("POPS LF@%%*%d", number - 1);
+        GEN_INSTR("%s","EQS");
+        GEN_INSTR("PUSHS LF@%%*%d", number - 1);
+        GEN_INSTR("%s","ORS");
         pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, NOT_EQUAL, EXPR)) {
         pop_rule(stack, 3, EXPR);
+        GEN_INSTR("%s", "GTS");
+        GEN_INSTR("%s", "NOTS");
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, EQUAL, EXPR)) {
         pop_rule(stack, 3, EXPR);
-        GEN_INSTR("%s","EQS");
+        GEN_INSTR("%s", "EQS");
         return SYNTAX_OK;
     } else if (check_rule(stack, 1, ID)) {
         pop_rule(stack, 1, EXPR);
@@ -227,7 +247,7 @@ int expresion(int type, char *fun_id) {
     t_stack *stack = malloc(sizeof(t_stack));
     stack_init(stack);
 
-    GEN_INSTR("%s","CLEARS");
+    GEN_INSTR("%s", "CLEARS");
     push(stack, LEX_EOF);
 
     do {
