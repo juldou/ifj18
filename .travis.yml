@@ -1,9 +1,6 @@
 before_install:
-  - sudo apt-get update
-  - sudo apt-get upgrade -y
-  - sudo apt-get install build-essential gcc valgrind -y
-  - sudo apt-get install zlibc zlib1g zlib1g-dev -y
+  - docker pull ubuntu:16.04
 
 language: bash
 script:
-    - bash test.sh
+    - bash test.sh 1
