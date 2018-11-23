@@ -1,6 +1,8 @@
-language: c
-compiler: gcc
-script: make
+before_install:
+  - sudo apt-get update
+  - sudo apt-get upgrade -y
+  - sudo apt-get install build-essential gcc valgrind -y
+  - sudo apt-get install zlibc zlib1g zlib1g-dev -y
 
 language: bash
 script:

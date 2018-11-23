@@ -60,7 +60,8 @@ cntr=1
 for file in ./programs/gen_tests_programs/in/*; do
     echo "----------------------TEST GEN PROGRAMS $file----------------------"
     ./ifj18 < ${file} > temp_out
-    diff temp_out ./programs/gen_tests_programs/out/"$cntr.ifj"
+    ./ic18int temp_out > interpret_out
+    diff interpret_out ./programs/gen_tests_programs/out/"$cntr.ifj"
     if [ $? -eq 0 ]; then
         echo "TEST PASSED"
     else
