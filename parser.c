@@ -189,7 +189,7 @@ int fun_declr() {
 }
 
 
-int params(char *fun_id, char *called_from_fun) {
+int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
     // pravidlo <ITEM><ITEM_LIST
     char previous_token_value[value->length + 1];
     static size_t params_count = 0;
@@ -197,6 +197,7 @@ int params(char *fun_id, char *called_from_fun) {
         case LEX_EOL:
         case ROUNDR:
             err = semantic_check_fun_call_params(fun_id, params_count);
+            *par_count = (unsigned) params_count;
             params_count = 0;
             if (err != 0) return err;
             return SYNTAX_OK;
@@ -230,10 +231,10 @@ int params(char *fun_id, char *called_from_fun) {
                 GET_TOKEN();
                 if (token != ID && token != NUM_INT && token != NUM_FLOAT && token != NUM_EXP && token != STRING)
                     return ERR_SYNTAX;
-                return params(fun_id, called_from_fun);
+                return params(fun_id, called_from_fun, par_count);
             }
 
-            return params(fun_id, called_from_fun);
+            return params(fun_id, called_from_fun, par_count);
         case ERR_LEXICAL:
             return ERR_LEXICAL;
         default:
@@ -244,7 +245,6 @@ int params(char *fun_id, char *called_from_fun) {
 
 int fun_call(char *fun_id, char *called_from_fun) {
     if (!semantic_token_is_function(fun_id)) return ERR_SEMANTIC_DEFINITION;
-    if (is_fun_builtin(fun_id) && !is_fun_defined(fun_id)) gen_builtin_fun(fun_id);
 
     int brackets = 0;
     if (token == ROUNDL) {
@@ -253,13 +253,19 @@ int fun_call(char *fun_id, char *called_from_fun) {
     }
 
     GEN_INSTR("%s", "CREATEFRAME");
-    int err = params(fun_id, called_from_fun);
+    unsigned par_count; // TODO: try to move params_count from params here
+    int err = params(fun_id, called_from_fun, &par_count);
     if (err != SYNTAX_OK) return err;
 
     if (brackets) {
         ACCEPT(ROUNDR);
     }
     ACCEPT(LEX_EOL);
+
+    if (is_fun_builtin(fun_id) && !is_fun_defined(fun_id)) {
+        if (strcmp(fun_id, "print") == 0) gen_print(par_count);
+        else gen_builtin_fun(fun_id);
+    }
 
     GEN_INSTR("CALL *%s", fun_id);
 
