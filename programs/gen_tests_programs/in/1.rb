@@ -1,2 +1,3 @@
 a = "ahoj"
-length(a)
+b = length (a)
+print b "\n"
