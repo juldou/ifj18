@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+travis_build=$1
+
 make clean && make
 
 tests_failed=0
@@ -56,11 +58,16 @@ for file in ./programs/valid_programs/*; do
     fi
 done
 
-cntr=1
+cntr=2
 for file in ./programs/gen_tests_programs/in/*; do
     echo "----------------------TEST GEN PROGRAMS $file----------------------"
     ./ifj18 < ${file} > temp_out
-    diff temp_out ./programs/gen_tests_programs/out/"$cntr.ifj"
+    if [ $travis_build -eq 1 ]; then
+        docker run -ti -v $PWD:/test ubuntu:16.04 bash -c "cd /test/; ./ic18int temp_out" > interpret_out
+    else
+        ./ic18int temp_out > interpret_out
+    fi
+    diff interpret_out ./programs/gen_tests_programs/out/"$cntr.ifj"
     if [ $? -eq 0 ]; then
         echo "TEST PASSED"
     else

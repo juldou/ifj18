@@ -40,6 +40,7 @@ int gen_header() {
 int gen_main() {
     GEN_INSTR("JUMP %s", "$$MAIN");
     GEN_INSTR("LABEL %s", "$$MAIN");
+    GEN_INSTR("DEFVAR %s", "GF@expr_res");
     GEN_INSTR("%s", "CREATEFRAME");
     GEN_INSTR("%s", "PUSHFRAME");
     return 0;

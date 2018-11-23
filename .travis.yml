@@ -1,7 +1,6 @@
-language: c
-compiler: gcc
-script: make
+before_install:
+  - docker pull ubuntu:16.04
 
 language: bash
 script:
-    - bash test.sh
+    - bash test.sh 1
