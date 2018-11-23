@@ -3,4 +3,3 @@ def a(b)
     b="aaa"
 end
 
-a 1

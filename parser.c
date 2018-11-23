@@ -85,7 +85,8 @@ int assign(char *fun_id) {
                 if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return SYNTAX_OK;
             }
-
+            //todo remove ked bude precedencna
+            GEN_INSTR("LF@%s ", previous_token_value);
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
@@ -223,7 +224,7 @@ int params(char *fun_id, char *called_from_fun) {
                 GEN_INSTR("MOVE TF@%%%d LF@%s", params_count, value->str);
             }
 
-                // check if param is defined
+            // check if param is defined
             GET_TOKEN();
 
             if (token == COMMA) {
@@ -267,20 +268,24 @@ int fun_call(char *fun_id, char *called_from_fun) {
 }
 
 int stat_list(char *fun_id) {
+    static int cnt = 0;
     char previous_token_value[value->length + 1];
     strcpy(previous_token_value, value->str);
     switch (token) {
         case KEYWORD_IF:
+            cnt++;
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
             GET_TOKEN();
             if ((err = bool_expr(fun_id)) != SYNTAX_OK) return err;
-
+//todo jumpif condition
+                GEN_INSTR("JUMP ELSE_LABEL_%d", cnt);
             ACCEPT(KEYWORD_THEN);
             ACCEPT(LEX_EOL);
 
             if ((err = stat_list(fun_id)) != SYNTAX_OK) return err;
 
             ACCEPT(KEYWORD_ELSE);
+            GEN_INSTR("LABEL ELSE_LABEL_%d", cnt);
             ACCEPT(LEX_EOL);
 
             if ((err = stat_list(fun_id)) != SYNTAX_OK) return err;
@@ -291,10 +296,14 @@ int stat_list(char *fun_id) {
             return stat_list(fun_id);
 
         case KEYWORD_WHILE:
+            cnt++;
+            GEN_INSTR("LABEL WHILE_START_%d", cnt);
             // pravidlo WHILE <EXPR> DO EOL <STAT_LIST> END
             GET_TOKEN();
             if ((err = bool_expr(fun_id)) != SYNTAX_OK) return err;
 
+//todo jumpif condition
+                GEN_INSTR("JUMP WHILE_END_%d", cnt);
             ACCEPT(KEYWORD_DO);
             ACCEPT(LEX_EOL);
 
@@ -303,7 +312,8 @@ int stat_list(char *fun_id) {
 
             ACCEPT(KEYWORD_END);
             ACCEPT(LEX_EOL);
-
+            GEN_INSTR("JUMP WHILE_START_%d", cnt);
+            GEN_INSTR("LABEL WHILE_END_%d", cnt);
             return stat_list(fun_id);
         case LEX_EOL:
             GET_TOKEN();
@@ -337,11 +347,14 @@ int stat_list(char *fun_id) {
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
-                if (!semantic_token_is_variable(previous_token_value)) GEN_INSTR("DEFVAR LF@%s", previous_token_value);
-                insert_var_to_st(previous_token_value, fun_id, true);
+                if (!semantic_token_is_variable(previous_token_value, fun_id))
+                    GEN_INSTR("DEFVAR LF@%s", previous_token_value);
 
+                if ((err = insert_var_to_st(previous_token_value, fun_id, true)) == ERR_INTERNAL) return err;
                 ADD_INSTR("MOVE LF@%s ", previous_token_value);
+
                 if ((err = assign(fun_id)) != SYNTAX_OK) return err; // TODO : maybe not
+
                 return stat_list(fun_id);
             }
 
