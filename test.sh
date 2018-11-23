@@ -56,6 +56,20 @@ for file in ./programs/valid_programs/*; do
     fi
 done
 
+cntr=1
+for file in ./programs/gen_tests_programs/in/*; do
+    echo "----------------------TEST GEN PROGRAMS $file----------------------"
+    ./ifj18 < ${file} > temp_out
+    diff temp_out ./programs/gen_tests_programs/out/"$cntr.ifj"
+    if [ $? -eq 0 ]; then
+        echo "TEST PASSED"
+    else
+
+        echo "TEST FAILED"
+        let tests_failed+=1
+    fi
+    let cntr+=1
+done
 
 echo ""
 echo "--------------------SUMMARY-----------------------"
