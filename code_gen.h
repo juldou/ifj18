@@ -28,6 +28,13 @@ int gen_fun_footer();
 
 int gen_builtin_fun(char *fun_id);
 
+int gen_inputs();
+int gen_inputi();
+int gen_inputf();
 int gen_print();
+int gen_length();
+int gen_substr();
+int gen_ord();
+int gen_chr();
 
 #endif //IFJ_CODE_GEN_H
