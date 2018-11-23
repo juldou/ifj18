@@ -277,12 +277,13 @@ int stat_list(char *fun_id) {
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
             GET_TOKEN();
             if ((err = bool_expr(fun_id)) != SYNTAX_OK) return err;
-//todo jumpif condition
-                GEN_INSTR("JUMP ELSE_LABEL_%d", cnt);
+                GEN_INSTR("JUMPIFNEQ ELSE_LABEL_%d %s %s", cnt, "GF@expr_res", "bool@true");
             ACCEPT(KEYWORD_THEN);
             ACCEPT(LEX_EOL);
 
             if ((err = stat_list(fun_id)) != SYNTAX_OK) return err;
+
+            GEN_INSTR("JUMPIFEQ ELSE_END_%d %s %s", cnt, "GF@expr_res", "bool@true");
 
             ACCEPT(KEYWORD_ELSE);
             GEN_INSTR("LABEL ELSE_LABEL_%d", cnt);
@@ -292,6 +293,7 @@ int stat_list(char *fun_id) {
 
             ACCEPT(KEYWORD_END);
             ACCEPT(LEX_EOL);
+            GEN_INSTR("LABEL ELSE_END_%d", cnt);
 
             return stat_list(fun_id);
 

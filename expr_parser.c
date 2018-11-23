@@ -2,6 +2,7 @@
 #include "expr_parser.h"
 #include "error.h"
 #include "semantic.h"
+#include "code_gen.h"
 
 #define SIZE 7
 #define SYNTAX_OK 101
@@ -238,6 +239,7 @@ int expresion(int type, char *fun_id) {
 }
 
 int bool_expr(char *fun_id) {
+    GEN_INSTR("MOVE GF@expr_res %s", "bool@false");
     return expresion(BOOL, fun_id);
 }
 
