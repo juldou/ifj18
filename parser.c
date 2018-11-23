@@ -76,6 +76,7 @@ int assign(char *fun_id) {
     switch (token) {
         case ROUNDL:
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+            GEN_INSTR("%s ", "GF@expr_res");
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -85,9 +86,9 @@ int assign(char *fun_id) {
                 if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return SYNTAX_OK;
             }
-            //todo remove ked bude precedencna
-            //GEN_INSTR("LF@%s ", previous_token_value);
+
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+            GEN_INSTR("%s ", "GF@expr_res");
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -101,23 +102,15 @@ int assign(char *fun_id) {
         case ORD:
             GET_TOKEN();
             if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+            GEN_INSTR("MOVE %s %s ", "GF@expr_res", "TF@$retval");
             return SYNTAX_OK;
 
         case NUM_INT:
-            //todo result from precedence analysis
-            //GEN_INSTR("int@%s", value->str);
-            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-            ACCEPT(LEX_EOL);
-            return SYNTAX_OK;
         case NUM_FLOAT:
         case NUM_EXP:
-            //GEN_INSTR("float@%s", value->str);
-            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-            ACCEPT(LEX_EOL);
-            return SYNTAX_OK;
         case STRING:
-            //GEN_INSTR("string@%s", value->str);
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+            GEN_INSTR("%s ", "GF@expr_res");
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -269,6 +262,7 @@ int fun_call(char *fun_id, char *called_from_fun) {
     }
 
     GEN_INSTR("CALL *%s", fun_id);
+    GEN_INSTR("MOVE %s %s ", "GF@expr_res", "TF@$retval");
 
     return SYNTAX_OK;
 }
