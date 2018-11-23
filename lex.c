@@ -243,33 +243,33 @@ int getToken(string *value, int *line) {
                             s = fgetc(stdin);
                             if(isupper(s)){
                                 res = ((s-'A')+10);
-                                printf("res:%d\n",res);
+                           
                             }
                             else if(islower(s)){
                                 res = ((s-'a')+10);
-                                printf("res:%d\n",res);
+                                
                             }
                             else if(isdigit(s)) {
                                 res = s-'0';
-                                printf("res:%d\n",res);
+                                
                             }
                             else if(!isalpha(s)) return ERR_LEXICAL;
-                            printf("res %d\n",res);
+                            
                             s = fgetc(stdin);
 
                             if(isupper(s)){
                                 res = res*16 + ((s-'A')+10);
-                                printf("res:%d\n",res);
+                                
                             }
                             else if(islower(s)){
                                 res = res*16 +((s-'a')+10);
-                                printf("res:%d\n",res);
+                                
                             }
                             else if(isdigit(s)){
                                 res = res*16 + (s-'0');
                             }
                             else ungetc(s,stdin);
-                            printf("res jedno cislo  %d\n",res%10);
+                            
                             strAddChar(value,'\\');
                             resTmp[0] = res%10 + '0';
                             res/=10;
@@ -297,8 +297,7 @@ int getToken(string *value, int *line) {
                     }
                     else strAddChar(value,s);
                 while (1) {
-                    //printf("s: %d\n",s);
-                    //printf("value: %s\n",value->str);
+                    
                     s = fgetc(stdin);
                     if(s == '#'){
                         strAddChar(value,'\\');
@@ -342,33 +341,33 @@ int getToken(string *value, int *line) {
                             s = fgetc(stdin);
                             if(isupper(s)){
                                 res = ((s-'A')+10);
-                                printf("res:%d\n",res);
+                                
                             }
                             else if(islower(s)){
                                 res = ((s-'a')+10);
-                                printf("res:%d\n",res);
+                                
                             }
                             else if(isdigit(s)) {
                                 res = s-'0';
-                                printf("res:%d\n",res);
+                                
                             }
                             else if(!isalpha(s)) return ERR_LEXICAL;
-                            printf("res %d\n",res);
+                           
                             s = fgetc(stdin);
 
                             if(isupper(s)){
                                 res = res*16 + ((s-'A')+10);
-                                printf("res:%d\n",res);
+                               
                             }
                             else if(islower(s)){
                                 res = res*16 +((s-'a')+10);
-                                printf("res:%d\n",res);
+                                
                             }
                             else if(isdigit(s)){
                                 res = res*16 + (s-'0');
                             }
                             else ungetc(s,stdin);
-                            printf("res jedno cislo  %d\n",res%10);
+                            
                             strAddChar(value,'\\');
                             resTmp[0] = res%10 + '0';
                             res/=10;
@@ -425,7 +424,7 @@ int getToken(string *value, int *line) {
                         ungetc(s, stdin);
                     }
                     int a = checkKeywords(value->str);
-                    //printf("a = %d\n",a);
+                    
                     if (a == -1) {
                         if(value->str[value->length - 1] == '?' ||value->str[value->length - 1] == '!')
                             return IDF;
@@ -461,14 +460,14 @@ int getToken(string *value, int *line) {
             case NUM:
 
                 while (isdigit(s)) {
-                    //printf("pridavam do pola znak %c\n", s);
+                    
                     strAddChar(value, s);
                     s = fgetc(stdin);
-                    //printf("nacitam nove s:%c\n", s);
+                    
 
 
                 }
-                //printf("vyskocil som z whilu\n");
+                
                 if (s == '.') {
                     strAddChar(value, s);
                     state = NUM_FLOAT;
