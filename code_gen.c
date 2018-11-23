@@ -40,6 +40,7 @@ int gen_main() {
     GEN_INSTR("JUMP %s", "$$MAIN");
     GEN_INSTR("LABEL %s", "$$MAIN");
     GEN_INSTR("%s", "CREATEFRAME");
+    GEN_INSTR("%s", "PUSHFRAME");
     return 0;
 }
 
@@ -66,16 +67,18 @@ int gen_instr(char *string, ...) {
 }
 
 int gen_fun_header(char *label) {
-    GEN_INSTR("LABEL %s", label);
+    GEN_INSTR("JUMP &&%s", label);
+    GEN_INSTR("LABEL *%s", label);
     GEN_INSTR("%s", "PUSHFRAME");
     GEN_INSTR("DEFVAR LF@%s", "$retval");
     GEN_INSTR("MOVE LF@%s nil@nil", "$retval");
     return 0;
 }
 
-int gen_fun_footer() {
+int gen_fun_footer(char* label) {
     GEN_INSTR("%s", "POPFRAME");
     GEN_INSTR("%s", "RETURN");
+    GEN_INSTR("LABEL &&%s", label);
     return 0;
 }
 
@@ -92,29 +95,29 @@ int gen_builtin_fun(char *fun_id) {
 }
 
 int gen_print() {
-    if (gen_fun_header("*print") == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_fun_header("print") == ERR_INTERNAL) return ERR_INTERNAL;
 
     // TODO:
 
-    if (gen_fun_footer() == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_fun_footer("print") == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }
 
 int gen_length() {
-    if (gen_fun_header("*length") == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_fun_header("length") == ERR_INTERNAL) return ERR_INTERNAL;
 
     /* semantic check */
-    GEN_INSTR("DEFVAR LF@%s", "%1$type");
-    GEN_INSTR("DEFVAR LF@%s", "%1$tmp");
-    GEN_INSTR("TYPE %s %s", "LF@%1$type", "%1");
-    GEN_INSTR("MOVE LF@%1$tmp LF@%s", "%1");
+    GEN_INSTR("DEFVAR %s", "LF@%1$type");
+    GEN_INSTR("DEFVAR %s", "LF@%1$tmp");
+    GEN_INSTR("TYPE %s %s", "LF@%1$type", "LF@%1");
+    GEN_INSTR("MOVE %s LF@%s", "LF@%1$tmp", "%1");
 
-    GEN_INSTR("JUMPIFEQ %s LF@%s %s", "$type$string$", "1$type", "string@string");
+    GEN_INSTR("JUMPIFEQ %s %s %s", "$type$string$", "LF@%1$type", "string@string");
     GEN_INSTR("EXIT int@%d", ERR_SEMANTIC_TYPE); // exit if variable type is not string
 
     GEN_INSTR("LABEL %s", "$type$string$");
-    GEN_INSTR("STRLEN LF@%s LF@%s", "$retval", "%1");
+    GEN_INSTR("STRLEN %s %s", "LF@$retval", "LF@%1");
 
-    if (gen_fun_footer() == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_fun_footer("length") == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }

@@ -24,7 +24,7 @@ void print_code(tList *L);
 
 
 int gen_fun_header(char *label);
-int gen_fun_footer();
+int gen_fun_footer(char* label);
 
 int gen_builtin_fun(char *fun_id);
 
