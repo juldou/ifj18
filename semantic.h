@@ -28,6 +28,6 @@ bool function_parameter_exists(st_elem *elem, char *param);
 bool semantic_token_is_function(char *fun_id);
 bool is_fun_builtin(char *fun_id);
 bool is_fun_defined(char *fun_id);
-bool semantic_token_is_variable(char *var_id);
+bool semantic_token_is_variable(char *var_id, char* fun_id);
 
 #endif //IFJ_SEMANTIC_H
