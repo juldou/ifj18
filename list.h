@@ -12,7 +12,7 @@
 
 typedef struct tElem {
     struct tElem *ptr;
-    char instruction[200];
+    char instruction[1020];
 //    char *instruction;
 } *tElemPtr;
 

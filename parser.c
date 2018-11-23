@@ -244,7 +244,7 @@ int params(char *fun_id, char *called_from_fun) {
 
 int fun_call(char *fun_id, char *called_from_fun) {
     if (!semantic_token_is_function(fun_id)) return ERR_SEMANTIC_DEFINITION;
-    if (is_fun_builtin(fun_id)) gen_builtin_fun(fun_id);
+    if (is_fun_builtin(fun_id) && !is_fun_defined(fun_id)) gen_builtin_fun(fun_id);
 
     int brackets = 0;
     if (token == ROUNDL) {
