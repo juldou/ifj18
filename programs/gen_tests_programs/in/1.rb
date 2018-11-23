@@ -1,0 +1,2 @@
+a = "ahoj"
+length(a)

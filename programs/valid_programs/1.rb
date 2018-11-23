@@ -1,3 +1,5 @@
 def a(b)
-    b
+    b = 5
+    b="aaa"
 end
+
