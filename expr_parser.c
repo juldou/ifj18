@@ -149,12 +149,38 @@ int rules(t_stack *stack, string prev_value) {
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, LESS, EXPR)) {
         pop_rule(stack, 3, EXPR);
+        GEN_INSTR("%s","LTS");
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, MORE, EXPR)) {
         pop_rule(stack, 3, EXPR);
+        GEN_INSTR("%s","GTS");
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, LESS_EQUAL, EXPR)) {
         pop_rule(stack, 3, EXPR);
+        /*
+         * 1    LT    false
+         * 2           3
+         * 3
+         *
+         * LE:
+         * pop 1
+         * pop 2
+         * push 2
+         * push 1
+         * push 2
+         * push 1
+         * LT --> false
+         *
+         *                  zasobink -> false
+         *                              1
+         *                              2
+         *                  pop vysledok lt
+         *                  EQ--> false
+         *                  push vysledok lt
+         *                  ors
+         *
+         *
+         */
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, MORE_EQUAL, EXPR)) {
         pop_rule(stack, 3, EXPR);
@@ -164,10 +190,11 @@ int rules(t_stack *stack, string prev_value) {
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, EQUAL, EXPR)) {
         pop_rule(stack, 3, EXPR);
+        GEN_INSTR("%s","EQS");
         return SYNTAX_OK;
     } else if (check_rule(stack, 1, ID)) {
         pop_rule(stack, 1, EXPR);
-        //TODO
+        GEN_INSTR("PUSHS LF@%s", prev_value.str);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, ROUNDL, EXPR, ROUNDR)) {
         pop_rule(stack, 3, EXPR);

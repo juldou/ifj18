@@ -289,7 +289,7 @@ int stat_list(char *fun_id) {
 
             if ((err = stat_list(fun_id)) != SYNTAX_OK) return err;
 
-            GEN_INSTR("JUMPIFEQ ELSE_END_%d %s %s", cnt, "GF@expr_res", "bool@true");
+            GEN_INSTR("JUMP ELSE_END_%d", cnt);
 
             ACCEPT(KEYWORD_ELSE);
             GEN_INSTR("LABEL ELSE_LABEL_%d", cnt);
