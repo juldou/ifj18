@@ -86,7 +86,7 @@ int assign(char *fun_id) {
                 return SYNTAX_OK;
             }
             //todo remove ked bude precedencna
-            GEN_INSTR("LF@%s ", previous_token_value);
+            //GEN_INSTR("LF@%s ", previous_token_value);
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
@@ -105,18 +105,18 @@ int assign(char *fun_id) {
 
         case NUM_INT:
             //todo result from precedence analysis
-            GEN_INSTR("int@%s", value->str);
+            //GEN_INSTR("int@%s", value->str);
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
         case NUM_FLOAT:
         case NUM_EXP:
-            GEN_INSTR("float@%s", value->str);
+            //GEN_INSTR("float@%s", value->str);
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
         case STRING:
-            GEN_INSTR("string@%s", value->str);
+            //GEN_INSTR("string@%s", value->str);
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
@@ -359,9 +359,9 @@ int stat_list(char *fun_id) {
                     GEN_INSTR("DEFVAR LF@%s", previous_token_value);
 
                 if ((err = insert_var_to_st(previous_token_value, fun_id, true)) == ERR_INTERNAL) return err;
-                ADD_INSTR("MOVE LF@%s ", previous_token_value);
 
                 if ((err = assign(fun_id)) != SYNTAX_OK) return err; // TODO : maybe not
+                GEN_INSTR("MOVE LF@%s GF@%s ", previous_token_value, "expr_res");
 
                 return stat_list(fun_id);
             }
