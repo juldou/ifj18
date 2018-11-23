@@ -10,7 +10,7 @@
 int assign(char *fun_id);
 int expr();
 int fun_params(char *fun_id);
-int params(char *fun_id, char *called_from_fun);
+int params(char *fun_id, char *called_from_fun, unsigned *par_count);
 int fun_declr();
 int fun_call(char *fun_id, char *called_from_fun);
 int stat_list(char *fun_id);
