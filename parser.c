@@ -183,7 +183,7 @@ int fun_declr() {
     if (token != LEX_EOL && token != LEX_EOF) return ERR_SYNTAX;
     GET_TOKEN();
 
-    if (gen_fun_footer() == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_fun_footer(previous_token_value) == ERR_INTERNAL) return ERR_INTERNAL;
 
     return SYNTAX_OK;
 }
@@ -208,10 +208,20 @@ int params(char *fun_id, char *called_from_fun) {
         case NUM_FLOAT:
         case NUM_EXP:
         case STRING:
-//            instr_pushs(value->str);
-
             params_count++;
-            // check if param is defined
+
+            GEN_INSTR("DEFVAR TF@%%%d", params_count);
+
+            //todo dat do <>
+            if (token == NUM_INT) {
+                GEN_INSTR("MOVE TF@%1 int@%s", value->str);
+            } else if (token == NUM_FLOAT || token == NUM_EXP) {
+                GEN_INSTR("MOVE TF@%1 float@%s", value->str);
+            }else if (token == STRING) {
+                GEN_INSTR("MOVE TF@%1 string@%s", value->str);
+            }
+
+                // check if param is defined
             GET_TOKEN();
 
             if (token == COMMA) {
@@ -240,6 +250,7 @@ int fun_call(char *fun_id, char *called_from_fun) {
         GET_TOKEN();
     }
 
+    GEN_INSTR("%s", "CREATEFRAME");
     int err = params(fun_id, called_from_fun);
     if (err != SYNTAX_OK) return err;
 
@@ -248,7 +259,7 @@ int fun_call(char *fun_id, char *called_from_fun) {
     }
     ACCEPT(LEX_EOL);
 
-//    instr_call(fun_id);
+    GEN_INSTR("CALL *%s", fun_id);
 
     return SYNTAX_OK;
 }
@@ -295,7 +306,10 @@ int stat_list(char *fun_id) {
         case LEX_EOL:
             GET_TOKEN();
             return stat_list(fun_id);
-        case KEYWORD_NIL: //todo remove
+        case KEYWORD_NIL:
+            GET_TOKEN();
+            ACCEPT(LEX_EOL);
+            return stat_list(fun_id);
         case KEYWORD_DEF:
         case KEYWORD_END:
         case KEYWORD_ELSE:
@@ -325,12 +339,13 @@ int stat_list(char *fun_id) {
                     GEN_INSTR("DEFVAR LF@%s", previous_token_value);
                 }
 
-                ADD_INSTR("MOVE %s ", previous_token_value);
+                ADD_INSTR("MOVE LF@%s ", previous_token_value);
                 if ((err = assign(fun_id)) != SYNTAX_OK) return err; // TODO : maybe not
                 return stat_list(fun_id);
             }
 
-            if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
+            if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION)
+                return ERR_SEMANTIC_DEFINITION;
             ACCEPT(LEX_EOL);
             return stat_list(fun_id);
 
@@ -367,9 +382,7 @@ int program() {
             return program();
             //todo
 
-        case KEYWORD_NIL:
         case LEX_EOF:
-            printf("\nEND\n");
             return SYNTAX_OK;
 
         case ERR_LEXICAL:
@@ -405,7 +418,7 @@ int parse() {
 
     switch (result) {
         case SYNTAX_OK:
-            printf("*****SYNTAX OK*****\n");
+            //  printf("*****SYNTAX OK*****\n");
             break;
         case ERR_SYNTAX:
             printf("*****SYNTAX ERROR*****\n");

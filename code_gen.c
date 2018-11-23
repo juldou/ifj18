@@ -4,6 +4,7 @@
  * special variables has prefix $
  *      - return value of function is $retval
  * function has prefix * (*some_function)
+ * argumnet in fun def have prefix %
  */
 
 tList instr;
@@ -57,16 +58,18 @@ int gen_instr(char *string, ...) {
 }
 
 int gen_fun_header(char *label) {
-    GEN_INSTR("LABEL %s", label);
+    GEN_INSTR("JUMP &&%s", label);
+    GEN_INSTR("LABEL *%s", label);
     GEN_INSTR("%s", "PUSHFRAME");
     GEN_INSTR("DEFVAR LF@%s", "$retval");
     GEN_INSTR("MOVE LF@%s nil@nil", "$retval");
     return 0;
 }
 
-int gen_fun_footer() {
+int gen_fun_footer(char* label) {
     GEN_INSTR("%s", "POPFRAME");
     GEN_INSTR("%s", "RETURN");
+    GEN_INSTR("LABEL &&%s", label);
     return 0;
 }
 
@@ -80,6 +83,6 @@ int gen_print() {
 
     // TODO:
 
-    if (gen_fun_footer() == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_fun_footer("*print") == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }
