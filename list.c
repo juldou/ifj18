@@ -167,7 +167,7 @@ void PostDelete (tList *L) {
     }
 }
 
-int PostInsert (tList *L, char *val) {
+char* PostInsert (tList *L) {
 /*
 ** Vloží prvek s hodnotou val za aktivní prvek seznamu L.
 ** Pokud nebyl seznam L aktivní, nic se neděje!
@@ -178,12 +178,13 @@ int PostInsert (tList *L, char *val) {
         tElemPtr toInsert = (tElemPtr) malloc(sizeof(struct tElem));
         if (toInsert == NULL) return ERR_INTERNAL;
         toInsert->ptr = L->Act->ptr;
-        char *instruction = (char *) malloc(sizeof(char) * (strlen(val) + 1));
-        if (instruction == NULL) return ERR_INTERNAL;
+//        char *instruction = (char *) malloc(sizeof(char) * (strlen(val) + 1));
+//        if (instruction == NULL) return ERR_INTERNAL;
 //        toInsert->instruction = instruction;
         L->Act->ptr = toInsert;  // insert it after active elem.
+        return toInsert->instruction;
     }
-    return 0;
+    return NULL;
 }
 
 int Copy (tList *L, char *val) {
@@ -234,4 +235,19 @@ void printList (tList *L) {
         fprintf(stdout, "%s", temp->instruction);
         temp = temp->ptr;
     }
+}
+
+int find(tList *L, char* key){
+    if(L == NULL)
+        return 0;
+    tElemPtr  temp = L->First;
+
+    while(temp){
+        if(strcmp(temp->instruction, key) == 0){
+            L->Act = temp;
+            return 1;
+        }
+            temp = temp ->ptr;
+    }
+    return 0;
 }

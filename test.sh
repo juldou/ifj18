@@ -72,7 +72,7 @@ for file in ./programs/gen_tests_programs/in/*; do
     fi
 
     filename=${file##*/}
-    diff interpret_out ./programs/gen_tests_programs/out/"${filename%.*}.ifj"
+    diff interpret_out ./programs/gen_tests_programs/out/"${filename%.*}.ifj" | cat -t
     if [ $? -eq 0 ]; then
         echo "TEST PASSED"
     else

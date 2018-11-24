@@ -30,12 +30,13 @@ void First (tList *);
 int CopyFirst (tList *, char *);
 void DeleteFirst (tList *);
 void PostDelete (tList *);
-int PostInsert (tList *, char *);
+char* PostInsert (tList *);
 void Succ (tList *);
 int Copy (tList *, char *);
 void Actualize (tList *, char *);
 int  Active (tList *);
 int CreateInstr();
 void printList (tList *L);
+int find(tList *L, char* key);
 
 #endif //IFJ_LIST_H

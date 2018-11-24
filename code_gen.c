@@ -38,10 +38,10 @@ int gen_header() {
 }
 
 int gen_main() {
-    GEN_INSTR("JUMP %s", "$$MAIN");
-    GEN_INSTR("LABEL %s", "$$MAIN");
-    GEN_INSTR("DEFVAR %s", "GF@expr_res");
     GEN_INSTR("%s", "CREATEFRAME");
+    GEN_INSTR("LABEL %s", "*MAIN");
+
+    GEN_INSTR("DEFVAR %s", "GF@expr_res");
     GEN_INSTR("DEFVAR %s", "TF@$retval");
 
     GEN_INSTR("%s", "PUSHFRAME");
@@ -67,6 +67,29 @@ int gen_instr(char *string, ...) {
     if ((instruction = AppendToList(&instr)) == NULL) return ERR_INTERNAL;
     vsprintf(instruction, string, vaList);
     va_end(vaList);
+    return 0;
+}
+
+int find_instr(char* string, ...){
+    va_list vaList;
+    va_start(vaList, string);
+    char instruction[1024];
+    vsprintf(instruction, string, vaList);
+    va_end(vaList);
+    if(!find(&instr, instruction))
+        // not found
+        return ERR_INTERNAL;
+    return 0;
+}
+
+int insert_instr_after(char *string, ...){
+    va_list vaList;
+    va_start(vaList, string);
+    char *instruction;
+    if ((instruction = PostInsert(&instr)) == NULL) return ERR_INTERNAL;
+    vsprintf(instruction, string, vaList);
+    va_end(vaList);
+
     return 0;
 }
 
@@ -112,7 +135,11 @@ int gen_print(char *fun_id ,unsigned params_count) {
     char fun_id_new[fun_id_len];
     snprintf(fun_id_new, fun_id_len, "%s%d", fun_id, (int) params_count);
 
-    if (semantic_token_is_function(fun_id_new)) return 0; // fun exists
+    /* fun exists, just call */
+    if (semantic_token_is_function(fun_id_new)) {
+        GEN_INSTR("CALL *%s", fun_id_new);
+        return 0;
+    }
 
     if (insert_fun_to_st(fun_id_new, params_count, true, true) == ERR_INTERNAL) return ERR_INTERNAL;
 

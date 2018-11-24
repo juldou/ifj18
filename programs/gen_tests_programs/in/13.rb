@@ -1,3 +1,3 @@
-print("ahoj svete!\n")
-print("toto je ", "dobre\n")
-print("este", "jeden", "print\n")
+print("ahoj svete!")
+print("toto je ", "dobre")
+print("este", "jeden", "print")
