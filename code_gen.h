@@ -21,6 +21,8 @@ int gen_main();
 int gen_instr(char *c, ...);
 void code_generate();
 void print_code(tList *L);
+int insert_instr_after(char *string, ...);
+int find_instr(char* string, ...);
 
 
 int gen_fun_header(char *label);

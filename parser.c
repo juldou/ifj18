@@ -354,8 +354,14 @@ int stat_list(char *fun_id) {
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
-                if (!semantic_token_is_variable(previous_token_value, fun_id))
-                    GEN_INSTR("DEFVAR LF@%s", previous_token_value);
+                if (!semantic_token_is_variable(previous_token_value, fun_id)){
+                    //todo not found, mozno nie err internal
+                    if(find_instr("LABEL *%s\n", fun_id) == ERR_INTERNAL) return ERR_INTERNAL;
+                    if(insert_instr_after("MOVE TF@%s nil@nil\n", previous_token_value) == ERR_INTERNAL) return ERR_INTERNAL;
+
+                    if(insert_instr_after("DEFVAR TF@%s\n", previous_token_value) == ERR_INTERNAL) return ERR_INTERNAL;
+
+                }
 
                 if ((err = insert_var_to_st(previous_token_value, fun_id, true)) == ERR_INTERNAL) return err;
 
@@ -416,8 +422,7 @@ int program() {
             return program();
 
         default:
-        case ID:
-            if ((err = stat_list("")) != SYNTAX_OK) return err;
+            if ((err = stat_list("MAIN")) != SYNTAX_OK) return err;
             return program();
     }
 }
