@@ -58,12 +58,12 @@ for file in ./programs/valid_programs/*; do
     fi
 done
 
-cntr=1
+cntr=2
 for file in ./programs/gen_tests_programs/in/*; do
     echo "----------------------TEST GEN PROGRAMS $file----------------------"
     ./ifj18 < ${file} > temp_out
     if [ $travis_build -eq 1 ]; then
-        docker run -ti -v $PWD:/test test_checker:0.1 bash -c "cd /test/; ./ic18int temp_out" > interpret_out
+        docker run -ti -v $PWD:/test ubuntu:16.04 bash -c "cd /test/; ./ic18int temp_out" > interpret_out
     else
         ./ic18int temp_out > interpret_out
     fi

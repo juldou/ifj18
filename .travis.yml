@@ -1,5 +1,5 @@
 before_install:
-  - docker build -t test_checker:0.1 .
+  - docker pull ubuntu:16.04
 
 language: bash
 script:
