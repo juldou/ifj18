@@ -38,10 +38,12 @@ int gen_header() {
 }
 
 int gen_main() {
-    GEN_INSTR("JUMP %s", "$$MAIN");
-    GEN_INSTR("LABEL %s", "$$MAIN");
-    GEN_INSTR("DEFVAR %s", "GF@expr_res");
     GEN_INSTR("%s", "CREATEFRAME");
+    GEN_INSTR("LABEL %s", "*MAIN");
+
+    GEN_INSTR("DEFVAR %s", "GF@expr_res");
+    GEN_INSTR("DEFVAR %s", "TF@$retval");
+
     GEN_INSTR("%s", "PUSHFRAME");
     return 0;
 }
@@ -68,6 +70,29 @@ int gen_instr(char *string, ...) {
     return 0;
 }
 
+int find_instr(char* string, ...){
+    va_list vaList;
+    va_start(vaList, string);
+    char instruction[1024];
+    vsprintf(instruction, string, vaList);
+    va_end(vaList);
+    if(!find(&instr, instruction))
+        // not found
+        return ERR_INTERNAL;
+    return 0;
+}
+
+int insert_instr_after(char *string, ...){
+    va_list vaList;
+    va_start(vaList, string);
+    char *instruction;
+    if ((instruction = PostInsert(&instr)) == NULL) return ERR_INTERNAL;
+    vsprintf(instruction, string, vaList);
+    va_end(vaList);
+
+    return 0;
+}
+
 int gen_fun_header(char *label) {
     GEN_INSTR("JUMP &&%s", label);
     GEN_INSTR("LABEL *%s", label);
@@ -84,12 +109,14 @@ int gen_fun_footer(char* label) {
     return 0;
 }
 
-int gen_builtin_fun(char *fun_id) {
+int gen_builtin_fun(char *fun_id, unsigned params_count) {
+    if (is_print_fun(fun_id)) return gen_print(fun_id, params_count); // print is little bit complicated so different gen.
+
+    if (is_fun_defined(fun_id)) return 0;
     set_fun_defined(fun_id);
 //    if (strcmp(fun_id, "inputs") == 0) return gen_inputs();
 //    if (strcmp(fun_id, "inputi") == 0) return gen_inputi();
 //    if (strcmp(fun_id, "inputf") == 0) return gen_inputf();
-//    if (strcmp(fun_id, "print") == 0) return gen_print(); // TODO: remove
     if (strcmp(fun_id, "length") == 0) return gen_length();
 //    if (strcmp(fun_id, "substr") == 0) return gen_substr();
 //    if (strcmp(fun_id, "ord") == 0) return gen_ord();
@@ -97,15 +124,39 @@ int gen_builtin_fun(char *fun_id) {
     return 0;
 }
 
-int gen_print(size_t params_count) {
-    if (gen_fun_header("print") == ERR_INTERNAL) return ERR_INTERNAL;
+unsigned num_digits(const unsigned n) {
+    if (n < 10) return 1;
+    return 1 + num_digits(n / 10);
+}
+
+int gen_print(char *fun_id ,unsigned params_count) {
+    unsigned num_d = num_digits( params_count);
+    unsigned fun_id_len = ((unsigned) strlen("print")) + num_d + 1;
+    char fun_id_new[fun_id_len];
+    snprintf(fun_id_new, fun_id_len, "%s%d", fun_id, (int) params_count);
+
+    /* fun exists, just call */
+    if (semantic_token_is_function(fun_id_new)) {
+        GEN_INSTR("CALL *%s", fun_id_new);
+        return 0;
+    }
+
+    if (insert_fun_to_st(fun_id_new, params_count, true, true) == ERR_INTERNAL) return ERR_INTERNAL;
+
+    if (gen_fun_header(fun_id_new) == ERR_INTERNAL) return ERR_INTERNAL;
 
     for (size_t param = 1; param <= params_count; param++) {
         GEN_INSTR("WRITE %s%d", "LF@%", param);
     }
 
-    if (gen_fun_footer("print") == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_fun_footer(fun_id_new) == ERR_INTERNAL) return ERR_INTERNAL;
+
+    GEN_INSTR("CALL *%s", fun_id_new);
     return 0;
+}
+
+bool is_print_fun(char *fun_id) {
+    return strcmp("print", fun_id) == 0;
 }
 
 int gen_length() {
