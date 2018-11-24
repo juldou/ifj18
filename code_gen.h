@@ -27,11 +27,12 @@ void print_code(tList *L);
 int gen_fun_header(char *label);
 int gen_fun_footer(char* label);
 
-int gen_builtin_fun(char *fun_id);
+int gen_builtin_fun(char *fun_id, unsigned);
 
 int gen_inputs();
 int gen_inputi();
 int gen_inputf();
+int gen_print(char *fun_id, unsigned params_count);
 int gen_length();
 int gen_substr();
 int gen_ord();

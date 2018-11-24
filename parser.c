@@ -76,6 +76,8 @@ int assign(char *fun_id) {
     switch (token) {
         case ROUNDL:
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+            GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -85,9 +87,10 @@ int assign(char *fun_id) {
                 if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return SYNTAX_OK;
             }
-            //todo remove ked bude precedencna
-            //GEN_INSTR("LF@%s ", previous_token_value);
+
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+            GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -101,23 +104,16 @@ int assign(char *fun_id) {
         case ORD:
             GET_TOKEN();
             if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+           // GEN_INSTR("MOVE %s %s ", "GF@expr_res", "TF@$retval");
             return SYNTAX_OK;
 
         case NUM_INT:
-            //todo result from precedence analysis
-            //GEN_INSTR("int@%s", value->str);
-            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-            ACCEPT(LEX_EOL);
-            return SYNTAX_OK;
         case NUM_FLOAT:
         case NUM_EXP:
-            //GEN_INSTR("float@%s", value->str);
-            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-            ACCEPT(LEX_EOL);
-            return SYNTAX_OK;
         case STRING:
-            //GEN_INSTR("string@%s", value->str);
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+            GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -198,7 +194,7 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
         case LEX_EOL:
         case ROUNDR:
             err = semantic_check_fun_call_params(fun_id, params_count);
-            *par_count = params_count;
+            *par_count = (unsigned) params_count;
             params_count = 0;
             if (err != 0) return err;
             return SYNTAX_OK;
@@ -225,7 +221,7 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
                 GEN_INSTR("MOVE TF@%%%d LF@%s", params_count, value->str);
             }
 
-            if (strcmp("print", fun_id) == 0) GEN_INSTR("WRITE TF@%%%d", params_count);
+//            if (strcmp("print", fun_id) == 0) GEN_INSTR("WRITE TF@%%%d", params_count); // TODO: REMOVE
 
             // check if param is defined
             GET_TOKEN();
@@ -265,9 +261,13 @@ int fun_call(char *fun_id, char *called_from_fun) {
     }
     ACCEPT(LEX_EOL);
 
-    if (is_fun_builtin(fun_id) && !is_fun_defined(fun_id)) gen_builtin_fun(fun_id);
+//    if (is_fun_builtin(fun_id) && !is_fun_defined(fun_id)) gen_builtin_fun(fun_id);
+    if (is_fun_builtin(fun_id)) gen_builtin_fun(fun_id, par_count);
 
     if (!is_print_fun(fun_id)) GEN_INSTR("CALL *%s", fun_id);
+    GEN_INSTR("MOVE %s %s ", "LF@$retval", "TF@$retval");
+    //todo
+    GEN_INSTR("MOVE %s %s ", "GF@expr_res", "TF@$retval");
 
     return SYNTAX_OK;
 }
@@ -374,7 +374,9 @@ int stat_list(char *fun_id) {
         case NUM_FLOAT:
         case STRING:
         case NUM_INT:
-            GET_TOKEN();
+            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+            GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+            ACCEPT(LEX_EOL);
             return stat_list(fun_id);
         case INPUTS:
         case INPUTF:

@@ -1,6 +1,5 @@
 #include "code_gen.h"
 #include "semantic.h"
-#include "math.h"
 
 /* CONVENTIONS:
  * special variables has prefix $
@@ -43,6 +42,8 @@ int gen_main() {
     GEN_INSTR("LABEL %s", "$$MAIN");
     GEN_INSTR("DEFVAR %s", "GF@expr_res");
     GEN_INSTR("%s", "CREATEFRAME");
+    GEN_INSTR("DEFVAR %s", "TF@$retval");
+
     GEN_INSTR("%s", "PUSHFRAME");
     return 0;
 }
@@ -85,9 +86,11 @@ int gen_fun_footer(char* label) {
     return 0;
 }
 
-int gen_builtin_fun(char *fun_id) {
-    /* omit print fun because it's directly generated in params() */
-    if (!is_print_fun(fun_id)) set_fun_defined(fun_id);
+int gen_builtin_fun(char *fun_id, unsigned params_count) {
+    if (is_print_fun(fun_id)) return gen_print(fun_id, params_count); // print is little bit complicated so different gen.
+
+    if (is_fun_defined(fun_id)) return 0;
+    set_fun_defined(fun_id);
 //    if (strcmp(fun_id, "inputs") == 0) return gen_inputs();
 //    if (strcmp(fun_id, "inputi") == 0) return gen_inputi();
 //    if (strcmp(fun_id, "inputf") == 0) return gen_inputf();
@@ -101,6 +104,28 @@ int gen_builtin_fun(char *fun_id) {
 unsigned num_digits(const unsigned n) {
     if (n < 10) return 1;
     return 1 + num_digits(n / 10);
+}
+
+int gen_print(char *fun_id ,unsigned params_count) {
+    unsigned num_d = num_digits( params_count);
+    unsigned fun_id_len = ((unsigned) strlen("print")) + num_d + 1;
+    char fun_id_new[fun_id_len];
+    snprintf(fun_id_new, fun_id_len, "%s%d", fun_id, (int) params_count);
+
+    if (semantic_token_is_function(fun_id_new)) return 0; // fun exists
+
+    if (insert_fun_to_st(fun_id_new, params_count, true, true) == ERR_INTERNAL) return ERR_INTERNAL;
+
+    if (gen_fun_header(fun_id_new) == ERR_INTERNAL) return ERR_INTERNAL;
+
+    for (size_t param = 1; param <= params_count; param++) {
+        GEN_INSTR("WRITE %s%d", "LF@%", param);
+    }
+
+    if (gen_fun_footer(fun_id_new) == ERR_INTERNAL) return ERR_INTERNAL;
+
+    GEN_INSTR("CALL *%s", fun_id_new);
+    return 0;
 }
 
 bool is_print_fun(char *fun_id) {
