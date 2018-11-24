@@ -76,7 +76,8 @@ int assign(char *fun_id) {
     switch (token) {
         case ROUNDL:
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-            GEN_INSTR("%s ", "GF@expr_res");
+            GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -88,7 +89,8 @@ int assign(char *fun_id) {
             }
 
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-            GEN_INSTR("%s ", "GF@expr_res");
+            GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -102,7 +104,7 @@ int assign(char *fun_id) {
         case ORD:
             GET_TOKEN();
             if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
-            GEN_INSTR("MOVE %s %s ", "GF@expr_res", "TF@$retval");
+           // GEN_INSTR("MOVE %s %s ", "GF@expr_res", "TF@$retval");
             return SYNTAX_OK;
 
         case NUM_INT:
@@ -110,7 +112,8 @@ int assign(char *fun_id) {
         case NUM_EXP:
         case STRING:
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-            GEN_INSTR("%s ", "GF@expr_res");
+            GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
@@ -262,6 +265,8 @@ int fun_call(char *fun_id, char *called_from_fun) {
     }
 
     GEN_INSTR("CALL *%s", fun_id);
+    GEN_INSTR("MOVE %s %s ", "LF@$retval", "TF@$retval");
+//todo
     GEN_INSTR("MOVE %s %s ", "GF@expr_res", "TF@$retval");
 
     return SYNTAX_OK;
@@ -369,7 +374,9 @@ int stat_list(char *fun_id) {
         case NUM_FLOAT:
         case STRING:
         case NUM_INT:
-            GET_TOKEN();
+            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+            GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+            ACCEPT(LEX_EOL);
             return stat_list(fun_id);
         case INPUTS:
         case INPUTF:

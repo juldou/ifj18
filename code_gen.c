@@ -42,6 +42,8 @@ int gen_main() {
     GEN_INSTR("LABEL %s", "$$MAIN");
     GEN_INSTR("DEFVAR %s", "GF@expr_res");
     GEN_INSTR("%s", "CREATEFRAME");
+    GEN_INSTR("DEFVAR %s", "TF@$retval");
+
     GEN_INSTR("%s", "PUSHFRAME");
     return 0;
 }
@@ -98,12 +100,14 @@ int gen_builtin_fun(char *fun_id) {
 }
 
 int gen_print(size_t params_count) {
+    set_fun_defined("print");
     if (gen_fun_header("print") == ERR_INTERNAL) return ERR_INTERNAL;
 
     for (size_t param = 1; param <= params_count; param++) {
         GEN_INSTR("WRITE %s%d", "LF@%", param);
     }
 
+    GEN_INSTR("MOVE %s %s", "LF@$retval", "nil@nil");
     if (gen_fun_footer("print") == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }
