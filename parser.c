@@ -104,7 +104,7 @@ int assign(char *fun_id) {
         case ORD:
             GET_TOKEN();
             if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
-           // GEN_INSTR("MOVE %s %s ", "GF@expr_res", "TF@$retval");
+            // GEN_INSTR("MOVE %s %s ", "GF@expr_res", "TF@$retval");
             return SYNTAX_OK;
 
         case NUM_INT:
@@ -143,8 +143,9 @@ int fun_params(char *fun_id) {
 
             if (token == COMMA) {
                 GET_TOKEN();
-                if (token != ID)
-                    return ERR_SYNTAX;
+                if (token == ID)
+                    return fun_params(fun_id);
+                return ERR_SYNTAX;
             }
             return fun_params(fun_id);
 
@@ -230,7 +231,7 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
                     return ERR_SYNTAX;
                 return params(fun_id, called_from_fun, par_count);
             }
-
+            if (token != LEX_EOL && token != ROUNDR) return ERR_SYNTAX;
             return params(fun_id, called_from_fun, par_count);
         case ERR_LEXICAL:
             return ERR_LEXICAL;
@@ -282,7 +283,7 @@ int stat_list(char *fun_id) {
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
             GET_TOKEN();
             if ((err = bool_expr(fun_id)) != SYNTAX_OK) return err;
-                GEN_INSTR("JUMPIFNEQ ELSE_LABEL_%d %s %s", cnt, "GF@expr_res", "bool@true");
+            GEN_INSTR("JUMPIFNEQ ELSE_LABEL_%d %s %s", cnt, "GF@expr_res", "bool@true");
             ACCEPT(KEYWORD_THEN);
             ACCEPT(LEX_EOL);
 
@@ -310,7 +311,7 @@ int stat_list(char *fun_id) {
             if ((err = bool_expr(fun_id)) != SYNTAX_OK) return err;
 
 //todo jumpif condition
-                GEN_INSTR("JUMP WHILE_END_%d", cnt);
+            GEN_INSTR("JUMP WHILE_END_%d", cnt);
             ACCEPT(KEYWORD_DO);
             ACCEPT(LEX_EOL);
 
@@ -354,12 +355,13 @@ int stat_list(char *fun_id) {
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
-                if (!semantic_token_is_variable(previous_token_value, fun_id)){
+                if (!semantic_token_is_variable(previous_token_value, fun_id)) {
                     //todo not found, mozno nie err internal
-                    if(find_instr("LABEL *%s\n", fun_id) == ERR_INTERNAL) return ERR_INTERNAL;
-                    if(insert_instr_after("MOVE TF@%s nil@nil\n", previous_token_value) == ERR_INTERNAL) return ERR_INTERNAL;
+                    if (find_instr("LABEL *%s\n", fun_id) == ERR_INTERNAL) return ERR_INTERNAL;
+                    if (insert_instr_after("MOVE TF@%s nil@nil\n", previous_token_value) == ERR_INTERNAL)
+                        return ERR_INTERNAL;
 
-                    if(insert_instr_after("DEFVAR TF@%s\n", previous_token_value) == ERR_INTERNAL) return ERR_INTERNAL;
+                    if (insert_instr_after("DEFVAR TF@%s\n", previous_token_value) == ERR_INTERNAL) return ERR_INTERNAL;
 
                 }
 

@@ -9,5 +9,5 @@ end
 
 a = b
 c = e
-print a c
+print a,c
 
