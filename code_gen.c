@@ -115,8 +115,8 @@ int gen_builtin_fun(char *fun_id, unsigned params_count) {
     if (is_fun_defined(fun_id)) return 0;
     set_fun_defined(fun_id);
     if (strcmp(fun_id, "inputs") == 0) return gen_inputs();
-//    if (strcmp(fun_id, "inputi") == 0) return gen_inputi();
-//    if (strcmp(fun_id, "inputf") == 0) return gen_inputf();
+    if (strcmp(fun_id, "inputi") == 0) return gen_inputi();
+    if (strcmp(fun_id, "inputf") == 0) return gen_inputf();
     if (strcmp(fun_id, "length") == 0) return gen_length();
 //    if (strcmp(fun_id, "substr") == 0) return gen_substr();
 //    if (strcmp(fun_id, "ord") == 0) return gen_ord();
@@ -132,6 +132,28 @@ int gen_inputs() {
     GEN_INSTR("MOVE %s %s", "LF@$retval", "LF@$line");
 
     if (gen_fun_footer("inputs") == ERR_INTERNAL) return ERR_INTERNAL;
+    return 0;
+}
+
+int gen_inputi() {
+    if (gen_fun_header("inputi") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    GEN_INSTR("DEFVAR %s", "LF@$input_int");
+    GEN_INSTR("READ %s %s", "LF@$input_int", "int");
+    GEN_INSTR("MOVE %s %s", "LF@$retval", "LF@$input_int");
+
+    if (gen_fun_footer("inputi") == ERR_INTERNAL) return ERR_INTERNAL;
+    return 0;
+}
+
+int gen_inputf() {
+    if (gen_fun_header("inputf") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    GEN_INSTR("DEFVAR %s", "LF@$input_float");
+    GEN_INSTR("READ %s %s", "LF@$input_float", "float");
+    GEN_INSTR("MOVE %s %s", "LF@$retval", "LF@$input_float");
+
+    if (gen_fun_footer("inputf") == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }
 
