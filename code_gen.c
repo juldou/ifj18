@@ -2,7 +2,7 @@
 #include "semantic.h"
 
 /* CONVENTIONS:
- * special variables has prefix $
+ * special LOCAL FRAME variables has prefix $
  *      - return value of function is $retval
  *      - variable that holds type of variable some_var is some_var$type
  * function has prefix * (*some_function)
@@ -114,13 +114,24 @@ int gen_builtin_fun(char *fun_id, unsigned params_count) {
 
     if (is_fun_defined(fun_id)) return 0;
     set_fun_defined(fun_id);
-//    if (strcmp(fun_id, "inputs") == 0) return gen_inputs();
+    if (strcmp(fun_id, "inputs") == 0) return gen_inputs();
 //    if (strcmp(fun_id, "inputi") == 0) return gen_inputi();
 //    if (strcmp(fun_id, "inputf") == 0) return gen_inputf();
     if (strcmp(fun_id, "length") == 0) return gen_length();
 //    if (strcmp(fun_id, "substr") == 0) return gen_substr();
 //    if (strcmp(fun_id, "ord") == 0) return gen_ord();
 //    if (strcmp(fun_id, "chr") == 0) return gen_chr();
+    return 0;
+}
+
+int gen_inputs() {
+    if (gen_fun_header("inputs") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    GEN_INSTR("DEFVAR %s", "LF@$line");
+    GEN_INSTR("READ %s %s", "LF@$line", "string");
+    GEN_INSTR("MOVE %s %s", "LF@$retval", "LF@$line");
+
+    if (gen_fun_footer("inputs") == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }
 
