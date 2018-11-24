@@ -197,7 +197,7 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
         case LEX_EOL:
         case ROUNDR:
             err = semantic_check_fun_call_params(fun_id, params_count);
-            *par_count = (unsigned) params_count;
+            *par_count = params_count;
             params_count = 0;
             if (err != 0) return err;
             return SYNTAX_OK;

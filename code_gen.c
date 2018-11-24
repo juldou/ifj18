@@ -1,5 +1,6 @@
 #include "code_gen.h"
 #include "semantic.h"
+#include "math.h"
 
 /* CONVENTIONS:
  * special variables has prefix $
@@ -96,14 +97,25 @@ int gen_builtin_fun(char *fun_id) {
     return 0;
 }
 
-int gen_print(size_t params_count) {
-    if (gen_fun_header("print") == ERR_INTERNAL) return ERR_INTERNAL;
+unsigned num_digits(const unsigned n) {
+    if (n < 10) return 1;
+    return 1 + num_digits(n / 10);
+}
+
+int gen_print(unsigned params_count) {
+    unsigned num_d = num_digits(params_count);
+    unsigned str_size = 6 + num_d;
+    char fun_name_print[str_size];
+    snprintf(fun_name_print, str_size, "%s%d", "print", params_count);
+
+    if (gen_fun_header(fun_name_print) == ERR_INTERNAL) return ERR_INTERNAL;
 
     for (size_t param = 1; param <= params_count; param++) {
         GEN_INSTR("WRITE %s%d", "LF@%", param);
     }
 
     if (gen_fun_footer("print") == ERR_INTERNAL) return ERR_INTERNAL;
+    set_fun_defined(fun_name_print);
     return 0;
 }
 
