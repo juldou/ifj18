@@ -41,6 +41,7 @@ int gen_header() {
 int gen_main() {
     GEN_INSTR("JUMP %s", "$$MAIN");
     GEN_INSTR("LABEL %s", "$$MAIN");
+    GEN_INSTR("DEFVAR %s", "GF@expr_res");
     GEN_INSTR("%s", "CREATEFRAME");
     GEN_INSTR("%s", "PUSHFRAME");
     return 0;
@@ -85,11 +86,11 @@ int gen_fun_footer(char* label) {
 }
 
 int gen_builtin_fun(char *fun_id) {
-    set_fun_defined(fun_id);
+    /* omit print fun because it's directly generated in params() */
+    if (!is_print_fun(fun_id)) set_fun_defined(fun_id);
 //    if (strcmp(fun_id, "inputs") == 0) return gen_inputs();
 //    if (strcmp(fun_id, "inputi") == 0) return gen_inputi();
 //    if (strcmp(fun_id, "inputf") == 0) return gen_inputf();
-//    if (strcmp(fun_id, "print") == 0) return gen_print(); // TODO: remove
     if (strcmp(fun_id, "length") == 0) return gen_length();
 //    if (strcmp(fun_id, "substr") == 0) return gen_substr();
 //    if (strcmp(fun_id, "ord") == 0) return gen_ord();
@@ -102,21 +103,8 @@ unsigned num_digits(const unsigned n) {
     return 1 + num_digits(n / 10);
 }
 
-int gen_print(unsigned params_count) {
-    unsigned num_d = num_digits(params_count);
-    unsigned str_size = 6 + num_d;
-    char fun_name_print[str_size];
-    snprintf(fun_name_print, str_size, "%s%d", "print", params_count);
-
-    if (gen_fun_header(fun_name_print) == ERR_INTERNAL) return ERR_INTERNAL;
-
-    for (size_t param = 1; param <= params_count; param++) {
-        GEN_INSTR("WRITE %s%d", "LF@%", param);
-    }
-
-    if (gen_fun_footer("print") == ERR_INTERNAL) return ERR_INTERNAL;
-    set_fun_defined(fun_name_print);
-    return 0;
+bool is_print_fun(char *fun_id) {
+    return strcmp("print", fun_id) == 0;
 }
 
 int gen_length() {

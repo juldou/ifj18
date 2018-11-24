@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-travis_build=$1
+if [ $# -eq 0 ]; then
+    travis_build=0
+else
+    travis_build=$1
+fi
 
 make clean && make
 
@@ -67,7 +71,7 @@ for file in ./programs/gen_tests_programs/in/*; do
     else
         ./ic18int temp_out > interpret_out
     fi
-    diff interpret_out ./programs/gen_tests_programs/ou@cht/"$cntr.ifj"
+    diff interpret_out ./programs/gen_tests_programs/out/"$cntr.ifj"
     if [ $? -eq 0 ]; then
         echo "TEST PASSED"
     else

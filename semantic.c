@@ -179,8 +179,16 @@ bool is_fun_defined(char *fun_id) {
     return elem->data->defined;
 }
 
-bool semantic_token_is_variable(char *var_id) {
-    st_elem *elem = st_search(&st_local, var_id);
-    if (elem == NULL) return false;
-    else return true;
+bool semantic_token_is_variable(char *var_id, char *fun_id) {
+    size_t size = strlen(var_id) + strlen(fun_id) + 2;
+    char var_key_in_ht[size];
+    strcpy(var_key_in_ht, "\0");
+    strcat(var_key_in_ht, var_id);
+    strcat(var_key_in_ht, "_");
+    strcat(var_key_in_ht, fun_id);
+
+    st_elem *var = st_search(&st_local, var_key_in_ht);
+
+    if (var == NULL) return false;
+    return true;
 }
