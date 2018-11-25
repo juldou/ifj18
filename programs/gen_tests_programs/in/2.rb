@@ -1,2 +1,2 @@
 a = "abc"
-print(a, "\n")
+print(a)

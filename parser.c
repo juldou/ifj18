@@ -111,6 +111,7 @@ int assign(char *fun_id) {
         case NUM_FLOAT:
         case NUM_EXP:
         case STRING:
+        case KEYWORD_NIL:
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
 
