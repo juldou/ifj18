@@ -226,7 +226,9 @@ int rules(t_stack *stack, string prev_value) {
         return SYNTAX_OK;
     } else if (check_rule(stack, 1, NUM_FLOAT)) {
         pop_rule(stack, 1, EXPR);
-        GEN_INSTR("PUSHS float@%s", prev_value.str);
+        char *endptr;
+        double tmp = strtod(prev_value.str, &endptr);
+        GEN_INSTR("PUSHS float@%a", tmp);
         return SYNTAX_OK;
     } else if (check_rule(stack, 1, STRING)) {
         GEN_INSTR("PUSHS string@%s", prev_value.str);
@@ -237,7 +239,9 @@ int rules(t_stack *stack, string prev_value) {
         pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 1, NUM_EXP)) {
-        GEN_INSTR("PUSHS float@%s", prev_value.str);
+        char *endptr;
+        double tmp = strtod(prev_value.str, &endptr);
+        GEN_INSTR("PUSHS float@%a", tmp);
         pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
     } else return ERR_SYNTAX;
