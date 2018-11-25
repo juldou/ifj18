@@ -143,10 +143,9 @@ int fun_params(char *fun_id) {
             err = semantic_add_fun_param(fun_id, value->str);
             if (err != 0) return err;
             params_count++;
-            if (!semantic_token_is_variable(value->str, fun_id)) {
                 GEN_INSTR("DEFVAR LF@%s", value->str);
 
-            }
+
             GEN_INSTR("MOVE LF@%s LF@%%%d", value->str, params_count);
 
             GET_TOKEN();
