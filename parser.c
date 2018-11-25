@@ -264,7 +264,9 @@ int fun_call(char *fun_id, char *called_from_fun) {
     }
     ACCEPT(LEX_EOL);
 
-    if (is_fun_builtin(fun_id)) gen_builtin_fun(fun_id, par_count);
+    if (is_fun_builtin(fun_id)) {
+        if (gen_builtin_fun(fun_id, par_count) == ERR_INTERNAL) return ERR_INTERNAL;
+    }
 
     if (!is_print_fun(fun_id)) GEN_INSTR("CALL *%s", fun_id);  // print is handled inside gen_print()
     GEN_INSTR("MOVE %s %s ", "LF@$retval", "TF@$retval");
