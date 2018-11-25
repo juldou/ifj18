@@ -80,7 +80,6 @@ for file in ./programs/gen_tests_programs/in/*; do
         echo "TEST FAILED"
         let tests_failed+=1
     fi
-    let cntr+=1
 done
 
 echo ""

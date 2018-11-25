@@ -1,8 +1,9 @@
 #include "code_gen.h"
 #include "semantic.h"
+#include "parser.h"
 
 /* CONVENTIONS:
- * special variables has prefix $
+ * special LOCAL FRAME variables has prefix $
  *      - return value of function is $retval
  *      - variable that holds type of variable some_var is some_var$type
  * function has prefix * (*some_function)
@@ -114,13 +115,46 @@ int gen_builtin_fun(char *fun_id, unsigned params_count) {
 
     if (is_fun_defined(fun_id)) return 0;
     set_fun_defined(fun_id);
-//    if (strcmp(fun_id, "inputs") == 0) return gen_inputs();
-//    if (strcmp(fun_id, "inputi") == 0) return gen_inputi();
-//    if (strcmp(fun_id, "inputf") == 0) return gen_inputf();
+    if (strcmp(fun_id, "inputs") == 0) return gen_inputs();
+    if (strcmp(fun_id, "inputi") == 0) return gen_inputi();
+    if (strcmp(fun_id, "inputf") == 0) return gen_inputf();
     if (strcmp(fun_id, "length") == 0) return gen_length();
 //    if (strcmp(fun_id, "substr") == 0) return gen_substr();
-//    if (strcmp(fun_id, "ord") == 0) return gen_ord();
+    if (strcmp(fun_id, "ord") == 0) return gen_ord();
 //    if (strcmp(fun_id, "chr") == 0) return gen_chr();
+    return 0;
+}
+
+int gen_inputs() {
+    if (gen_fun_header("inputs") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    GEN_INSTR("DEFVAR %s", "LF@$line");
+    GEN_INSTR("READ %s %s", "LF@$line", "string");
+    GEN_INSTR("MOVE %s %s", "LF@$retval", "LF@$line");
+
+    if (gen_fun_footer("inputs") == ERR_INTERNAL) return ERR_INTERNAL;
+    return 0;
+}
+
+int gen_inputi() {
+    if (gen_fun_header("inputi") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    GEN_INSTR("DEFVAR %s", "LF@$input_int");
+    GEN_INSTR("READ %s %s", "LF@$input_int", "int");
+    GEN_INSTR("MOVE %s %s", "LF@$retval", "LF@$input_int");
+
+    if (gen_fun_footer("inputi") == ERR_INTERNAL) return ERR_INTERNAL;
+    return 0;
+}
+
+int gen_inputf() {
+    if (gen_fun_header("inputf") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    GEN_INSTR("DEFVAR %s", "LF@$input_float");
+    GEN_INSTR("READ %s %s", "LF@$input_float", "float");
+    GEN_INSTR("MOVE %s %s", "LF@$retval", "LF@$input_float");
+
+    if (gen_fun_footer("inputf") == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }
 
@@ -161,19 +195,88 @@ bool is_print_fun(char *fun_id) {
 
 int gen_length() {
     if (gen_fun_header("length") == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_semantic_type_check_header("length") == ERR_INTERNAL) return ERR_INTERNAL;
 
-    /* semantic check */
-    GEN_INSTR("DEFVAR %s", "LF@%1$type");
-    GEN_INSTR("DEFVAR %s", "LF@%1$tmp");
-    GEN_INSTR("TYPE %s %s", "LF@%1$type", "LF@%1");
-    GEN_INSTR("MOVE %s LF@%s", "LF@%1$tmp", "%1");
+    if (gen_semantic_type_check("length", "LF@%1", "string") == ERR_INTERNAL) return ERR_INTERNAL;
 
-    GEN_INSTR("JUMPIFEQ %s %s %s", "$type$string$", "LF@%1$type", "string@string");
-    GEN_INSTR("EXIT int@%d", ERR_SEMANTIC_TYPE); // exit if variable type is not string
-
-    GEN_INSTR("LABEL %s", "$type$string$");
+    GEN_INSTR("LABEL %s", "$type$string$length$");
     GEN_INSTR("STRLEN %s %s", "LF@$retval", "LF@%1");
 
     if (gen_fun_footer("length") == ERR_INTERNAL) return ERR_INTERNAL;
+    return 0;
+}
+
+/* generates label for jump if semantic check fails - 1 label for whole fun def */
+int gen_semantic_type_check_header(char *fun_id) {
+    GEN_INSTR("JUMP %s%s", "$SEMANTIC$CHECK$TYPE$", fun_id, "$END$LABEL$");
+    GEN_INSTR("LABEL %s%s", "$SEMANTIC$CHECK$TYPE$FAIL$", fun_id);
+    GEN_INSTR("EXIT int@%d", ERR_SEMANTIC_TYPE);
+    GEN_INSTR("LABEL %s%s", "$SEMANTIC$CHECK$TYPE$", fun_id, "$END$LABEL$");
+    return 0;
+}
+
+/* generates type check with given fun_id (to have unique labels for function) */
+int gen_semantic_type_check(char *fun_id, char *frame_var, char *desired_type) {
+    GEN_INSTR("DEFVAR %s%s", frame_var, "$type");
+    GEN_INSTR("DEFVAR %s%s", frame_var, "$tmp");
+    GEN_INSTR("TYPE %s%s %s", frame_var, "$type", frame_var);
+    GEN_INSTR("MOVE %s%s %s", frame_var, "$tmp", frame_var);
+    GEN_INSTR("JUMPIFNEQ %s%s %s%s %s%s", "$SEMANTIC$CHECK$TYPE$FAIL$", fun_id, frame_var, "$type", "string@", desired_type);
+    return 0;
+}
+
+int gen_substr() {
+    if (gen_fun_header("substr") == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_semantic_type_check_header("substr") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    if (gen_semantic_type_check("substr", "LF@%1", "string") == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_semantic_type_check("substr", "LF@%2", "int") == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_semantic_type_check("substr", "LF@%3", "int") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    /* semantic check - second param - int */
+    GEN_INSTR("LABEL %s", "$type$string$");
+    GEN_INSTR("DEFVAR %s", "LF@%2$type");
+    GEN_INSTR("DEFVAR %s", "LF@%2$tmp");
+    GEN_INSTR("TYPE %s %s", "LF@%2$type", "LF@%2");
+    GEN_INSTR("MOVE %s LF@%s", "LF@%2$tmp", "%2");
+    GEN_INSTR("JUMPIFEQ %s %s %s", "$type$int$%2$", "LF@%2$type", "string@int");
+    GEN_INSTR("EXIT int@%d", ERR_SEMANTIC_TYPE); // exit if variable type is not int
+
+    /* params type checks passed */
+    GEN_INSTR("LABEL %s", "$type$int$%2$");
+
+    if (gen_fun_footer("substr") == ERR_INTERNAL) return ERR_INTERNAL;
+    return 0;
+}
+
+int gen_ord() {
+    if (gen_fun_header("ord") == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_semantic_type_check_header("ord") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    if (gen_semantic_type_check("ord", "LF@%1", "string") == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_semantic_type_check("ord", "LF@%2", "int") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    /* length() fun call */
+    GEN_INSTR("%s", "CREATEFRAME");
+    GEN_INSTR("DEFVAR TF@%s", "%1");
+    GEN_INSTR("MOVE %s %s", "TF@%1", "LF@%1");
+    GEN_INSTR("CALL *%s", "length");
+    if (!is_fun_defined("length")) gen_builtin_fun("length", 1);
+    GEN_INSTR("MOVE %s %s ", "LF@$retval", "TF@$retval");
+
+    GEN_INSTR("DEFVAR %s", "LF@$greater$than$minus$one$");
+    GEN_INSTR("DEFVAR %s", "LF@$less$than$length$");
+    GEN_INSTR("GT %s %s %s", "LF@$greater$than$minus$one$", "LF@%2", "int@-1");
+    GEN_INSTR("LT %s %s %s", "LF@$less$than$length$", "LF@%2", "LF@$retval");
+    GEN_INSTR("DEFVAR %s", "LF@$check$passed$");
+    GEN_INSTR("AND %s %s %s", "LF@$check$passed$", "LF@$greater$than$minus$one$", "LF@$less$than$length$");
+    GEN_INSTR("MOVE LF@%s nil@nil", "$retval");  // clear $retval because of call length() above
+    GEN_INSTR("JUMPIFEQ %s %s %s", "$fail$", "LF@$check$passed$", "bool@false"); // index out of bounds
+    /* compute the ord value */
+    GEN_INSTR("STRI2INT %s %s %s", "LF@$retval", "LF@%1", "LF@%2");
+
+    GEN_INSTR("LABEL %s", "$fail$");  // $retval will be nil@nil because unchanged from fun_header
+
+    if (gen_fun_footer("ord") == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }

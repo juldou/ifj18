@@ -42,4 +42,8 @@ int gen_chr();
 
 bool is_print_fun(char *fun_id);
 
+int gen_semantic_type_check_header(char *fun_id);
+int gen_semantic_type_check(char *fun_id, char *frame_var, char *desired_type);
+
+
 #endif //IFJ_CODE_GEN_H
