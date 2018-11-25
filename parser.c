@@ -456,31 +456,31 @@ int parse() {
     GET_TOKEN();
     result = program();
 
-    switch (result) {
-        case SYNTAX_OK:
-            //  printf("*****SYNTAX OK*****\n");
-            break;
-        case ERR_SYNTAX:
-            printf("*****SYNTAX ERROR*****\n");
-            break;
-        case ERR_LEXICAL:
-            printf("*****LEX ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_DEFINITION:
-            printf("*****SEMANTIC DEFINITION ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_TYPE:
-            printf("*****SEMANTIC TYPE ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_PARAMETERS_COUNT:
-            printf("*****SEMANTIC PARAMETERS COUNT ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_OTHER:
-            printf("*****SEMANTIC OTHER ERROR*****\n");
-            break;
-        default:
-            printf("Unknown Error\n");
-    }
+//    switch (result) {
+//        case SYNTAX_OK:
+//            //  printf("*****SYNTAX OK*****\n");
+//            break;
+//        case ERR_SYNTAX:
+//            printf("*****SYNTAX ERROR*****\n");
+//            break;
+//        case ERR_LEXICAL:
+//            printf("*****LEX ERROR*****\n");
+//            break;
+//        case ERR_SEMANTIC_DEFINITION:
+//            printf("*****SEMANTIC DEFINITION ERROR*****\n");
+//            break;
+//        case ERR_SEMANTIC_TYPE:
+//            printf("*****SEMANTIC TYPE ERROR*****\n");
+//            break;
+//        case ERR_SEMANTIC_PARAMETERS_COUNT:
+//            printf("*****SEMANTIC PARAMETERS COUNT ERROR*****\n");
+//            break;
+//        case ERR_SEMANTIC_OTHER:
+//            printf("*****SEMANTIC OTHER ERROR*****\n");
+//            break;
+//        default:
+//            printf("Unknown Error\n");
+//    }
 
     code_generate();
 
