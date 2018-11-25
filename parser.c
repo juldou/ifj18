@@ -128,17 +128,26 @@ int assign(char *fun_id) {
 
 
 int fun_params(char *fun_id) {
+    static size_t params_count = 0;
+
     // pravidlo <ITEM><ITEM_LIST
     switch (token) {
         case ROUNDR:
             GET_TOKEN();
             ACCEPT(LEX_EOL);
+            params_count = 0;
+
             return SYNTAX_OK;
 
         case ID:
             err = semantic_add_fun_param(fun_id, value->str);
             if (err != 0) return err;
-            GEN_INSTR("DEFVAR LF@%s", value->str);
+            params_count++;
+            if (!semantic_token_is_variable(value->str, fun_id)) {
+                GEN_INSTR("DEFVAR LF@%s", value->str);
+
+            }
+            GEN_INSTR("MOVE LF@%s LF@%%%d", value->str, params_count);
 
             GET_TOKEN();
 
@@ -210,7 +219,6 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
         case STRING:
         case KEYWORD_NIL:
             params_count++;
-
             GEN_INSTR("DEFVAR TF@%%%d", params_count);
 
             //todo dat do <>
