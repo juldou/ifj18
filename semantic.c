@@ -99,7 +99,7 @@ int semantic_check_var_defined(char *fun_id, char *var_id) {
     st_elem *var = st_search(&st_local, var_key_in_ht);
 
     /* handle of case when var doesn't exist and we are not in any function decl */
-    if (var == NULL && ( strcmp(fun_id, "") == 0 )) return ERR_SEMANTIC_DEFINITION;
+    if (var == NULL && ( strcmp(fun_id, "MAIN") == 0 )) return ERR_SEMANTIC_DEFINITION;
 
     if (function_parameter_exists(fun, var_id)) return 0;
     if (var != NULL && var->data->fun == fun) return 0;
@@ -187,8 +187,11 @@ bool semantic_token_is_variable(char *var_id, char *fun_id) {
     strcat(var_key_in_ht, "_");
     strcat(var_key_in_ht, fun_id);
 
+    st_elem *fun = st_search(&st_global, fun_id);
     st_elem *var = st_search(&st_local, var_key_in_ht);
 
-    if (var == NULL) return false;
+    if (var == NULL && ( strcmp(fun_id, "MAIN") == 0 )) return false;
+    if (var == NULL && !function_parameter_exists(fun, var_id)) return false;
+    if (var != NULL && var->data->fun != fun) return false;
     return true;
 }

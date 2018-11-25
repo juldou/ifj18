@@ -128,17 +128,25 @@ int assign(char *fun_id) {
 
 
 int fun_params(char *fun_id) {
+    static size_t params_count = 0;
+
     // pravidlo <ITEM><ITEM_LIST
     switch (token) {
         case ROUNDR:
             GET_TOKEN();
             ACCEPT(LEX_EOL);
+            params_count = 0;
+
             return SYNTAX_OK;
 
         case ID:
             err = semantic_add_fun_param(fun_id, value->str);
             if (err != 0) return err;
-            GEN_INSTR("DEFVAR LF@%s", value->str);
+            params_count++;
+                GEN_INSTR("DEFVAR LF@%s", value->str);
+
+
+            GEN_INSTR("MOVE LF@%s LF@%%%d", value->str, params_count);
 
             GET_TOKEN();
 
@@ -208,8 +216,8 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
         case NUM_FLOAT:
         case NUM_EXP:
         case STRING:
+        case KEYWORD_NIL:
             params_count++;
-
             GEN_INSTR("DEFVAR TF@%%%d", params_count);
 
             //todo dat do <>
@@ -448,31 +456,31 @@ int parse() {
     GET_TOKEN();
     result = program();
 
-    switch (result) {
-        case SYNTAX_OK:
-            //  printf("*****SYNTAX OK*****\n");
-            break;
-        case ERR_SYNTAX:
-            printf("*****SYNTAX ERROR*****\n");
-            break;
-        case ERR_LEXICAL:
-            printf("*****LEX ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_DEFINITION:
-            printf("*****SEMANTIC DEFINITION ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_TYPE:
-            printf("*****SEMANTIC TYPE ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_PARAMETERS_COUNT:
-            printf("*****SEMANTIC PARAMETERS COUNT ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_OTHER:
-            printf("*****SEMANTIC OTHER ERROR*****\n");
-            break;
-        default:
-            printf("Unknown Error\n");
-    }
+//    switch (result) {
+//        case SYNTAX_OK:
+//            //  printf("*****SYNTAX OK*****\n");
+//            break;
+//        case ERR_SYNTAX:
+//            printf("*****SYNTAX ERROR*****\n");
+//            break;
+//        case ERR_LEXICAL:
+//            printf("*****LEX ERROR*****\n");
+//            break;
+//        case ERR_SEMANTIC_DEFINITION:
+//            printf("*****SEMANTIC DEFINITION ERROR*****\n");
+//            break;
+//        case ERR_SEMANTIC_TYPE:
+//            printf("*****SEMANTIC TYPE ERROR*****\n");
+//            break;
+//        case ERR_SEMANTIC_PARAMETERS_COUNT:
+//            printf("*****SEMANTIC PARAMETERS COUNT ERROR*****\n");
+//            break;
+//        case ERR_SEMANTIC_OTHER:
+//            printf("*****SEMANTIC OTHER ERROR*****\n");
+//            break;
+//        default:
+//            printf("Unknown Error\n");
+//    }
 
     code_generate();
 
