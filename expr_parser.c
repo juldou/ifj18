@@ -74,6 +74,7 @@ int decode(int symbol) {
         case NUM_FLOAT:
         case NUM_INT:
         case STRING:
+        case KEYWORD_NIL:
             return 5;
         case LEX_EOF:
         case LEX_EOL:
@@ -153,7 +154,7 @@ int rules(t_stack *stack, string prev_value) {
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, DIV, EXPR)) {
         pop_rule(stack, 3, EXPR);
-        GEN_INSTR("%s", "DIV"); //TODO idiv
+        GEN_INSTR("%s", "IDIVS"); //TODO idiv
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, LESS, EXPR)) {
         pop_rule(stack, 3, EXPR);
@@ -231,6 +232,10 @@ int rules(t_stack *stack, string prev_value) {
         GEN_INSTR("PUSHS string@%s", prev_value.str);
         pop_rule(stack, 1, EXPR);
         return SYNTAX_OK;
+    } else if (check_rule(stack, 1, KEYWORD_NIL)) {
+        GEN_INSTR("PUSHS nil@%s", "nil");
+        pop_rule(stack, 1, EXPR);
+        return SYNTAX_OK;
     } else if (check_rule(stack, 1, NUM_EXP)) {
         GEN_INSTR("PUSHS float@%s", prev_value.str);
         pop_rule(stack, 1, EXPR);
@@ -268,6 +273,7 @@ int expresion(int type, char *fun_id) {
                     if (semantic_check_var_defined(fun_id, value->str) == ERR_SEMANTIC_DEFINITION) {
                         while (stack->top != NULL) pop(stack);
                         free(stack);
+                        strFree(&prev_value);
                         return ERR_SEMANTIC_DEFINITION;
                     }
                 }
@@ -280,6 +286,7 @@ int expresion(int type, char *fun_id) {
                 if (retval != SYNTAX_OK) {
                     while (stack->top != NULL) pop(stack);
                     free(stack);
+                    strFree(&prev_value);
                     return retval;
                 }
                 break;
@@ -287,6 +294,7 @@ int expresion(int type, char *fun_id) {
             default:
                 while (stack->top != NULL) pop(stack);
                 free(stack);
+                strFree(&prev_value);
                 return ERR_SYNTAX;
         }
 
@@ -294,6 +302,7 @@ int expresion(int type, char *fun_id) {
 
     while (stack->top != NULL) pop(stack);
     free(stack);
+    strFree(&prev_value);
     GEN_INSTR("POPS %s", "GF@expr_res");
     return SYNTAX_OK;
 
@@ -306,4 +315,3 @@ int bool_expr(char *fun_id) {
 int math_expr(char *fun_id) {
     return expresion(MATH, fun_id);
 }
-
