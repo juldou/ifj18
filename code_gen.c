@@ -20,14 +20,11 @@
 tList instr;
 
 int code_gen_prepare() {
-    fp = fopen("testPrg.ifj", "w");
-    if(fp == NULL) return ERR_INTERNAL;
     InitList(&instr);
     return 0;
 }
 
 int code_gen_clean() {
-    if (fclose(fp) == EOF) return ERR_INTERNAL;
     DisposeList(&instr);
     return 0;
 }
@@ -233,17 +230,28 @@ int gen_substr() {
     if (gen_semantic_type_check("substr", "LF@%2", "int") == ERR_INTERNAL) return ERR_INTERNAL;
     if (gen_semantic_type_check("substr", "LF@%3", "int") == ERR_INTERNAL) return ERR_INTERNAL;
 
-    /* semantic check - second param - int */
-    GEN_INSTR("LABEL %s", "$type$string$");
-    GEN_INSTR("DEFVAR %s", "LF@%2$type");
-    GEN_INSTR("DEFVAR %s", "LF@%2$tmp");
-    GEN_INSTR("TYPE %s %s", "LF@%2$type", "LF@%2");
-    GEN_INSTR("MOVE %s LF@%s", "LF@%2$tmp", "%2");
-    GEN_INSTR("JUMPIFEQ %s %s %s", "$type$int$%2$", "LF@%2$type", "string@int");
-    GEN_INSTR("EXIT int@%d", ERR_SEMANTIC_TYPE); // exit if variable type is not int
+    /* length() fun call */
+    GEN_INSTR("%s", "CREATEFRAME");
+    GEN_INSTR("DEFVAR TF@%s", "%1");
+    GEN_INSTR("MOVE %s %s", "TF@%1", "LF@%1");
+    GEN_INSTR("CALL *%s", "length");
+    if (!is_fun_defined("length")) gen_builtin_fun("length", 1);
+    GEN_INSTR("MOVE %s %s ", "LF@$retval", "TF@$retval");
 
-    /* params type checks passed */
-    GEN_INSTR("LABEL %s", "$type$int$%2$");
+    GEN_INSTR("DEFVAR %s", "LF@$greater$than$minus$one$");
+    GEN_INSTR("DEFVAR %s", "LF@$less$than$length$");
+    GEN_INSTR("GT %s %s %s", "LF@$greater$than$minus$one$", "LF@%2", "int@-1");
+    GEN_INSTR("LT %s %s %s", "LF@$less$than$length$", "LF@%2", "LF@$retval");
+    GEN_INSTR("DEFVAR %s", "LF@$check$passed$");
+    GEN_INSTR("AND %s %s %s", "LF@$check$passed$", "LF@$greater$than$minus$one$", "LF@$less$than$length$");
+    GEN_INSTR("MOVE LF@%s nil@nil", "$retval");  // clear $retval because of call length() above
+    GEN_INSTR("JUMPIFEQ %s %s %s", "$fail$substr$", "LF@$check$passed$", "bool@false"); // index out of bounds
+    /* TODO: CONTINUE IN PROCESSING */
+    GEN_INSTR("DEFVAR %s", "LF@$substring");
+
+
+
+    GEN_INSTR("LABEL %s", "$fail$substr$");  // $retval will be nil@nil because unchanged from fun_header
 
     if (gen_fun_footer("substr") == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
@@ -271,11 +279,43 @@ int gen_ord() {
     GEN_INSTR("DEFVAR %s", "LF@$check$passed$");
     GEN_INSTR("AND %s %s %s", "LF@$check$passed$", "LF@$greater$than$minus$one$", "LF@$less$than$length$");
     GEN_INSTR("MOVE LF@%s nil@nil", "$retval");  // clear $retval because of call length() above
-    GEN_INSTR("JUMPIFEQ %s %s %s", "$fail$", "LF@$check$passed$", "bool@false"); // index out of bounds
+    GEN_INSTR("JUMPIFEQ %s %s %s", "$fail$ord$", "LF@$check$passed$", "bool@false"); // index out of bounds
     /* compute the ord value */
     GEN_INSTR("STRI2INT %s %s %s", "LF@$retval", "LF@%1", "LF@%2");
 
-    GEN_INSTR("LABEL %s", "$fail$");  // $retval will be nil@nil because unchanged from fun_header
+    GEN_INSTR("LABEL %s", "$fail$ord$");  // $retval will be nil@nil because unchanged from fun_header
+
+    if (gen_fun_footer("ord") == ERR_INTERNAL) return ERR_INTERNAL;
+    return 0;
+}
+
+int gen_chr() {
+    if (gen_fun_header("ord") == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_semantic_type_check_header("ord") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    if (gen_semantic_type_check("ord", "LF@%1", "string") == ERR_INTERNAL) return ERR_INTERNAL;
+    if (gen_semantic_type_check("ord", "LF@%2", "int") == ERR_INTERNAL) return ERR_INTERNAL;
+
+    /* length() fun call */
+    GEN_INSTR("%s", "CREATEFRAME");
+    GEN_INSTR("DEFVAR TF@%s", "%1");
+    GEN_INSTR("MOVE %s %s", "TF@%1", "LF@%1");
+    GEN_INSTR("CALL *%s", "length");
+    if (!is_fun_defined("length")) gen_builtin_fun("length", 1);
+    GEN_INSTR("MOVE %s %s ", "LF@$retval", "TF@$retval");
+
+    GEN_INSTR("DEFVAR %s", "LF@$greater$than$minus$one$");
+    GEN_INSTR("DEFVAR %s", "LF@$less$than$length$");
+    GEN_INSTR("GT %s %s %s", "LF@$greater$than$minus$one$", "LF@%2", "int@-1");
+    GEN_INSTR("LT %s %s %s", "LF@$less$than$length$", "LF@%2", "LF@$retval");
+    GEN_INSTR("DEFVAR %s", "LF@$check$passed$");
+    GEN_INSTR("AND %s %s %s", "LF@$check$passed$", "LF@$greater$than$minus$one$", "LF@$less$than$length$");
+    GEN_INSTR("MOVE LF@%s nil@nil", "$retval");  // clear $retval because of call length() above
+    GEN_INSTR("JUMPIFEQ %s %s %s", "$fail$ord$", "LF@$check$passed$", "bool@false"); // index out of bounds
+    /* compute the ord value */
+    GEN_INSTR("STRI2INT %s %s %s", "LF@$retval", "LF@%1", "LF@%2");
+
+    GEN_INSTR("LABEL %s", "$fail$ord$");  // $retval will be nil@nil because unchanged from fun_header
 
     if (gen_fun_footer("ord") == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
