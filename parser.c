@@ -320,8 +320,8 @@ int stat_list(char *fun_id) {
             GET_TOKEN();
             if ((err = bool_expr(fun_id)) != SYNTAX_OK) return err;
 
-//todo jumpif condition
-            GEN_INSTR("JUMP WHILE_END_%d", cnt);
+            GEN_INSTR("JUMPIFNEQ WHILE_END_%d %s %s", cnt, "GF@expr_res", "bool@true");
+
             ACCEPT(KEYWORD_DO);
             ACCEPT(LEX_EOL);
 
