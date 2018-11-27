@@ -144,13 +144,13 @@ int rules(t_stack *stack, string prev_value) {
         var_number++;
         GEN_INSTR("DEFVAR LF@%%*%d", var_number);
         var_number++;
-        GEN_INSTR("POPS LF@%%*%d", var_number - 1);
         GEN_INSTR("POPS LF@%%*%d", var_number - 2);
+        GEN_INSTR("POPS LF@%%*%d", var_number - 1);
         GEN_INSTR("PUSHS LF@%%*%d", var_number - 1);
         //get 2 items from data stack to variables
 
-        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype1", var_number - 2);
-        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype2", var_number - 1);
+        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype1", var_number - 1);
+        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype2", var_number - 2);
         //get their types
 
         GEN_INSTR("JUMPIFEQ op_1_int%d GF@%s string@int", label_number, "optype1");
@@ -171,8 +171,8 @@ int rules(t_stack *stack, string prev_value) {
 
 
         GEN_INSTR("LABEL %s%d", "int_float", label_number);
-        GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
         GEN_INSTR("%s", "INT2FLOATS");
+        GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
         GEN_INSTR("%s", "ADDS");
         GEN_INSTR("JUMP %s", "success%d",label_number);
 
@@ -189,8 +189,8 @@ int rules(t_stack *stack, string prev_value) {
         GEN_INSTR("JUMP %s", "success%d",label_number);
 
         GEN_INSTR("LABEL %s%d", "float_int", label_number);
-        GEN_INSTR("%s", "INT2FLOATS");
         GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
+        GEN_INSTR("%s", "INT2FLOATS");
         GEN_INSTR("%s", "ADDS");
         GEN_INSTR("JUMP %s%d", "success", label_number);
 
@@ -203,7 +203,7 @@ int rules(t_stack *stack, string prev_value) {
 
         GEN_INSTR("LABEL %s%d", "str_str", label_number);
         GEN_INSTR("POPS LF@%%*%d", var_number - 1);
-        GEN_INSTR("CONCAT GF@expr_res LF@%%*%d LF@%%*%d", var_number - 2, var_number - 1);
+        GEN_INSTR("CONCAT GF@expr_res LF@%%*%d LF@%%*%d", var_number - 1, var_number - 2);
         GEN_INSTR("PUSHS GF@%s", "expr_res");
 
         /****************************************************/
@@ -218,13 +218,13 @@ int rules(t_stack *stack, string prev_value) {
         var_number++;
         GEN_INSTR("DEFVAR LF@%%*%d", var_number);
         var_number++;
-        GEN_INSTR("POPS LF@%%*%d", var_number - 1);
-        GEN_INSTR("POPS LF@%%*%d", var_number - 2);
-        GEN_INSTR("PUSHS LF@%%*%d", var_number - 1);
+        GEN_INSTR("POPS LF@%%*%d", var_number - 2); //op2
+        GEN_INSTR("POPS LF@%%*%d", var_number - 1); //op1
+        GEN_INSTR("PUSHS LF@%%*%d", var_number - 1); //op1 has to be pushed first
         //get 2 items from data stack to variables
 
-        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype1", var_number - 2);
-        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype2", var_number - 1);
+        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype1", var_number - 1);
+        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype2", var_number - 2);
         //get their types
 
         GEN_INSTR("JUMPIFEQ op_1_int%d GF@%s string@int", label_number, "optype1");
@@ -244,24 +244,6 @@ int rules(t_stack *stack, string prev_value) {
 
 
         GEN_INSTR("LABEL %s%d", "int_float", label_number);
-        GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
-        GEN_INSTR("%s", "INT2FLOATS");
-        GEN_INSTR("%s", "SUBS");
-        GEN_INSTR("JUMP %s", "success%d",label_number);
-
-        /****************************************************/
-
-        GEN_INSTR("LABEL %s%d", "op_1_float", label_number);
-        GEN_INSTR("JUMPIFEQ float_float%d GF@%s string@float", label_number, "optype2");
-        GEN_INSTR("JUMPIFEQ float_int%d GF@%s string@int", label_number, "optype2");
-        GEN_INSTR("EXIT int@%d", ERR_SEMANTIC_TYPE);
-
-        GEN_INSTR("LABEL %s%d", "float_float", label_number);
-        GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
-        GEN_INSTR("%s", "SUBS");
-        GEN_INSTR("JUMP %s", "success%d",label_number);
-
-        GEN_INSTR("LABEL %s%d", "float_int", label_number);
         GEN_INSTR("%s", "INT2FLOATS");
         GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
         GEN_INSTR("%s", "SUBS");
@@ -269,9 +251,27 @@ int rules(t_stack *stack, string prev_value) {
 
         /****************************************************/
 
+        GEN_INSTR("LABEL %s%d", "op_1_float", label_number);
+        GEN_INSTR("JUMPIFEQ float_float%d GF@%s string@float", label_number, "optype2");
+        GEN_INSTR("JUMPIFEQ float_int%d GF@%s string@int", label_number, "optype2");
+        GEN_INSTR("EXIT int@%d", ERR_SEMANTIC_TYPE);
+
+        GEN_INSTR("LABEL %s%d", "float_float", label_number);
+        GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
+        GEN_INSTR("%s", "SUBS");
+        GEN_INSTR("JUMP %s", "success%d",label_number);
+
+        GEN_INSTR("LABEL %s%d", "float_int", label_number);
+        GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
+        GEN_INSTR("%s", "INT2FLOATS");
+        GEN_INSTR("%s", "SUBS");
+        GEN_INSTR("JUMP %s%d", "success", label_number);
+
+        /****************************************************/
+
         GEN_INSTR("LABEL %s%d", "success", label_number);
         label_number++;
-        
+
         pop_rule(stack, 3, EXPR);
         return SYNTAX_OK;
     } else if (check_rule(stack, 3, EXPR, MUL, EXPR)) {
@@ -279,13 +279,13 @@ int rules(t_stack *stack, string prev_value) {
         var_number++;
         GEN_INSTR("DEFVAR LF@%%*%d", var_number);
         var_number++;
-        GEN_INSTR("POPS LF@%%*%d", var_number - 1);
         GEN_INSTR("POPS LF@%%*%d", var_number - 2);
+        GEN_INSTR("POPS LF@%%*%d", var_number - 1);
         GEN_INSTR("PUSHS LF@%%*%d", var_number - 1);
         //get 2 items from data stack to variables
 
-        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype1", var_number - 2);
-        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype2", var_number - 1);
+        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype1", var_number - 1);
+        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype2", var_number - 2);
         //get their types
 
         GEN_INSTR("JUMPIFEQ op_1_int%d GF@%s string@int", label_number, "optype1");
@@ -305,8 +305,8 @@ int rules(t_stack *stack, string prev_value) {
 
 
         GEN_INSTR("LABEL %s%d", "int_float", label_number);
-        GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
         GEN_INSTR("%s", "INT2FLOATS");
+        GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
         GEN_INSTR("%s", "MULS");
         GEN_INSTR("JUMP %s", "success%d",label_number);
 
@@ -323,8 +323,8 @@ int rules(t_stack *stack, string prev_value) {
         GEN_INSTR("JUMP %s", "success%d",label_number);
 
         GEN_INSTR("LABEL %s%d", "float_int", label_number);
-        GEN_INSTR("%s", "INT2FLOATS");
         GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
+        GEN_INSTR("%s", "INT2FLOATS");
         GEN_INSTR("%s", "MULS");
         GEN_INSTR("JUMP %s%d", "success", label_number);
 
@@ -340,13 +340,13 @@ int rules(t_stack *stack, string prev_value) {
         var_number++;
         GEN_INSTR("DEFVAR LF@%%*%d", var_number);
         var_number++;
-        GEN_INSTR("POPS LF@%%*%d", var_number - 1);
         GEN_INSTR("POPS LF@%%*%d", var_number - 2);
+        GEN_INSTR("POPS LF@%%*%d", var_number - 1);
         GEN_INSTR("PUSHS LF@%%*%d", var_number - 1);
         //get 2 items from data stack to variables
 
-        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype1", var_number - 2);
-        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype2", var_number - 1);
+        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype1", var_number - 1);
+        GEN_INSTR("TYPE GF@%s LF@%%*%d", "optype2", var_number - 2);
         //get their types
 
         GEN_INSTR("JUMPIFEQ op_1_int%d GF@%s string@int", label_number, "optype1");
@@ -360,15 +360,17 @@ int rules(t_stack *stack, string prev_value) {
         GEN_INSTR("EXIT int@%d", ERR_SEMANTIC_TYPE);
 
         GEN_INSTR("LABEL %s%d", "int_int", label_number);
+        GEN_INSTR("JUMPIFEQ div_by_zero%d LF@%%*%d int@0", label_number, var_number - 2);
         GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
-        GEN_INSTR("%s", "IDIV");
+        GEN_INSTR("%s", "IDIVS");
         GEN_INSTR("JUMP %s%d", "success",label_number);
 
 
         GEN_INSTR("LABEL %s%d", "int_float", label_number);
-        GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
+        GEN_INSTR("JUMPIFEQ div_by_zero%d LF@%%*%d float@0x0p+0", label_number, var_number - 2);
         GEN_INSTR("%s", "INT2FLOATS");
-        GEN_INSTR("%s", "DIV");
+        GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
+        GEN_INSTR("%s", "DIVS");
         GEN_INSTR("JUMP %s", "success%d",label_number);
 
         /****************************************************/
@@ -379,16 +381,21 @@ int rules(t_stack *stack, string prev_value) {
         GEN_INSTR("EXIT int@%d", ERR_SEMANTIC_TYPE);
 
         GEN_INSTR("LABEL %s%d", "float_float", label_number);
+        GEN_INSTR("JUMPIFEQ div_by_zero%d LF@%%*%d float@0x0p+0", label_number, var_number - 2);
         GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
-        GEN_INSTR("%s", "DIV");
+        GEN_INSTR("%s", "DIVS");
         GEN_INSTR("JUMP %s", "success%d",label_number);
 
         GEN_INSTR("LABEL %s%d", "float_int", label_number);
-        GEN_INSTR("%s", "INT2FLOATS");
+        GEN_INSTR("JUMPIFEQ div_by_zero%d LF@%%*%d int@0", label_number, var_number - 2);
         GEN_INSTR("PUSHS LF@%%*%d", var_number - 2);
-        GEN_INSTR("%s", "DIV");
+        GEN_INSTR("%s", "INT2FLOATS");
+        GEN_INSTR("%s", "DIVS");
         GEN_INSTR("JUMP %s%d", "success", label_number);
 
+        /****************************************************/
+        GEN_INSTR("LABEL %s%d", "div_by_zero", label_number);
+        GEN_INSTR("EXIT int@%d", ERR_ZERO_DIVISION);
         /****************************************************/
 
         GEN_INSTR("LABEL %s%d", "success", label_number);
