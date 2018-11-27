@@ -17,7 +17,7 @@ echo ""
 for file in ./programs/return_value_2/*; do
     echo "----------------------TEST $file----------------------"
     ./ifj18 < ${file}
-    if [ $? -eq 201 ]; then
+    if [ $? -eq 2 ]; then
         echo "TEST PASSED"
     else
 

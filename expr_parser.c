@@ -26,7 +26,7 @@ extern int token;
 extern string *value;
 int line;
 
-const char prec_table[SIZE][SIZE] = {
+const int prec_table[SIZE][SIZE] = {
 //             0    1   2   3   4   5   6
 //             + - * / rel  (   )  ID   $
 /*  0 + - */ {GR, LE, GR, LE, GR, LE, GR},
