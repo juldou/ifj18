@@ -40,6 +40,11 @@ int gen_main() {
     GEN_INSTR("LABEL %s", "*MAIN");
 
     GEN_INSTR("DEFVAR %s", "GF@expr_res");
+    GEN_INSTR("DEFVAR %s", "GF@optype1");
+    GEN_INSTR("DEFVAR %s", "GF@optype2");
+    GEN_INSTR("DEFVAR GF@%%*%s", "op1");
+    GEN_INSTR("DEFVAR GF@%%*%s", "op2");
+
     GEN_INSTR("DEFVAR %s", "TF@$retval");
 
     GEN_INSTR("%s", "PUSHFRAME");

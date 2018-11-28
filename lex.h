@@ -15,7 +15,7 @@
 #define INCREMENT 100
 
 typedef enum {
-    KEYWORD_DEF,
+    KEYWORD_DEF = 200,
     KEYWORD_DO,
     KEYWORD_ELSE,
     KEYWORD_END,
