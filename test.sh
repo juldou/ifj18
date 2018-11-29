@@ -17,7 +17,7 @@ echo ""
 for file in ./programs/return_value_2/*; do
     echo "----------------------TEST $file----------------------"
     ./ifj18 < ${file}
-    if [ $? -eq 201 ]; then
+    if [ $? -eq 2 ]; then
         echo "TEST PASSED"
     else
 
@@ -30,6 +30,24 @@ for file in ./programs/return_value_3/*; do
     echo "----------------------TEST $file----------------------"
     ./ifj18 < ${file}
     if [ $? -eq 3 ]; then
+        echo "TEST PASSED"
+    else
+
+        echo "TEST FAILED"
+        let tests_failed+=1
+    fi
+done
+
+for file in ./programs/return_value_4/*; do
+    echo "----------------------TEST $file----------------------"
+    ./ifj18 < ${file} > temp_out
+    if [[ ${travis_build} -eq 1 ]]; then
+        docker run -ti -v $PWD:/test ubuntu:16.04 bash -c "cd /test/; ./ic18int temp_out"
+    else
+        ./ic18int temp_out > interpret_out
+    fi
+
+    if [[ $? -eq 4 ]]; then
         echo "TEST PASSED"
     else
 
