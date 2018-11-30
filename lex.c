@@ -80,11 +80,22 @@ int checkKeywords(char *tmp) {
 
 }
 
-int getToken(string *value, int *line) {
+int prev_token = -1;
+int getToken(string *value, int *line){
+    //todo dat prec
+    if(prev_token != -1){
+        int temp = prev_token;
+        prev_token = -1;
+        return  temp;
+    }
+    return getTokenFromInput(value, line);
+}
+
+int getTokenFromInput(string *value, int *line) {
     static int lineCount = 0;
     int s, state = START;
-    int res=0;
-    int resTmp[4] = {0,0,0,'\0'};
+    int res = 0;
+    int resTmp[4] = {0, 0, 0, '\0'};
     strClear(value);
     while (1) {
 
@@ -200,199 +211,167 @@ int getToken(string *value, int *line) {
                 break;
             case STRING:
 
-                    if(s == '#'){
-                        strAddChar(value,'\\');
-                        strAddChar(value,'0');
-                        strAddChar(value,'3');
-                        strAddChar(value,'5');
-                    }
-                    else if(s == '\\'){
-                        s = fgetc(stdin);
-                        if(s == '"'){
-                            strAddChar(value,'\\');
-                            strAddChar(value,'0');
-                            strAddChar(value,'3');
-                            strAddChar(value,'4');
-                        }
-                        else if(s == 'n'){
-                            strAddChar(value,'\\');
-                            strAddChar(value,'0');
-                            strAddChar(value,'1');
-                            strAddChar(value,'0');
-                        }
-                        else if(s == 't'){
-                            strAddChar(value,'\\');
-                            strAddChar(value,'0');
-                            strAddChar(value,'0');
-                            strAddChar(value,'9');
-                        }
-                        else if(s == 's'){
-                            strAddChar(value,'\\');
-                            strAddChar(value,'0');
-                            strAddChar(value,'3');
-                            strAddChar(value,'2');
-                        }
-                        else if(s == '\\'){
-                            strAddChar(value,'\\');
-                            strAddChar(value,'0');
-                            strAddChar(value,'9');
-                            strAddChar(value,'2');
-
-                        }
-                        else if(s== 'x'){
-                            s = fgetc(stdin);
-                            if(isupper(s)){
-                                res = ((s-'A')+10);
-                           
-                            }
-                            else if(islower(s)){
-                                res = ((s-'a')+10);
-                                
-                            }
-                            else if(isdigit(s)) {
-                                res = s-'0';
-                                
-                            }
-                            else if(!isalpha(s)) return ERR_LEXICAL;
-                            
-                            s = fgetc(stdin);
-
-                            if(isupper(s)){
-                                res = res*16 + ((s-'A')+10);
-                                
-                            }
-                            else if(islower(s)){
-                                res = res*16 +((s-'a')+10);
-                                
-                            }
-                            else if(isdigit(s)){
-                                res = res*16 + (s-'0');
-                            }
-                            else ungetc(s,stdin);
-                            
-                            strAddChar(value,'\\');
-                            resTmp[0] = res%10 + '0';
-                            res/=10;
-                            resTmp[1] = res%10 + '0';
-                            res/=10;
-                            resTmp[2] = res%10 + '0';
-                            strAddChar(value,resTmp[2]);
-                            strAddChar(value,resTmp[1]);
-                            strAddChar(value,resTmp[0]);
-
-                        }
-                        else {
-                            ungetc(s,stdin);
-                        }
-                    }
-                    else if(s ==' '){
-                        strAddChar(value,'\\');
-                        strAddChar(value,'0');
-                        strAddChar(value,'3');
-                        strAddChar(value,'2');
-                    }
-                    else if (s == '"') {
-                        state = START;
-                        return STRING;
-                    }
-                    else strAddChar(value,s);
-                while (1) {
-                    
+                if (s == '#') {
+                    strAddChar(value, '\\');
+                    strAddChar(value, '0');
+                    strAddChar(value, '3');
+                    strAddChar(value, '5');
+                } else if (s == '\\') {
                     s = fgetc(stdin);
-                    if(s == '#'){
-                        strAddChar(value,'\\');
-                        strAddChar(value,'0');
-                        strAddChar(value,'3');
-                        strAddChar(value,'5');
-                    }
-                    else if(s == '\\'){
+                    if (s == '"') {
+                        strAddChar(value, '\\');
+                        strAddChar(value, '0');
+                        strAddChar(value, '3');
+                        strAddChar(value, '4');
+                    } else if (s == 'n') {
+                        strAddChar(value, '\\');
+                        strAddChar(value, '0');
+                        strAddChar(value, '1');
+                        strAddChar(value, '0');
+                    } else if (s == 't') {
+                        strAddChar(value, '\\');
+                        strAddChar(value, '0');
+                        strAddChar(value, '0');
+                        strAddChar(value, '9');
+                    } else if (s == 's') {
+                        strAddChar(value, '\\');
+                        strAddChar(value, '0');
+                        strAddChar(value, '3');
+                        strAddChar(value, '2');
+                    } else if (s == '\\') {
+                        strAddChar(value, '\\');
+                        strAddChar(value, '0');
+                        strAddChar(value, '9');
+                        strAddChar(value, '2');
+
+                    } else if (s == 'x') {
                         s = fgetc(stdin);
-                        if(s == '"'){
-                            strAddChar(value,'\\');
-                            strAddChar(value,'0');
-                            strAddChar(value,'3');
-                            strAddChar(value,'4');
-                        }
-                        else if(s == 'n'){
-                            strAddChar(value,'\\');
-                            strAddChar(value,'0');
-                            strAddChar(value,'1');
-                            strAddChar(value,'0');
-                        }
-                        else if(s == 't'){
-                            strAddChar(value,'\\');
-                            strAddChar(value,'0');
-                            strAddChar(value,'0');
-                            strAddChar(value,'9');
-                        }
-                        else if(s == 's'){
-                            strAddChar(value,'\\');
-                            strAddChar(value,'0');
-                            strAddChar(value,'3');
-                            strAddChar(value,'2');
-                        }
-                        else if(s == '\\'){
-                            strAddChar(value,'\\');
-                            strAddChar(value,'0');
-                            strAddChar(value,'9');
-                            strAddChar(value,'2');
-                        }
-                        else if(s== 'x'){
+                        if (isupper(s)) {
+                            res = ((s - 'A') + 10);
+
+                        } else if (islower(s)) {
+                            res = ((s - 'a') + 10);
+
+                        } else if (isdigit(s)) {
+                            res = s - '0';
+
+                        } else if (!isalpha(s)) return ERR_LEXICAL;
+
+                        s = fgetc(stdin);
+
+                        if (isupper(s)) {
+                            res = res * 16 + ((s - 'A') + 10);
+
+                        } else if (islower(s)) {
+                            res = res * 16 + ((s - 'a') + 10);
+
+                        } else if (isdigit(s)) {
+                            res = res * 16 + (s - '0');
+                        } else ungetc(s, stdin);
+
+                        strAddChar(value, '\\');
+                        resTmp[0] = res % 10 + '0';
+                        res /= 10;
+                        resTmp[1] = res % 10 + '0';
+                        res /= 10;
+                        resTmp[2] = res % 10 + '0';
+                        strAddChar(value, resTmp[2]);
+                        strAddChar(value, resTmp[1]);
+                        strAddChar(value, resTmp[0]);
+
+                    } else {
+                        ungetc(s, stdin);
+                    }
+                } else if (s == ' ') {
+                    strAddChar(value, '\\');
+                    strAddChar(value, '0');
+                    strAddChar(value, '3');
+                    strAddChar(value, '2');
+                } else if (s == '"') {
+                    state = START;
+                    return STRING;
+                } else strAddChar(value, s);
+                while (1) {
+
+                    s = fgetc(stdin);
+                    if (s == '#') {
+                        strAddChar(value, '\\');
+                        strAddChar(value, '0');
+                        strAddChar(value, '3');
+                        strAddChar(value, '5');
+                    } else if (s == '\\') {
+                        s = fgetc(stdin);
+                        if (s == '"') {
+                            strAddChar(value, '\\');
+                            strAddChar(value, '0');
+                            strAddChar(value, '3');
+                            strAddChar(value, '4');
+                        } else if (s == 'n') {
+                            strAddChar(value, '\\');
+                            strAddChar(value, '0');
+                            strAddChar(value, '1');
+                            strAddChar(value, '0');
+                        } else if (s == 't') {
+                            strAddChar(value, '\\');
+                            strAddChar(value, '0');
+                            strAddChar(value, '0');
+                            strAddChar(value, '9');
+                        } else if (s == 's') {
+                            strAddChar(value, '\\');
+                            strAddChar(value, '0');
+                            strAddChar(value, '3');
+                            strAddChar(value, '2');
+                        } else if (s == '\\') {
+                            strAddChar(value, '\\');
+                            strAddChar(value, '0');
+                            strAddChar(value, '9');
+                            strAddChar(value, '2');
+                        } else if (s == 'x') {
                             s = fgetc(stdin);
-                            if(isupper(s)){
-                                res = ((s-'A')+10);
-                                
-                            }
-                            else if(islower(s)){
-                                res = ((s-'a')+10);
-                                
-                            }
-                            else if(isdigit(s)) {
-                                res = s-'0';
-                                
-                            }
-                            else if(!isalpha(s)) return ERR_LEXICAL;
-                           
+                            if (isupper(s)) {
+                                res = ((s - 'A') + 10);
+
+                            } else if (islower(s)) {
+                                res = ((s - 'a') + 10);
+
+                            } else if (isdigit(s)) {
+                                res = s - '0';
+
+                            } else if (!isalpha(s)) return ERR_LEXICAL;
+
                             s = fgetc(stdin);
 
-                            if(isupper(s)){
-                                res = res*16 + ((s-'A')+10);
-                               
-                            }
-                            else if(islower(s)){
-                                res = res*16 +((s-'a')+10);
-                                
-                            }
-                            else if(isdigit(s)){
-                                res = res*16 + (s-'0');
-                            }
-                            else ungetc(s,stdin);
-                            
-                            strAddChar(value,'\\');
-                            resTmp[0] = res%10 + '0';
-                            res/=10;
-                            resTmp[1] = res%10 + '0';
-                            res/=10;
-                            resTmp[2] = res%10 + '0';
-                            strAddChar(value,resTmp[2]);
-                            strAddChar(value,resTmp[1]);
-                            strAddChar(value,resTmp[0]);
+                            if (isupper(s)) {
+                                res = res * 16 + ((s - 'A') + 10);
 
+                            } else if (islower(s)) {
+                                res = res * 16 + ((s - 'a') + 10);
+
+                            } else if (isdigit(s)) {
+                                res = res * 16 + (s - '0');
+                            } else ungetc(s, stdin);
+
+                            strAddChar(value, '\\');
+                            resTmp[0] = res % 10 + '0';
+                            res /= 10;
+                            resTmp[1] = res % 10 + '0';
+                            res /= 10;
+                            resTmp[2] = res % 10 + '0';
+                            strAddChar(value, resTmp[2]);
+                            strAddChar(value, resTmp[1]);
+                            strAddChar(value, resTmp[0]);
+
+                        } else {
+                            ungetc(s, stdin);
                         }
-                        else {
-                            ungetc(s,stdin);
-                        }
-                    }
-                    else if(s ==' '){
-                        strAddChar(value,'\\');
-                        strAddChar(value,'0');
-                        strAddChar(value,'3');
-                        strAddChar(value,'2');
-                    }
-                    else if (s == '"') {
+                    } else if (s == ' ') {
+                        strAddChar(value, '\\');
+                        strAddChar(value, '0');
+                        strAddChar(value, '3');
+                        strAddChar(value, '2');
+                    } else if (s == '"') {
                         return STRING;
-                    }
-                    else {
+                    } else {
                         strAddChar(value, s);
                     }
                     //printf("value: %s\n",value->str);
@@ -410,23 +389,22 @@ int getToken(string *value, int *line) {
                     if (s == '?' || s == '!') {
                         strAddChar(value, s);
                         s = fgetc(stdin);
-                        if(isalpha(s)){
-                            while(isalpha(s)){
+                        if (isalpha(s)) {
+                            while (isalpha(s)) {
                                 strAddChar(value, s);
                                 s = fgetc(stdin);
                             }
                             return ERR_LEXICAL;
-                        }
-                        else{
+                        } else {
                             ungetc(s, stdin);
                         }
                     } else {
                         ungetc(s, stdin);
                     }
                     int a = checkKeywords(value->str);
-                    
+
                     if (a == -1) {
-                        if(value->str[value->length - 1] == '?' ||value->str[value->length - 1] == '!')
+                        if (value->str[value->length - 1] == '?' || value->str[value->length - 1] == '!')
                             return IDF;
                         return ID;
 
@@ -460,14 +438,13 @@ int getToken(string *value, int *line) {
             case NUM:
 
                 while (isdigit(s)) {
-                    
+
                     strAddChar(value, s);
                     s = fgetc(stdin);
-                    
 
 
                 }
-                
+
                 if (s == '.') {
                     strAddChar(value, s);
                     state = NUM_FLOAT;
@@ -525,7 +502,7 @@ int getToken(string *value, int *line) {
 //     int line = 0;
 //
 //     do {
-//         a = getToken(value, &line);
+//         a = getTokenFromInput(value, &line);
 //         printf("Value: %15s line: %5d type: %s\n", value->str, line, valuess[a]);
 ////         if (a == LEX_EOF) {
 ////             break;

@@ -5,11 +5,6 @@
 #include "expr_parser.h"
 #include "code_gen.h"
 
-#define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
-return ERR_LEXICAL;} while(0)
-
-#define ACCEPT(type) do{ if(token != type) return ERR_SYNTAX;\
-    GET_TOKEN();} while(0)
 int token;
 
 //temp
@@ -17,7 +12,7 @@ string *value;
 string *temp;
 int line;
 int err;
-
+extern int prev_token;
 char *values[] = {
         "KEYWORD_DEF",
         "KEYWORD_DO",
@@ -143,7 +138,7 @@ int fun_params(char *fun_id) {
             err = semantic_add_fun_param(fun_id, value->str);
             if (err != 0) return err;
             params_count++;
-                GEN_INSTR("DEFVAR LF@%s", value->str);
+            GEN_INSTR("DEFVAR LF@%s", value->str);
 
 
             GEN_INSTR("MOVE LF@%s LF@%%%d", value->str, params_count);
@@ -186,9 +181,7 @@ int fun_declr() {
 
     ACCEPT(KEYWORD_END);
 
-    //todo condition
-    if (token != LEX_EOL && token != LEX_EOF) return ERR_SYNTAX;
-    GET_TOKEN();
+    ACCEPT(LEX_EOL);
 
     if (gen_fun_footer(previous_token_value) == ERR_INTERNAL) return ERR_INTERNAL;
 
@@ -362,6 +355,7 @@ int stat_list(char *fun_id) {
             }
             strcpy(previous_token_value, value->str);
 
+
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
@@ -382,9 +376,19 @@ int stat_list(char *fun_id) {
 
                 return stat_list(fun_id);
             }
+            //nepekny ohack
+            if(token != LEX_EOL){
+                prev_token = token;
+                token = ID;
+                strcpy(value->str, previous_token_value);
+                if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+                GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+            }
 
             if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION)
                 return ERR_SEMANTIC_DEFINITION;
+
+
             ACCEPT(LEX_EOL);
             return stat_list(fun_id);
 

@@ -9,11 +9,6 @@
 #define MATH 0
 #define BOOL 1
 
-#define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
-return ERR_LEXICAL;} while(0)
-
-#define ACCEPT(type) do{ if(token != (type)) return ERR_SYNTAX;\
-    GET_TOKEN();} while(0)
 
 extern int token;
 

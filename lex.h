@@ -70,7 +70,7 @@ int checkKeywords(char *tmp);
 
 int addCharToArray(char c, char **str);
 
-int getToken(string *value, int *line);
+int getTokenFromInput(string *value, int *line);
 
 
 #endif //IFJ_LEX_H
