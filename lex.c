@@ -416,7 +416,6 @@ int getTokenFromInput(string *value, int *line) {
             case BLOCK_COMMENT:
 
                 while (1) {
-                    s = fgetc(stdin);
                     if (s == '\n') {
                         s = fgetc(stdin);
                         if (s == '=') {
@@ -427,12 +426,18 @@ int getTokenFromInput(string *value, int *line) {
                                     s = fgetc(stdin);
                                     if (s == 'd') {
                                         state = START;
-                                        break;
+                                        while ((s = fgetc(stdin) != '\n')){
+                                            if(s == EOF)
+                                                return LEX_EOF;
+                                        }
+                                        return LEX_EOL;
                                     }
                                 }
                             }
                         }
                     }
+                    s = fgetc(stdin);
+
                 }
                 break;
             case NUM:
