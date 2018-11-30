@@ -145,13 +145,16 @@ int fun_params(char *fun_id) {
 
             GET_TOKEN();
 
+            if (token == ROUNDR) {
+                return fun_params(fun_id);
+            }
             if (token == COMMA) {
                 GET_TOKEN();
                 if (token == ID)
                     return fun_params(fun_id);
                 return ERR_SYNTAX;
             }
-            return fun_params(fun_id);
+            return ERR_SYNTAX;
 
         case ERR_LEXICAL:
             return ERR_LEXICAL;
@@ -377,7 +380,7 @@ int stat_list(char *fun_id) {
                 return stat_list(fun_id);
             }
             //nepekny ohack
-            if(token != LEX_EOL){
+            if (token != LEX_EOL) {
                 prev_token = token;
                 token = ID;
                 strcpy(value->str, previous_token_value);
