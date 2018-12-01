@@ -16,7 +16,7 @@ echo ""
 
 for file in ./programs/return_value_2/*; do
     echo "----------------------TEST $file----------------------"
-    ./ifj18 < ${file}
+    ./ifj18 < ${file} > temp_out
     if [ $? -eq 2 ]; then
         echo "TEST PASSED"
     else
@@ -28,7 +28,7 @@ done
 
 for file in ./programs/return_value_3/*; do
     echo "----------------------TEST $file----------------------"
-    ./ifj18 < ${file}
+    ./ifj18 < ${file} > temp_out
     if [ $? -eq 3 ]; then
         echo "TEST PASSED"
     else
@@ -58,7 +58,7 @@ done
 
 for file in ./programs/return_value_5/*; do
     echo "----------------------TEST $file----------------------"
-    ./ifj18 < ${file}
+    ./ifj18 < ${file} > temp_out
     if [ $? -eq 5 ]; then
         echo "TEST PASSED"
     else
@@ -68,9 +68,22 @@ for file in ./programs/return_value_5/*; do
     fi
 done
 
+# TODO ked to mato spravi
+#for file in ./programs/return_value_1/*; do
+#    echo "----------------------TEST $file----------------------"
+#    ./ifj18 < ${file} > temp_out
+#    if [ $? -eq 1 ]; then
+#        echo "TEST PASSED"
+#    else
+#
+#        echo "TEST FAILED"
+#        let tests_failed+=1
+#    fi
+#done
+
 for file in ./programs/valid_programs/*; do
     echo "----------------------TEST $file----------------------"
-    ./ifj18 < ${file}
+    ./ifj18 < ${file} > temp_out
     if [ $? -eq 0 ]; then
         echo "TEST PASSED"
     else
@@ -90,7 +103,7 @@ for file in ./programs/gen_tests_programs/in/*; do
     fi
 
     filename=${file##*/}
-    diff interpret_out ./programs/gen_tests_programs/out/"${filename%.*}.ifj"
+    diff interpret_out ./programs/gen_tests_programs/out/"${filename%.*}.ifj" > temp_out
     if [ $? -eq 0 ]; then
         echo "TEST PASSED"
     else

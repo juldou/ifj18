@@ -142,7 +142,8 @@ bool function_parameter_exists(st_elem *elem, char *param) {
 int semantic_add_fun_param(char *fun_id, char *param) {
     st_elem *elem = st_search(&st_global, fun_id);
 
-    if (function_parameter_exists(elem, param)) return ERR_SEMANTIC_OTHER;
+    if (function_parameter_exists(elem, param)) return ERR_SEMANTIC_DEFINITION;
+    if (semantic_token_is_function(param)) return ERR_SEMANTIC_DEFINITION;
 
     elem->data->params = (char **) realloc(elem->data->params, sizeof(*(elem->data->params)) * (elem->data->params_count + 1));
     if (elem->data->params == NULL) return ERR_INTERNAL;
