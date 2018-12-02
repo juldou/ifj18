@@ -220,11 +220,15 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
             if (token == NUM_INT) {
                 GEN_INSTR("MOVE TF@%%%d int@%s", params_count, value->str);
             } else if (token == NUM_FLOAT || token == NUM_EXP) {
-                GEN_INSTR("MOVE TF@%%%d float@%s", params_count, value->str);
+                char *endptr;
+                double tmp = strtod(value->str, &endptr);
+                GEN_INSTR("MOVE TF@%%%d float@%a", params_count, tmp);
             } else if (token == STRING) {
                 GEN_INSTR("MOVE TF@%%%d string@%s", params_count, value->str);
             } else if (token == ID) {
                 GEN_INSTR("MOVE TF@%%%d LF@%s", params_count, value->str);
+            }else if (token == KEYWORD_NIL) {
+                GEN_INSTR("MOVE TF@%%%d nil@nil", params_count);
             }
 
 //            if (strcmp("print", fun_id) == 0) GEN_INSTR("WRITE TF@%%%d", params_count); // TODO: REMOVE
@@ -282,7 +286,6 @@ int fun_call(char *fun_id, char *called_from_fun) {
 int stat_list(char *fun_id) {
     static int cnt = 0;
     char previous_token_value[value->length + 1];
-    char prev_value[value->length + 1];
     strcpy(previous_token_value, value->str);
     switch (token) {
         case KEYWORD_IF:
