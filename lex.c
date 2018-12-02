@@ -32,12 +32,12 @@ int checkKeywords(char *tmp) {
 }
 
 int prev_token = -1;
-int getToken(string *value, int *line){
-    //todo dat prec
-    if(prev_token != -1){
+
+int getToken(string *value, int *line) {
+    if (prev_token != -1) {
         int temp = prev_token;
         prev_token = -1;
-        return  temp;
+        return temp;
     }
     return getTokenFromInput(value, line);
 }
@@ -376,14 +376,12 @@ int getTokenFromInput(string *value, int *line) {
                                 if (s == 'n') {
                                     s = fgetc(stdin);
                                     if (s == 'd') {
-
                                         state = START;
-                                        break;
-//                                        while ((s = fgetc(stdin) != '\n')){
-//                                            if(s == EOF)
-//                                                return LEX_EOF;
-//                                        }
-//                                        return LEX_EOL;
+                                        while ((s = fgetc(stdin) != '\n')) {
+                                            if (s == EOF)
+                                                return LEX_EOF;
+                                        }
+                                        return LEX_EOL;
                                     }
                                 }
                             }

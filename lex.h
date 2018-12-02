@@ -65,6 +65,7 @@ typedef enum {
 
 } Types;
 
+int getToken(string *value, int *line);
 
 int checkKeywords(char *tmp);
 
