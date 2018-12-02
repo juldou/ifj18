@@ -5,55 +5,6 @@
 #include "lex.h"
 #include "error.h"
 
-char *valuess[] = {
-        "KEYWORD_DEF",
-        "KEYWORD_DO",
-        "KEYWORD_ELSE",
-        "KEYWORD_END",
-        "KEYWORD_IF",
-        "KEYWORD_NOT",
-        "KEYWORD_NIL",
-        "KEYWORD_THEN",
-        "KEYWORD_WHILE",
-        "ID",
-        "IDF",
-        "NUM_INT",
-        "NUM_FLOAT",
-        "NUM_EXP",
-        "STRING",
-        "LEX_EOL",
-        "COMMA",
-        "ROUNDL",
-        "ROUNDR",
-        "ASSIGN",
-        "PLUS",
-        "MINUS",
-        "MUL",
-        "DIV",
-        "LESS",
-        "MORE",
-        "LESS_EQUAL",
-        "MORE_EQUAL",
-        "EQUAL",
-        "NOT_EQUAL",
-
-        "START",
-        "LEX_EOF",
-        "NUM",
-        "COMMENT",
-        "BLOCK_COMMENT",
-        "IDENTIF",
-        "INPUTS",
-        "INPUTF",
-        "INPUTI",
-        "PRINT",
-        "ORD",
-        "CHR",
-        "SUBSTR",
-        "LENGTH",
-        "MAXTOKEN"
-
-};
 
 int checkKeywords(char *tmp) {
 
@@ -164,11 +115,9 @@ int getTokenFromInput(string *value, int *line) {
                         case ',':
                             return COMMA;
                         case '"':
-                            //printf("string\n");
                             state = STRING;
                             break;
                         case '#':
-                            //printf("line comment\n");
                             s = fgetc(stdin);
                             while (s != '\n') {
                                 if (s == EOF)
@@ -184,11 +133,13 @@ int getTokenFromInput(string *value, int *line) {
                                 while (!isspace(s)) {
                                     strAddChar(value, s);
                                     if (strcmp(value->str, "begin") == 0) {
-                                        //printf("block comment\n");
                                         state = BLOCK_COMMENT;
                                         break;
                                     }
                                     s = fgetc(stdin);
+                                }
+                                if(strcmp(value->str, "begin") != 0){
+                                    return ERR_LEXICAL;
                                 }
                             } else {
                                 ungetc(s, stdin);
@@ -425,12 +376,14 @@ int getTokenFromInput(string *value, int *line) {
                                 if (s == 'n') {
                                     s = fgetc(stdin);
                                     if (s == 'd') {
+
                                         state = START;
-                                        while ((s = fgetc(stdin) != '\n')){
-                                            if(s == EOF)
-                                                return LEX_EOF;
-                                        }
-                                        return LEX_EOL;
+                                        break;
+//                                        while ((s = fgetc(stdin) != '\n')){
+//                                            if(s == EOF)
+//                                                return LEX_EOF;
+//                                        }
+//                                        return LEX_EOL;
                                     }
                                 }
                             }
@@ -446,10 +399,7 @@ int getTokenFromInput(string *value, int *line) {
 
                     strAddChar(value, s);
                     s = fgetc(stdin);
-
-
                 }
-
                 if (s == '.') {
                     strAddChar(value, s);
                     state = NUM_FLOAT;
@@ -465,7 +415,9 @@ int getTokenFromInput(string *value, int *line) {
 
 
             case NUM_FLOAT:
-
+                if(!isdigit(s)){
+                    return ERR_LEXICAL;
+                }
                 while (isdigit(s)) {
                     strAddChar(value, s);
                     s = fgetc(stdin);
@@ -508,7 +460,7 @@ int getTokenFromInput(string *value, int *line) {
 //
 //     do {
 //         a = getTokenFromInput(value, &line);
-//         printf("Value: %15s line: %5d type: %s\n", value->str, line, valuess[a]);
+//         printf("Value: %15s line: %5d type: %d\n", value->str, line, a);
 ////         if (a == LEX_EOF) {
 ////             break;
 ////         }
@@ -516,4 +468,3 @@ int getTokenFromInput(string *value, int *line) {
 //     } while (a != LEX_EOF);
 //     return 0;
 // }
-
