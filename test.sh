@@ -8,38 +8,42 @@ fi
 
 make clean && make
 
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
 tests_failed=0
 #TODO matov dojebany scanner (escape sequence) sample3.rb
 
-echo "------------------STARTING TESTS----------------------"
+echo -e "${NC}------------------STARTING TESTS----------------------"
 echo ""
 
 for file in ./programs/return_value_2/*; do
-    echo "----------------------TEST $file----------------------"
+    echo -e "${NC}----------------------TEST $file----------------------"
     ./ifj18 < ${file} > temp_out
     if [ $? -eq 2 ]; then
-        echo "TEST PASSED"
+        echo -e "${GREEN} TEST PASSED"
     else
 
-        echo "TEST FAILED"
+        echo -e "${RED} TEST FAILED"
         let tests_failed+=1
     fi
 done
 
 for file in ./programs/return_value_3/*; do
-    echo "----------------------TEST $file----------------------"
+    echo -e "${NC}----------------------TEST $file----------------------"
     ./ifj18 < ${file} > temp_out
     if [ $? -eq 3 ]; then
-        echo "TEST PASSED"
+        echo -e "${GREEN} TEST PASSED"
     else
 
-        echo "TEST FAILED"
+        echo -e "${RED} TEST FAILED"
         let tests_failed+=1
     fi
 done
 
 for file in ./programs/return_value_4/*; do
-    echo "----------------------TEST $file----------------------"
+    echo -e "${NC}----------------------TEST $file----------------------"
     ./ifj18 < ${file} > temp_out
     if [[ ${travis_build} -eq 1 ]]; then
         docker run -ti -v $PWD:/test ubuntu:16.04 bash -c "cd /test/; ./ic18int temp_out"
@@ -48,53 +52,53 @@ for file in ./programs/return_value_4/*; do
     fi
 
     if [[ $? -eq 4 ]]; then
-        echo "TEST PASSED"
+        echo -e "${GREEN} TEST PASSED"
     else
 
-        echo "TEST FAILED"
+        echo -e "${RED} TEST FAILED"
         let tests_failed+=1
     fi
 done
 
 for file in ./programs/return_value_5/*; do
-    echo "----------------------TEST $file----------------------"
+    echo -e "${NC}----------------------TEST $file----------------------"
     ./ifj18 < ${file} > temp_out
     if [ $? -eq 5 ]; then
-        echo "TEST PASSED"
+        echo -e "${GREEN} TEST PASSED"
     else
 
-        echo "TEST FAILED"
+        echo -e "${RED} TEST FAILED"
         let tests_failed+=1
     fi
 done
 
 # TODO ked to mato spravi
-#for file in ./programs/return_value_1/*; do
-#    echo "----------------------TEST $file----------------------"
-#    ./ifj18 < ${file} > temp_out
-#    if [ $? -eq 1 ]; then
-#        echo "TEST PASSED"
-#    else
-#
-#        echo "TEST FAILED"
-#        let tests_failed+=1
-#    fi
-#done
-
-for file in ./programs/valid_programs/*; do
-    echo "----------------------TEST $file----------------------"
+for file in ./programs/return_value_1/*; do
+    echo -e "${NC}----------------------TEST $file----------------------"
     ./ifj18 < ${file} > temp_out
-    if [ $? -eq 0 ]; then
-        echo "TEST PASSED"
+    if [ $? -eq 1 ]; then
+        echo -e "${GREEN} TEST PASSED"
     else
 
-        echo "TEST FAILED"
+        echo -e "${RED} TEST FAILED"
+        let tests_failed+=1
+    fi
+done
+
+for file in ./programs/valid_programs/*; do
+    echo -e "${NC}----------------------TEST $file----------------------"
+    ./ifj18 < ${file} > temp_out
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN} TEST PASSED"
+    else
+
+        echo -e "${RED} TEST FAILED"
         let tests_failed+=1
     fi
 done
 
 for file in ./programs/gen_tests_programs/in/*; do
-    echo "----------------------TEST GEN PROGRAMS $file----------------------"
+    echo -e "${NC}----------------------TEST GEN PROGRAMS $file----------------------"
     ./ifj18 < ${file} > temp_out
     if [ $travis_build -eq 1 ]; then
         docker run -ti -v $PWD:/test ubuntu:16.04 bash -c "cd /test/; ./ic18int temp_out" > interpret_out
@@ -105,25 +109,25 @@ for file in ./programs/gen_tests_programs/in/*; do
     filename=${file##*/}
     diff interpret_out ./programs/gen_tests_programs/out/"${filename%.*}.ifj" > temp_out
     if [ $? -eq 0 ]; then
-        echo "TEST PASSED"
+        echo -e "${GREEN} TEST PASSED"
     else
 
-        echo "TEST FAILED"
+        echo -e "${RED} TEST FAILED"
         let tests_failed+=1
     fi
 done
 
 echo ""
-echo "--------------------SUMMARY-----------------------"
+echo -e "${NC}--------------------SUMMARY-----------------------"
 echo ""
 if [ $tests_failed -gt 0 ]; then
-    echo "                 TESTS FAILED: "$tests_failed""
+    echo -e "${RED}                 TESTS FAILED: "$tests_failed""
     echo ""
-    echo "--------------------------------------------------"
+    echo -e "${NC}--------------------------------------------------"
     exit 1
 else
-    echo "                  TESTS PASSED                    "
+    echo -e "${GREEN}                 TESTS PASSED                    "
     echo ""
-    echo "--------------------------------------------------"
+    echo -e "${NC}--------------------------------------------------"
     exit 0
 fi
