@@ -390,7 +390,8 @@ int stat_list(char *fun_id) {
                 token = ID;
                 strcpy(value->str, previous_token_value);
                 if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-                else GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+                else
+                    GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
             }
 
             if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION)

@@ -1,6 +1,7 @@
 #Author: Ján Vavro
 #Login: xvavro05
 
+.PHONY: test
 OBJECTS := $(patsubst %.c,%.o,$(wildcard *.c)) 
 CC=gcc
 NAME=ifj18

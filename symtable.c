@@ -32,7 +32,7 @@ st_elem *st_search(st *st_ptr, t_key key) {
     return NULL;
 }
 
-int st_insert(st *st_ptr, t_key key, st_elem_types elem_type,elem_data *data) {
+int st_insert(st *st_ptr, t_key key, st_elem_types elem_type, elem_data *data) {
     if (st_ptr == NULL || key == NULL) {
         return ERR_INTERNAL;
     }
@@ -98,7 +98,7 @@ void st_delete(st *st_ptr, t_key key) {
 
 void st_clear_elem_data(st_elem *elem) {
     free(elem->data->id);
-    if (elem->elem_type == FUNCTION  && !elem->data->is_builtin) {
+    if (elem->elem_type == FUNCTION && !elem->data->is_builtin) {
         for (size_t j = 0; j < elem->data->params_count; j++) {
             free(elem->data->params[j]);
         }
