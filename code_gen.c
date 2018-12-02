@@ -52,7 +52,7 @@ int gen_main() {
 }
 
 void code_generate() {
-    printList (&instr);
+    printList(&instr);
 }
 
 int gen_instr(char *string, ...) {
@@ -73,19 +73,19 @@ int gen_instr(char *string, ...) {
     return 0;
 }
 
-int find_instr(char* string, ...){
+int find_instr(char *string, ...) {
     va_list vaList;
     va_start(vaList, string);
-    char instruction[1024];
+    char instruction[INSTR_LENGTH];
     vsprintf(instruction, string, vaList);
     va_end(vaList);
-    if(!find(&instr, instruction))
+    if (!find(&instr, instruction))
         // not found
         return ERR_INTERNAL;
     return 0;
 }
 
-int insert_instr_after(char *string, ...){
+int insert_instr_after(char *string, ...) {
     va_list vaList;
     va_start(vaList, string);
     char *instruction;
@@ -105,7 +105,7 @@ int gen_fun_header(char *label) {
     return 0;
 }
 
-int gen_fun_footer(char* label) {
+int gen_fun_footer(char *label) {
     GEN_INSTR("%s", "POPFRAME");
     GEN_INSTR("%s", "RETURN");
     GEN_INSTR("LABEL &&%s", label);
@@ -113,7 +113,8 @@ int gen_fun_footer(char* label) {
 }
 
 int gen_builtin_fun(char *fun_id, unsigned params_count) {
-    if (is_print_fun(fun_id)) return gen_print(fun_id, params_count); // print is little bit complicated so different gen.
+    if (is_print_fun(fun_id))
+        return gen_print(fun_id, params_count); // print is little bit complicated so different gen.
 
     if (is_fun_defined(fun_id)) return 0;
     set_fun_defined(fun_id);
@@ -165,8 +166,8 @@ unsigned num_digits(const unsigned n) {
     return 1 + num_digits(n / 10);
 }
 
-int gen_print(char *fun_id ,unsigned params_count) {
-    unsigned num_d = num_digits( params_count);
+int gen_print(char *fun_id, unsigned params_count) {
+    unsigned num_d = num_digits(params_count);
     unsigned fun_id_len = ((unsigned) strlen("print")) + num_d + 1;
     char fun_id_new[fun_id_len];
     snprintf(fun_id_new, fun_id_len, "%s%d", fun_id, (int) params_count);
@@ -223,7 +224,8 @@ int gen_semantic_type_check(char *fun_id, char *frame_var, char *desired_type) {
     GEN_INSTR("DEFVAR %s%s", frame_var, "$tmp");
     GEN_INSTR("TYPE %s%s %s", frame_var, "$type", frame_var);
     GEN_INSTR("MOVE %s%s %s", frame_var, "$tmp", frame_var);
-    GEN_INSTR("JUMPIFNEQ %s%s %s%s %s%s", "$SEMANTIC$CHECK$TYPE$FAIL$", fun_id, frame_var, "$type", "string@", desired_type);
+    GEN_INSTR("JUMPIFNEQ %s%s %s%s %s%s", "$SEMANTIC$CHECK$TYPE$FAIL$", fun_id, frame_var, "$type", "string@",
+              desired_type);
     return 0;
 }
 

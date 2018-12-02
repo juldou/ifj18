@@ -4,15 +4,13 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<stdarg.h>
-#include<string.h>
 #include "error.h"
 
-#define TRUE 1
-#define FALSE 0
+#define INSTR_LENGTH 1020
 
 typedef struct tElem {
     struct tElem *ptr;
-    char instruction[1020];
+    char instruction[INSTR_LENGTH];
 //    char *instruction;
 } *tElemPtr;
 
@@ -21,22 +19,18 @@ typedef struct {
     tElemPtr First;
 } tList;
 
-void InitList (tList *);
-void DisposeList (tList *);
-int Insert(tList *);
-int InsertFirst (tList *, char *);
+void InitList(tList *);
+
+void DisposeList(tList *);
+
 char *AppendToList(tList *);
-void First (tList *);
-int CopyFirst (tList *, char *);
-void DeleteFirst (tList *);
-void PostDelete (tList *);
-char* PostInsert (tList *);
-void Succ (tList *);
-int Copy (tList *, char *);
-void Actualize (tList *, char *);
-int  Active (tList *);
-int CreateInstr();
-void printList (tList *L);
-int find(tList *L, char* key);
+
+char *PostInsert(tList *);
+
+int Active(tList *);
+
+void printList(tList *L);
+
+int find(tList *L, char *key);
 
 #endif //IFJ_LIST_H

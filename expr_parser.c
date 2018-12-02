@@ -3,6 +3,7 @@
 #include "error.h"
 #include "semantic.h"
 #include "code_gen.h"
+#include "parser.h"
 
 #define SIZE 7
 #define SYNTAX_OK 101
@@ -132,7 +133,7 @@ void pop_rule(t_stack *stack, int count, int symbol) {
 
 
 int rules(t_stack *stack, string prev_value) {
-    static unsigned int var_number = 0, label_number = 0;
+    static unsigned int label_number = 0;
 
     if (check_rule(stack, 3, EXPR, PLUS, EXPR)) {
         GEN_INSTR("POPS GF@%%*%s", "op2");

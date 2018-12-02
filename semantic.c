@@ -31,7 +31,7 @@ int add_builtin_funcs_to_st() {
 }
 
 /* initialize var elem data */
-void init_var_elem_data(elem_data *data, st_elem *fun,bool defined) {
+void init_var_elem_data(elem_data *data, st_elem *fun, bool defined) {
     data->id = NULL;
     data->defined = defined;
     data->fun = fun;
@@ -101,7 +101,7 @@ int semantic_check_var_defined(char *fun_id, char *var_id) {
     st_elem *var = st_search(&st_local, var_key_in_ht);
 
     /* handle of case when var doesn't exist and we are not in any function decl */
-    if (var == NULL && ( strcmp(fun_id, "MAIN") == 0 )) return ERR_SEMANTIC_DEFINITION;
+    if (var == NULL && (strcmp(fun_id, "MAIN") == 0)) return ERR_SEMANTIC_DEFINITION;
 
     if (function_parameter_exists(fun, var_id)) return 0;
     if (var != NULL && var->data->fun == fun) return 0;
@@ -157,7 +157,8 @@ int semantic_add_fun_param(char *fun_id, char *param) {
     if (function_parameter_exists(elem, param)) return ERR_SEMANTIC_DEFINITION;
     if (semantic_token_is_function(param)) return ERR_SEMANTIC_DEFINITION;
 
-    elem->data->params = (char **) realloc(elem->data->params, sizeof(*(elem->data->params)) * (elem->data->params_count + 1));
+    elem->data->params = (char **) realloc(elem->data->params,
+                                           sizeof(*(elem->data->params)) * (elem->data->params_count + 1));
     if (elem->data->params == NULL) return ERR_INTERNAL;
 
     elem->data->params[elem->data->params_count] = (char *) malloc((strlen(param) + 1) * sizeof(char));
@@ -203,7 +204,7 @@ bool semantic_token_is_variable(char *var_id, char *fun_id) {
     st_elem *fun = st_search(&st_global, fun_id);
     st_elem *var = st_search(&st_local, var_key_in_ht);
 
-    if (var == NULL && ( strcmp(fun_id, "MAIN") == 0 )) return false;
+    if (var == NULL && (strcmp(fun_id, "MAIN") == 0)) return false;
     if (var == NULL && !function_parameter_exists(fun, var_id)) return false;
     if (var != NULL && var->data->fun != fun) return false;
     return true;
