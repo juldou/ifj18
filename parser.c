@@ -282,6 +282,7 @@ int fun_call(char *fun_id, char *called_from_fun) {
 int stat_list(char *fun_id) {
     static int cnt = 0;
     char previous_token_value[value->length + 1];
+    char prev_value[value->length + 1];
     strcpy(previous_token_value, value->str);
     switch (token) {
         case KEYWORD_IF:
@@ -351,14 +352,6 @@ int stat_list(char *fun_id) {
         case ID:
             strcpy(previous_token_value, value->str);
 
-            if (semantic_token_is_function(previous_token_value)) {
-                GET_TOKEN();
-                if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
-                return stat_list(fun_id);
-            }
-            strcpy(previous_token_value, value->str);
-
-
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
@@ -372,25 +365,33 @@ int stat_list(char *fun_id) {
 
                 }
 
-                if ((err = insert_var_to_st(previous_token_value, fun_id, true)) == ERR_INTERNAL) return err;
+                if ((err = insert_var_to_st(previous_token_value, fun_id, true)) != 0) return err;
 
                 if ((err = assign(fun_id)) != SYNTAX_OK) return err; // TODO : maybe not
                 GEN_INSTR("MOVE LF@%s GF@%s ", previous_token_value, "expr_res");
 
                 return stat_list(fun_id);
             }
-            //nepekny ohack
-            if (token != LEX_EOL) {
+
+            if (semantic_token_is_function(previous_token_value)) {
+                if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+                return stat_list(fun_id);
+            }
+
+            if (IS_VALID_PARAM || token == ROUNDL) {
+                insert_fun_to_st(previous_token_value, 0, false, false);
+                if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+                return stat_list(fun_id);
+            } else {  //nepekny ohack
                 prev_token = token;
                 token = ID;
                 strcpy(value->str, previous_token_value);
                 if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-                GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+                else GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
             }
 
             if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION)
                 return ERR_SEMANTIC_DEFINITION;
-
 
             ACCEPT(LEX_EOL);
             return stat_list(fun_id);
@@ -489,6 +490,7 @@ int parse() {
             printf("Unknown Error\n");
     }
 
+    if (err == SYNTAX_OK && !semantic_check_all_ids_defined()) return ERR_SEMANTIC_DEFINITION;
     code_generate();
 
     if (semantic_clean() == ERR_INTERNAL) return ERR_INTERNAL;

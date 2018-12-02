@@ -38,6 +38,7 @@ int st_insert(st *st_ptr, t_key key, st_elem_types elem_type,elem_data *data) {
     }
     st_elem *tmp = st_search(st_ptr, key);
     if (tmp) {
+        if (tmp->data != NULL) st_clear_elem_data(tmp);
         tmp->data = data;
     } else { // item with id doesnt exist
         tmp = malloc(sizeof(struct st_elem));

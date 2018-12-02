@@ -86,7 +86,7 @@ int getToken(string *value, int *line){
     if(prev_token != -1){
         int temp = prev_token;
         prev_token = -1;
-        return  temp;
+        return temp;
     }
     return getTokenFromInput(value, line);
 }
