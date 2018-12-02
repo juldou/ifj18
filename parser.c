@@ -220,11 +220,15 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
             if (token == NUM_INT) {
                 GEN_INSTR("MOVE TF@%%%d int@%s", params_count, value->str);
             } else if (token == NUM_FLOAT || token == NUM_EXP) {
-                GEN_INSTR("MOVE TF@%%%d float@%s", params_count, value->str);
+                char *endptr;
+                double tmp = strtod(value->str, &endptr);
+                GEN_INSTR("MOVE TF@%%%d float@%a", params_count, tmp);
             } else if (token == STRING) {
                 GEN_INSTR("MOVE TF@%%%d string@%s", params_count, value->str);
             } else if (token == ID) {
                 GEN_INSTR("MOVE TF@%%%d LF@%s", params_count, value->str);
+            }else if (token == KEYWORD_NIL) {
+                GEN_INSTR("MOVE TF@%%%d nil@nil", params_count);
             }
 
 //            if (strcmp("print", fun_id) == 0) GEN_INSTR("WRITE TF@%%%d", params_count); // TODO: REMOVE
@@ -463,32 +467,6 @@ int parse() {
     gen_header();
     GET_TOKEN();
     result = program();
-
-    switch (result) {
-        case SYNTAX_OK:
-            //  printf("*****SYNTAX OK*****\n");
-            break;
-        case ERR_SYNTAX:
-            printf("*****SYNTAX ERROR*****\n");
-            break;
-        case ERR_LEXICAL:
-            printf("*****LEX ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_DEFINITION:
-            printf("*****SEMANTIC DEFINITION ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_TYPE:
-            printf("*****SEMANTIC TYPE ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_PARAMETERS_COUNT:
-            printf("*****SEMANTIC PARAMETERS COUNT ERROR*****\n");
-            break;
-        case ERR_SEMANTIC_OTHER:
-            printf("*****SEMANTIC OTHER ERROR*****\n");
-            break;
-        default:
-            printf("Unknown Error\n");
-    }
 
     if (err == SYNTAX_OK && !semantic_check_all_ids_defined()) return ERR_SEMANTIC_DEFINITION;
     code_generate();

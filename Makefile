@@ -6,6 +6,7 @@ OBJECTS := $(patsubst %.c,%.o,$(wildcard *.c))
 CC=gcc
 NAME=ifj18
 CFLAGS=-std=c99 -Wall -pedantic -Wextra -g
+.PHONY: test
 
 all: $(NAME)
 
