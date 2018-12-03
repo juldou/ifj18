@@ -13,59 +13,10 @@ string *temp;
 int line;
 int err;
 extern int prev_token;
-char *values[] = {
-        "KEYWORD_DEF",
-        "KEYWORD_DO",
-        "KEYWORD_ELSE",
-        "KEYWORD_END",
-        "KEYWORD_IF",
-        "KEYWORD_NOT",
-        "KEYWORD_NIL",
-        "KEYWORD_THEN",
-        "KEYWORD_WHILE",
-        "ID",
-        "IDF",
-        "NUM_INT",
-        "NUM_FLOAT",
-        "NUM_EXP",
-        "STRING",
-        "LEX_EOL",
-        "COMMA",
-        "ROUNDL",
-        "ROUNDR",
-        "ASSIGN",
-        "PLUS",
-        "MINUS",
-        "MUL",
-        "DIV",
-        "LESS",
-        "MORE",
-        "LESS_EQUAL",
-        "MORE_EQUAL",
-        "EQUAL",
-        "NOT_EQUAL",
-
-        "START",
-        "LEX_EOF",
-        "NUM",
-        "COMMENT",
-        "BLOCK_COMMENT",
-        "IDENTIF",
-        "INPUTS",
-        "INPUTF",
-        "INPUTI",
-        "PRINT",
-        "ORD",
-        "CHR",
-        "SUBSTR",
-        "LENGTH",
-        "MAXTOKEN"
-
-};
 
 int assign(char *fun_id) {
     // pravidlo "ID" = <value>
-    char previous_token_value[value->length + 1];  // TODO: refactor descend
+    char previous_token_value[value->length + 1];
     strcpy(previous_token_value, value->str);
     strCopyString(temp, value);
     switch (token) {
@@ -165,7 +116,7 @@ int fun_params(char *fun_id) {
 
 
 int fun_declr() {
-    char previous_token_value[value->length + 1];  // TODO: refactor descend
+    char previous_token_value[value->length + 1];
     strcpy(previous_token_value, value->str);
     strCopyString(temp, value);
     if (token != ID && token != IDF)
@@ -230,8 +181,6 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
             }else if (token == KEYWORD_NIL) {
                 GEN_INSTR("MOVE TF@%%%d nil@nil", params_count);
             }
-
-//            if (strcmp("print", fun_id) == 0) GEN_INSTR("WRITE TF@%%%d", params_count); // TODO: REMOVE
 
             // check if param is defined
             GET_TOKEN();
@@ -416,7 +365,7 @@ int stat_list(char *fun_id) {
         case ORD:
         case CHR:
         case SUBSTR:
-            strcpy(previous_token_value, value->str); // TODO: refactor descend
+            strcpy(previous_token_value, value->str);
             GET_TOKEN();
             if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
             return stat_list(fun_id);
@@ -433,7 +382,6 @@ int program() {
             GET_TOKEN();
             if ((err = fun_declr()) != SYNTAX_OK) return err;
             return program();
-            //todo
 
         case LEX_EOF:
             return SYNTAX_OK;

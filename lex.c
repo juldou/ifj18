@@ -138,7 +138,7 @@ int getTokenFromInput(string *value, int *line) {
                                     }
                                     s = fgetc(stdin);
                                 }
-                                if(strcmp(value->str, "begin") != 0){
+                                if (strcmp(value->str, "begin") != 0) {
                                     return ERR_LEXICAL;
                                 }
                             } else {
@@ -376,10 +376,9 @@ int getTokenFromInput(string *value, int *line) {
                                 if (s == 'n') {
                                     s = fgetc(stdin);
                                     if (s == 'd') {
-                                        state = START;
                                         while ((s = fgetc(stdin) != '\n')) {
                                             if (s == EOF)
-                                                return LEX_EOF;
+                                                return ERR_LEXICAL;
                                         }
                                         return LEX_EOL;
                                     }
@@ -390,7 +389,6 @@ int getTokenFromInput(string *value, int *line) {
                     s = fgetc(stdin);
 
                 }
-                break;
             case NUM:
 
                 while (isdigit(s)) {
@@ -413,7 +411,7 @@ int getTokenFromInput(string *value, int *line) {
 
 
             case NUM_FLOAT:
-                if(!isdigit(s)){
+                if (!isdigit(s)) {
                     return ERR_LEXICAL;
                 }
                 while (isdigit(s)) {
@@ -441,6 +439,8 @@ int getTokenFromInput(string *value, int *line) {
                     strAddChar(value, s);
                     s = fgetc(stdin);
                 }
+                if(!isspace(s))
+                    return ERR_LEXICAL;
                 ungetc(s, stdin);
                 return NUM_EXP;
         }
