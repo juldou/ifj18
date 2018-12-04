@@ -8,7 +8,6 @@
 
 int checkKeywords(char *tmp) {
 
-    //char *keyWords[] = {"def", "do", "else", "end", "if", "not", "nil", "then", "while"};
     if (strcmp("def", tmp) == 0) return KEYWORD_DEF;
     else if (strcmp("do", tmp) == 0) return KEYWORD_DO;
     else if (strcmp("else", tmp) == 0) return KEYWORD_ELSE;
@@ -343,7 +342,6 @@ int getTokenFromInput(string *value, int *line) {
                     }
                     //printf("value: %s\n",value->str);
                 }
-                return STRING;
 
             case IDENTIF:
                 if (isalnum(s) || s == '_' || s == '?' || s == '!') {
@@ -462,7 +460,7 @@ int getTokenFromInput(string *value, int *line) {
                     strAddChar(value, s);
                     s = fgetc(stdin);
                 }
-                if (!isspace(s))
+                if (!isspace(s) && !isOperator(s))
                     return ERR_LEXICAL;
                 ungetc(s, stdin);
                 return NUM_EXP;
