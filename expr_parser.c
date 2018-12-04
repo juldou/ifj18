@@ -976,7 +976,26 @@ int expresion(int type, char *fun_id) {
 }
 
 int bool_expr(char *fun_id) {
-    return expresion(BOOL, fun_id);
+    static int num_for_gen = 0;
+    int result = expresion(BOOL, fun_id);
+    GEN_INSTR("TYPE GF@%s GF@%s", "optype1", "expr_res");
+    GEN_INSTR("JUMPIFEQ $*bool%d GF@%s string@bool", num_for_gen, "optype1");
+    GEN_INSTR("JUMPIFEQ $*nil%d GF@%s string@nil", num_for_gen, "optype1");
+
+    //Everything except nil is true
+    GEN_INSTR("MOVE GF@%s bool@true", "expr_res");
+    GEN_INSTR("JUMP %s%d", "$*bool", num_for_gen);
+
+    //nil is false
+    GEN_INSTR("LABEL %s%d", "$*nil", num_for_gen);
+    GEN_INSTR("MOVE GF@%s bool@false", "expr_res");
+    GEN_INSTR("JUMP %s%d", "$*bool", num_for_gen);
+
+
+    GEN_INSTR("LABEL %s%d", "$*bool", num_for_gen);
+    num_for_gen++;
+
+    return result;
 }
 
 int math_expr(char *fun_id) {
