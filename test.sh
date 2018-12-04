@@ -72,6 +72,18 @@ for file in ./programs/return_value_5/*; do
     fi
 done
 
+for file in ./programs/return_value_6/*; do
+    echo -e "${NC}----------------------TEST $file----------------------"
+    ./ifj18 < ${file} > temp_out
+    if [ $? -eq 6 ]; then
+        echo -e "${GREEN} TEST PASSED"
+    else
+
+        echo -e "${RED} TEST FAILED"
+        let tests_failed+=1
+    fi
+done
+
 # TODO ked to mato spravi
 #for file in ./programs/return_value_1/*; do
 #    echo -e "${NC}----------------------TEST $file----------------------"
