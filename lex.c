@@ -53,7 +53,9 @@ int getTokenFromInput(string *value, int *line) {
         s = fgetc(stdin);
         if (s == EOF) {
             (*line) = lineCount;
-            return LEX_EOF;
+            if (state == START) {
+                return LEX_EOF;
+            }
         }
         switch (state) {
 
@@ -79,6 +81,15 @@ int getTokenFromInput(string *value, int *line) {
 
                 } else if (isdigit(s)) {
                     strAddChar(value, s);
+
+                    if (s == '0') {
+                        s = fgetc(stdin);
+                        if (isdigit(s)) {
+                            return ERR_LEXICAL;
+                        } else {
+                            ungetc(s, stdin);
+                        }
+                    }
                     state = NUM;
                     break;
                 } else {
@@ -129,16 +140,20 @@ int getTokenFromInput(string *value, int *line) {
                             s = fgetc(stdin);
                             if (s == '=') {
                                 return EQUAL;
-                            } else if (s == 'b' || s == 'e') {
+                            } else if (s == 'b') {
                                 while (!isspace(s)) {
                                     strAddChar(value, s);
-                                    if (strcmp(value->str, "begin") == 0) {
-                                        state = BLOCK_COMMENT;
-                                        break;
+
+                                    if (value->length > 5) {
+                                        return ERR_LEXICAL;
                                     }
+
                                     s = fgetc(stdin);
                                 }
-                                if (strcmp(value->str, "begin") != 0) {
+                                if (strcmp(value->str, "begin") == 0) {
+                                    state = BLOCK_COMMENT;
+                                    break;
+                                } else {
                                     return ERR_LEXICAL;
                                 }
                             } else {
@@ -146,7 +161,6 @@ int getTokenFromInput(string *value, int *line) {
 
                                 return ASSIGN;
                             }
-                            break;
 
                         case '!':
                             s = fgetc(stdin);
@@ -197,23 +211,23 @@ int getTokenFromInput(string *value, int *line) {
 
                     } else if (s == 'x') {
                         s = fgetc(stdin);
-                        if (isupper(s)) {
+                        if (s >= 65 && s <= 70) {
                             res = ((s - 'A') + 10);
 
-                        } else if (islower(s)) {
+                        } else if (s >= 97 && s <= 102) {
                             res = ((s - 'a') + 10);
 
                         } else if (isdigit(s)) {
                             res = s - '0';
 
-                        } else if (!isalpha(s)) return ERR_LEXICAL;
+                        } else return ERR_LEXICAL;
 
                         s = fgetc(stdin);
 
-                        if (isupper(s)) {
+                        if (s >= 65 && s <= 70) {
                             res = res * 16 + ((s - 'A') + 10);
 
-                        } else if (islower(s)) {
+                        } else if (s >= 97 && s <= 102) {
                             res = res * 16 + ((s - 'a') + 10);
 
                         } else if (isdigit(s)) {
@@ -320,6 +334,8 @@ int getTokenFromInput(string *value, int *line) {
                         strAddChar(value, '0');
                         strAddChar(value, '3');
                         strAddChar(value, '2');
+                    } else if (s == EOF) {
+                        return ERR_LEXICAL;
                     } else if (s == '"') {
                         return STRING;
                     } else {
@@ -376,21 +392,26 @@ int getTokenFromInput(string *value, int *line) {
                                 if (s == 'n') {
                                     s = fgetc(stdin);
                                     if (s == 'd') {
-                                        while ((s = fgetc(stdin) != '\n')) {
-                                            if (s == EOF)
-                                                return ERR_LEXICAL;
+                                        s = fgetc(stdin);
+                                        if (s == ' ' || s == '\t') {
+                                            while ((s = fgetc(stdin)) != '\n') {
+                                                if (s == EOF)
+                                                    return ERR_LEXICAL;
+                                            }
                                         }
-                                        return LEX_EOL;
+                                        return (s == '\n') ? LEX_EOL : ERR_LEXICAL;
+
                                     }
                                 }
                             }
                         }
                     }
                     s = fgetc(stdin);
-
+                    if (s == EOF) {
+                        return ERR_LEXICAL;
+                    }
                 }
             case NUM:
-
                 while (isdigit(s)) {
 
                     strAddChar(value, s);
@@ -404,9 +425,11 @@ int getTokenFromInput(string *value, int *line) {
                     strAddChar(value, s);
                     state = NUM_EXP;
                     break;
-                } else {
+                } else if (isOperator(s) || isspace(s)) {
                     ungetc(s, stdin);
                     return NUM_INT;
+                } else {
+                    return ERR_LEXICAL;
                 }
 
 
@@ -439,12 +462,17 @@ int getTokenFromInput(string *value, int *line) {
                     strAddChar(value, s);
                     s = fgetc(stdin);
                 }
-                if(!isspace(s))
+                if (!isspace(s))
                     return ERR_LEXICAL;
                 ungetc(s, stdin);
                 return NUM_EXP;
         }
     }
+}
+
+bool isOperator(int symbol) {
+    return ((symbol == '*' || symbol == '+' || symbol == '-' || symbol == '/' || symbol == ')') ||
+            (symbol == '<' || symbol == '>' || symbol == '=' || symbol == ',')) ? true : false;
 }
 
 

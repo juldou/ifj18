@@ -1,1 +1,1 @@
-#TODO"skoda ze to nejde
+"skoda ze to nejde, ale nie uz to ide :D ""

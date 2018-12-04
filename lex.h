@@ -9,6 +9,7 @@
 #include<stdlib.h>
 #include<ctype.h>
 #include <string.h>
+#include <stdbool.h>
 #include "str.h"
 
 #define MAX_LENGTH 50
@@ -72,6 +73,8 @@ int checkKeywords(char *tmp);
 int addCharToArray(char c, char **str);
 
 int getTokenFromInput(string *value, int *line);
+
+bool isOperator(int symbol);
 
 
 #endif //IFJ_LEX_H

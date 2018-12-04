@@ -319,7 +319,7 @@ int stat_list(char *fun_id) {
 
                 if ((err = insert_var_to_st(previous_token_value, fun_id, true)) != 0) return err;
 
-                if ((err = assign(fun_id)) != SYNTAX_OK) return err; // TODO : maybe not
+                if ((err = assign(fun_id)) != SYNTAX_OK) return err;
                 GEN_INSTR("MOVE LF@%s GF@%s ", previous_token_value, "expr_res");
 
                 return stat_list(fun_id);
