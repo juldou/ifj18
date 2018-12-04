@@ -1,0 +1,12 @@
+def y(a,b,c)
+b=5
+c=7
+x=c+b
+if (a == nil) then
+print "param a je nil\n"
+end
+print x, "\n"
+end
+
+
+y(nil,5,6)

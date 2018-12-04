@@ -1,0 +1,3 @@
+str = "nazdar, co si ma nepamatas?"
+
+print str, "\n"

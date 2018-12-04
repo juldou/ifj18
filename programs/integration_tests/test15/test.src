@@ -1,0 +1,8 @@
+a=45.55
+x=chr(43.88)
+print x, "\n"
+x=chr(a)
+print x, "\n"
+
+
+

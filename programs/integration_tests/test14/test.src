@@ -1,0 +1,34 @@
+a = 0.0 
+
+b = 5.0
+x = a / b
+print x ,"\n"
+
+x=1
+while(x<=5) do
+x = x+1
+if(x == 4) then
+break
+end
+print x
+end
+
+x=2
+while(x<5) do
+print x
+x = x+1
+if(x==5) then
+next
+end
+end
+
+print "\n"
+x=100
+begin
+x=x+10
+if(x==190) then
+break
+end
+print x
+end until(x>200)
+print "\n"

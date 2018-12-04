@@ -1,0 +1,25 @@
+x=0
+while(x != 5) do
+y=0
+print x
+x = x+1
+end
+
+print "\n"
+x=0
+until(x>5) do
+a=5
+print x
+x = x+1
+end
+
+x=0
+print "\n"
+begin
+print x
+x = x+1
+end until(x==5)
+print "\n"
+
+
+

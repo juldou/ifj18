@@ -1,0 +1,10 @@
+# Call function before define
+def func1()
+x=func2
+end
+
+def func2()
+print "success", "\n"
+end
+
+x=func1
