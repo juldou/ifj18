@@ -13,7 +13,6 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 tests_failed=0
-#TODO matov dojebany scanner (escape sequence) sample3.rb
 
 echo -e "${NC}------------------STARTING TESTS----------------------"
 echo ""

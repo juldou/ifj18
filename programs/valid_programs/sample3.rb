@@ -1,4 +1,3 @@
-#TODO matov dojebany scanner (escape sequence)
 
 # Program 3: Prace s retezci a vestavenymi funkcemi
 s1 = "Toto␣je␣nejaky␣text"
@@ -7,7 +6,7 @@ print s1, "\n", s2, "\n"
 s1len = length(s1)
 s1len = s1len - 4 + 1
 s1 = substr(s2, s1len, 4)
-#print "4␣znaky␣od␣", s1len, ".␣znaku␣v␣\"", s2, "\":", s1, "\n"
+print "4␣znaky␣od␣", s1len, ".␣znaku␣v␣\"", s2, "\":", s1, "\n"
 print "Zadejte␣serazenou␣posloupnost␣vsech␣malych␣pismen␣a-h,␣"
 print "pricemz␣se␣pismena␣nesmeji␣v␣posloupnosti␣opakovat:␣"
 s1 = inputs
