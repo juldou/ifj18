@@ -185,16 +185,22 @@ bool is_function(char *fun_id) {  // TODO: rename to just token_is_function
 
 bool is_fun_builtin(char *fun_id) {
     st_elem *elem = st_search(&st_functions, fun_id);
+    if (elem == NULL) return false;
     return elem->data->is_builtin;
 }
 
 bool is_fun_defined(char *fun_id) {
     st_elem *elem = st_search(&st_functions, fun_id);
+    if (elem == NULL) return false;
     return elem->data->defined;
 }
 
 bool is_print_fun(char *fun_id) {
     return strcmp("print", fun_id) == 0;
+}
+
+bool is_main_scope(char *fun_id) {
+    return strcmp("MAIN", fun_id) == 0;
 }
 
 bool is_variable(char *var_id, char *fun_id) {

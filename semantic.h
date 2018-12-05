@@ -39,6 +39,8 @@ bool is_fun_defined(char *fun_id);
 
 bool is_print_fun(char *fun_id);
 
+bool is_main_scope(char *fun_id);
+
 bool is_variable(char *var_id, char *fun_id);
 
 bool all_ids_defined();
