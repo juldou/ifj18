@@ -1,3 +1,13 @@
+/**
+* School project to subject IFJ (Formal Languages and Compilers)
+* Compiler implementation of imperative language IFJ18
+*
+* Module for semantic checks and related operations with symbol table
+*
+* Author: Julius Marko
+* Login:  xmarko17
+*/
+
 #include "error.h"
 #include "symtable.h"
 #include "semantic.h"
