@@ -10,7 +10,6 @@ int token;
 //temp
 string *value;
 string *temp;
-int line;
 int err;
 extern int prev_token;
 

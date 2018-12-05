@@ -1,12 +1,17 @@
-//hlavickovy soubor pro praci s nekonecne dlouhymi retezci
+/**
+ * School project to subject IFJ (Formal Languages and Compilers)
+ * Compiler implementation of imperative language IFJ18
+ *
+ * Header of module for operations with string, inspired by the one used in "jednoduchy_interpret"
+ */
 
 #define STR_ERROR   1
 #define STR_SUCCESS 0
 
 typedef struct {
-    char *str;        // misto pro dany retezec ukonceny znakem '\0'
-    int length;        // skutecna delka retezce
-    int allocSize;    // velikost alokovane pameti
+    char *str;
+    int length;
+    int allocSize;
 } string;
 
 

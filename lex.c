@@ -47,13 +47,13 @@ int prev_token = -1;
  * @param   value   value of a token
  * @return          previous token or calls function getTokenFromInput
  */
-int getToken(string *value, int *line) {
+int getToken(string *value) {
     if (prev_token != -1) {
         int temp = prev_token;
         prev_token = -1;
         return temp;
     }
-    return getTokenFromInput(value, line);
+    return getTokenFromInput(value);
 }
 
 /**
@@ -62,8 +62,7 @@ int getToken(string *value, int *line) {
  * @param   value   value of a token
  * @return          type of a token represented by integer number.
  */
-int getTokenFromInput(string *value, int *line) {
-    static int lineCount = 0;
+int getTokenFromInput(string *value) {
     int s, state = START;
     int res = 0;
     int resTmp[4] = {0, 0, 0, '\0'};
@@ -73,7 +72,6 @@ int getTokenFromInput(string *value, int *line) {
 
         s = fgetc(stdin);
         if (s == EOF) {
-            (*line) = lineCount;
             if (state == START) {
                 return LEX_EOF;
             }
