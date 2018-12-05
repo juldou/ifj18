@@ -1,3 +1,8 @@
+/**
+ * Lexical analyser
+ * @author  Martin Rockar
+ * @version 1.0
+ */
 #include<stdio.h>
 #include<stdlib.h>
 #include<ctype.h>
@@ -5,7 +10,12 @@
 #include "lex.h"
 #include "error.h"
 
-
+/**
+ * Function compares string with reserved keywords,
+ * if there is a match,function returns value of a reserved word.
+ * @param   *tmp    string to compare
+ * @return          value of a keyword or -1 if it is an identifier
+ */
 int checkKeywords(char *tmp) {
 
     if (strcmp("def", tmp) == 0) return KEYWORD_DEF;
@@ -32,39 +42,90 @@ int checkKeywords(char *tmp) {
 
 int prev_token = -1;
 
-int getToken(string *value, int *line) {
+/**
+ * Function stores previous token, if there is no token stored, function getTokenFromInput is called.
+ * @param   value   value of a token
+ * @return          previous token or calls function getTokenFromInput
+ */
+int getToken(string *value) {
     if (prev_token != -1) {
         int temp = prev_token;
         prev_token = -1;
         return temp;
     }
-    return getTokenFromInput(value, line);
+    return getTokenFromInput(value);
 }
 
-int getTokenFromInput(string *value, int *line) {
-    static int lineCount = 0;
+/**
+ * Main function of a scanner, this function read characters from stdin and transform
+ * them into lexems(tokens)
+ * @param   value   value of a token
+ * @return          type of a token represented by integer number.
+ */
+int getTokenFromInput(string *value) {
     int s, state = START;
     int res = 0;
     int resTmp[4] = {0, 0, 0, '\0'};
+    static int isFirstToken = 1;
     strClear(value);
     while (1) {
 
         s = fgetc(stdin);
         if (s == EOF) {
-            (*line) = lineCount;
             if (state == START) {
                 return LEX_EOF;
             }
         }
         switch (state) {
-
+            //main switch for states
             case START:
+                if (isFirstToken) {
+                    if (isFirstToken) {
+                        isFirstToken = 0;
+                    }
+                    if (s == '=') {
+                        while (!isspace(s)) {
+                            strAddChar(value, s);
+
+                            if (value->length > 6) {
+                                return ERR_LEXICAL;
+                            }
+
+                            s = fgetc(stdin);
+                        }
+                        if (strcmp(value->str, "=begin") == 0) {
+                            state = BLOCK_COMMENT;
+                            break;
+                        } else {
+                            return ERR_LEXICAL;
+                        }
+                    }
+                }
 
                 if (s == '\n') {
-                    lineCount++;
-                    (*line) = lineCount;
-                    return LEX_EOL;
-                } else if (isspace(s));
+                    s = fgetc(stdin);
+                    if (s == '=') {
+                        while (!isspace(s)) {
+                            strAddChar(value, s);
+
+                            if (value->length > 6) {
+                                return ERR_LEXICAL;
+                            }
+
+                            s = fgetc(stdin);
+                        }
+                        if (strcmp(value->str, "=begin") == 0) {
+                            state = BLOCK_COMMENT;
+                            break;
+                        } else {
+                            return ERR_LEXICAL;
+                        }
+                    } else {
+                        ungetc(s, stdin);
+
+                        return LEX_EOL;
+                    }
+                } else if (isspace(s)); //skip white spaces
                 else if (islower(s) || s == '_') {
                     strAddChar(value, s);
                     s = fgetc(stdin);
@@ -82,6 +143,7 @@ int getTokenFromInput(string *value, int *line) {
                     strAddChar(value, s);
 
                     if (s == '0') {
+                        //check if first number of an multi digit number is not 0
                         s = fgetc(stdin);
                         if (isdigit(s)) {
                             return ERR_LEXICAL;
@@ -93,7 +155,7 @@ int getTokenFromInput(string *value, int *line) {
                     break;
                 } else {
                     switch (s) {
-                        //operatory
+                        //switch for operators
                         case '+':
                             return PLUS;
                         case '-':
@@ -128,6 +190,7 @@ int getTokenFromInput(string *value, int *line) {
                             state = STRING;
                             break;
                         case '#':
+                            //line comment
                             s = fgetc(stdin);
                             while (s != '\n') {
                                 if (s == EOF)
@@ -139,22 +202,6 @@ int getTokenFromInput(string *value, int *line) {
                             s = fgetc(stdin);
                             if (s == '=') {
                                 return EQUAL;
-                            } else if (s == 'b') {
-                                while (!isspace(s)) {
-                                    strAddChar(value, s);
-
-                                    if (value->length > 5) {
-                                        return ERR_LEXICAL;
-                                    }
-
-                                    s = fgetc(stdin);
-                                }
-                                if (strcmp(value->str, "begin") == 0) {
-                                    state = BLOCK_COMMENT;
-                                    break;
-                                } else {
-                                    return ERR_LEXICAL;
-                                }
                             } else {
                                 ungetc(s, stdin);
 
@@ -174,13 +221,13 @@ int getTokenFromInput(string *value, int *line) {
                 }
                 break;
             case STRING:
-
                 if (s == '#') {
                     strAddChar(value, '\\');
                     strAddChar(value, '0');
                     strAddChar(value, '3');
                     strAddChar(value, '5');
                 } else if (s == '\\') {
+                    //escape sequence
                     s = fgetc(stdin);
                     if (s == '"') {
                         strAddChar(value, '\\');
@@ -209,6 +256,7 @@ int getTokenFromInput(string *value, int *line) {
                         strAddChar(value, '2');
 
                     } else if (s == 'x') {
+                        //hexadecimal escape sequence
                         s = fgetc(stdin);
                         if (s >= 65 && s <= 70) {
                             res = ((s - 'A') + 10);
@@ -252,7 +300,6 @@ int getTokenFromInput(string *value, int *line) {
                     strAddChar(value, '3');
                     strAddChar(value, '2');
                 } else if (s == '"') {
-                    state = START;
                     return STRING;
                 } else strAddChar(value, s);
                 while (1) {
@@ -264,6 +311,7 @@ int getTokenFromInput(string *value, int *line) {
                         strAddChar(value, '3');
                         strAddChar(value, '5');
                     } else if (s == '\\') {
+                        //escape sequence
                         s = fgetc(stdin);
                         if (s == '"') {
                             strAddChar(value, '\\');
@@ -291,6 +339,7 @@ int getTokenFromInput(string *value, int *line) {
                             strAddChar(value, '9');
                             strAddChar(value, '2');
                         } else if (s == 'x') {
+                            //hexadecimal escape sequence
                             s = fgetc(stdin);
                             if (isupper(s)) {
                                 res = ((s - 'A') + 10);
@@ -366,7 +415,7 @@ int getTokenFromInput(string *value, int *line) {
                     } else {
                         ungetc(s, stdin);
                     }
-                    int a = checkKeywords(value->str);
+                    int a = checkKeywords(value->str);  //checks if string is a reserved word or an identifier
 
                     if (a == -1) {
                         if (value->str[value->length - 1] == '?' || value->str[value->length - 1] == '!')
@@ -379,7 +428,7 @@ int getTokenFromInput(string *value, int *line) {
                 }
                 break;
             case BLOCK_COMMENT:
-
+                //checking for end of a block comment (=end) in input
                 while (1) {
                     if (s == '\n') {
                         s = fgetc(stdin);
@@ -467,28 +516,13 @@ int getTokenFromInput(string *value, int *line) {
         }
     }
 }
-
+/**
+ * Function for checking if character is an operator.
+ * @param   symbol  character to check
+ * @return  true if character is an operator, else it return false
+ */
 bool isOperator(int symbol) {
     return ((symbol == '*' || symbol == '+' || symbol == '-' || symbol == '/' || symbol == ')') ||
             (symbol == '<' || symbol == '>' || symbol == '=' || symbol == ',')) ? true : false;
 }
 
-
-// int main() {
-//     int a;
-//     string *value;
-//     value = malloc(sizeof(string));
-//     if (value == NULL) return ERR_INTERNAL;
-//     if (strInit(value) == STR_ERROR) return ERR_INTERNAL;
-//     int line = 0;
-//
-//     do {
-//         a = getTokenFromInput(value, &line);
-//         printf("Value: %15s line: %5d type: %d\n", value->str, line, a);
-////         if (a == LEX_EOF) {
-////             break;
-////         }
-//
-//     } while (a != LEX_EOF);
-//     return 0;
-// }

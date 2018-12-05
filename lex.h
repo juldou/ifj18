@@ -69,13 +69,11 @@ typedef enum {
 
 } Types;
 
-int getToken(string *value, int *line);
+int getToken(string *value);
 
 int checkKeywords(char *tmp);
 
-int addCharToArray(char c, char **str);
-
-int getTokenFromInput(string *value, int *line);
+int getTokenFromInput(string *value);
 
 bool isOperator(int symbol);
 

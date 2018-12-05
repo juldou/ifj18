@@ -7,7 +7,7 @@ end
 
 print "\n"
 x=0
-until(x>5) do
+while(x<5.23) do
 a=5
 print x
 x = x+1
@@ -15,11 +15,8 @@ end
 
 x=0
 print "\n"
-begin
+while x !=5 do
 print x
 x = x+1
-end until(x==5)
+end
 print "\n"
-
-
-

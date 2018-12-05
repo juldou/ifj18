@@ -15,7 +15,7 @@
 
 #define SYNTAX_OK 101
 
-#define GET_TOKEN() do {if ((token = getToken(value, &line)) == ERR_LEXICAL)\
+#define GET_TOKEN() do {if ((token = getToken(value)) == ERR_LEXICAL)\
 return ERR_LEXICAL;} while(0)
 
 #define ACCEPT(type) do{ if(token != (type)) return ERR_SYNTAX;\

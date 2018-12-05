@@ -1,15 +1,16 @@
-//jednoducha knihovna pro praci s nekonecne dlouhymi retezci
+/**
+ * School project to subject IFJ (Formal Languages and Compilers)
+ * Compiler implementation of imperative language IFJ18
+ *
+ * Module for operations with string, inspired by the one used in "jednoduchy_interpret"
+ */
 #include <string.h>
 #include <stdlib.h>
 #include "str.h"
 
 #define STR_LEN_INC 8
-// konstanta STR_LEN_INC udava, na kolik bytu provedeme pocatecni alokaci pameti
-// pokud nacitame retezec znak po znaku, pamet se postupne bude alkokovat na
-// nasobky tohoto cisla
 
 int strInit(string *s)
-// funkce vytvori novy retezec
 {
     if ((s->str = (char *) malloc(STR_LEN_INC)) == NULL)
         return STR_ERROR;
@@ -20,23 +21,19 @@ int strInit(string *s)
 }
 
 void strFree(string *s)
-// funkce uvolni retezec z pameti
 {
     free(s->str);
 }
 
 void strClear(string *s)
-// funkce vymaze obsah retezce
 {
     s->str[0] = '\0';
     s->length = 0;
 }
 
 int strAddChar(string *s1, char c)
-// prida na konec retezce jeden znak
 {
     if (s1->length + 1 >= s1->allocSize) {
-        // pamet nestaci, je potreba provest realokaci
         if ((s1->str = (char *) realloc(s1->str, s1->length + STR_LEN_INC)) == NULL)
             return STR_ERROR;
         s1->allocSize = s1->length + STR_LEN_INC;
