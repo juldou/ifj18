@@ -126,26 +126,26 @@ for file in ./programs/gen_tests_programs/in/*; do
     fi
 done
 
-#for file in ./programs/integration_tests/*; do
-#    echo -e "${NC}----------------------TEST GEN PROGRAMS $file----------------------"
-#    echo ${file}/test.src
-#    ./ifj18 < ${file}/test.src  > temp_out
-#    if [ $travis_build -eq 1 ]; then
-#        docker run -ti -v $PWD:/test ubuntu:16.04 bash -c "cd /test/; ./ic18int temp_out <  ${file}/test.in " > interpret_out
-#    else
-#        ./ic18int temp_out  <  ${file}/test.in > interpret_out
-#    fi
-#
-#    filename=${file##*/}
-#    diff interpret_out ${file}/test.expected.out > temp_out
-#    if [ $? -eq 0 ]; then
-#        echo -e "${GREEN} TEST PASSED"
-#    else
-#
-#        echo -e "${RED} TEST FAILED"
-#        let tests_failed+=1
-#    fi
-#done
+for file in ./programs/integration_tests/*; do
+    echo -e "${NC}----------------------TEST GEN PROGRAMS $file----------------------"
+    echo ${file}/test.src
+    ./ifj18 < ${file}/test.src  > temp_out
+    if [ $travis_build -eq 1 ]; then
+        docker run -ti -v $PWD:/test ubuntu:16.04 bash -c "cd /test/; ./ic18int temp_out <  ${file}/test.in " > interpret_out
+    else
+        ./ic18int temp_out  <  ${file}/test.in > interpret_out
+    fi
+
+    filename=${file##*/}
+    diff interpret_out ${file}/test.expected.out > temp_out
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN} TEST PASSED"
+    else
+
+        echo -e "${RED} TEST FAILED"
+        let tests_failed+=1
+    fi
+done
 
 
 echo ""

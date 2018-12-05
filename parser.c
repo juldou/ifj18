@@ -1,3 +1,13 @@
+/**
+* School project to subject IFJ (Formal Languages and Compilers)
+* Compiler implementation of imperative language IFJ18
+*
+* Module for recursive descent parser
+*
+* Author: Jan Zauska  Julius Marko  Jan Vavro
+* Login:  xzausk00    xmarko17      xvavro05
+*/
+
 #include "lex.h"
 #include "error.h"
 #include "parser.h"
@@ -256,7 +266,6 @@ int fun_call(char *fun_id, char *called_from_fun) {
 
     if (!is_print_fun(fun_id)) GEN_INSTR("CALL *%s", fun_id);  // print is handled inside gen_print()
     GEN_INSTR("MOVE %s %s ", "LF@$retval", "TF@$retval");
-    //todo
     GEN_INSTR("MOVE %s %s ", "GF@expr_res", "TF@$retval");
 
     return SYNTAX_OK;
@@ -339,7 +348,6 @@ int stat_list(char *fun_id) {
             if (token == ASSIGN) {
                 GET_TOKEN();
                 if (!is_variable(previous_token_value, fun_id)) {
-                    //todo not found, mozno nie err internal
                     if (find_instr("LABEL *%s\n", fun_id) == ERR_INTERNAL) return ERR_INTERNAL;
                     if (insert_instr_after("MOVE TF@%s nil@nil\n", previous_token_value) == ERR_INTERNAL)
                         return ERR_INTERNAL;

@@ -1,3 +1,13 @@
+/**
+* School project to subject IFJ (Formal Languages and Compilers)
+* Compiler implementation of imperative language IFJ18
+*
+* Module for code generation - instructions and builtin functions gen.
+*
+* Author: Julius Marko  Jan Zauska
+* Login:  xmarko17      xzausk00
+*/
+
 #include "code_gen.h"
 #include "semantic.h"
 #include "parser.h"
@@ -57,15 +67,7 @@ void code_generate() {
 
 int gen_instr(char *string, ...) {
     va_list vaList;
-
-//    size_t str_len = 0;
-//    for (int i = 0; i < params_count; ++i) {
-//        str_len += strlen(va_arg(vaList, char *));
-//    }
-//    str_len -= (params_count - 1) * 2;
-
     va_start(vaList, string);
-//    size_t len = strlen(string);
     char *instruction;
     if ((instruction = AppendToList(&instr)) == NULL) return ERR_INTERNAL;
     vsprintf(instruction, string, vaList);

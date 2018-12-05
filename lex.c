@@ -1,8 +1,13 @@
 /**
- * Lexical analyser
- * @author  Martin Rockar
- * @version 1.0
- */
+* School project to subject IFJ (Formal Languages and Compilers)
+* Compiler implementation of imperative language IFJ18
+*
+* Module for lexical analysis
+*
+* Author: Martin Rockar
+* Login:  xrocka00
+*/
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<ctype.h>

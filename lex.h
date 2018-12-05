@@ -4,9 +4,10 @@
 *
 * Module for lexical analysis
 *
-* Author: Martin Rockar  Jan Zauska  Jan Vavro
-* Login:  xrocka00       xzausk00    xvavro05
+* Author: Martin Rockar
+* Login:  xrocka00
 */
+
 
 #ifndef IFJ_LEX_H
 #define IFJ_LEX_H
