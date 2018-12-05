@@ -1,3 +1,13 @@
+/**
+ * School project to subject IFJ (Formal Languages and Compilers)
+ * Compiler implementation of imperative language IFJ18
+ *
+ * Module for evaluating expressions and conditions
+ *
+ * Author: Ján Vavro
+ * Login: xvavro05
+ */
+
 #include <stdarg.h>
 #include "expr_parser.h"
 #include "error.h"
@@ -10,17 +20,15 @@
 #define MATH 0
 #define BOOL 1
 
-
-extern int token;
+extern int token; //type of token
 
 /*
- * Conventions of odd variables for generating code
- * %*NUMBER, where NUMBER is global variable which is
- * incremented after each DEFVAR
+ * Conventions of auxiliary variables for generating code
+ * %*NUMBER, where NUMBER is static variable which is
+ * incremented after each executed rule
  */
 
-extern string *value;
-int line;
+extern string *value; //value of token
 
 const int prec_table[SIZE][SIZE] = {
 //             0    1   2   3   4   5   6
@@ -81,7 +89,13 @@ int decode(int symbol) {
             return -1;
     }
 }
-
+/**
+ * Compare items given as parameters with stack
+ * @param stack
+ * @param count number of given items
+ * @param ... variable count items to be compared
+ * @return true if success, false if not
+ */
 bool check_rule(t_stack *stack, int count, ...) {
     va_list vaList;
     va_start(vaList, count);
@@ -126,12 +140,23 @@ bool check_rule(t_stack *stack, int count, ...) {
     return true;
 }
 
+/**
+ * Perform multipop and push one item
+ * @param stack
+ * @param count count of items to be popped
+ * @param symbol item to be pushed
+ */
 void pop_rule(t_stack *stack, int count, int symbol) {
     multi_pop(stack, count + 1); //pop rule and symbol '<'
     push(stack, symbol);
 }
 
-
+/**
+ * Rules that could be executed
+ * @param stack
+ * @param prev_value
+ * @return SYNTAX_OK if success, ERR_SYNTAX if not
+ */
 int rules(t_stack *stack, string prev_value) {
     static unsigned int label_number = 0;
 
@@ -910,7 +935,14 @@ int rules(t_stack *stack, string prev_value) {
     } else return ERR_SYNTAX;
 }
 
-
+/**
+ * Function that perform main logic of precedence analysis
+ * @param type math/bool
+ * @param fun_id id of scope where expression is called
+ * @return SYNTAX_OK
+ * @return ERR_SEMANTIC_DEFINITION
+ * @return ERR_SYNTAX
+ */
 int expresion(int type, char *fun_id) {
     int retval;
     string prev_value;
@@ -975,6 +1007,11 @@ int expresion(int type, char *fun_id) {
 
 }
 
+/**
+ * Evaluate expression as bool condition
+ * @param fun_id id of scope where expression is called
+ * @return the same as expression()
+ */
 int bool_expr(char *fun_id) {
     static int num_for_gen = 0;
     int result = expresion(BOOL, fun_id);
@@ -998,6 +1035,11 @@ int bool_expr(char *fun_id) {
     return result;
 }
 
+/**
+ * Evaluate expression as bool condition
+ * @param fun_id id of scope where expression is called
+ * @return return the same as expression()
+ */
 int math_expr(char *fun_id) {
     return expresion(MATH, fun_id);
 }

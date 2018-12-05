@@ -1,3 +1,13 @@
+/**
+ * School project to subject IFJ (Formal Languages and Compilers)
+ * Compiler implementation of imperative language IFJ18
+ *
+ * Module for evaluating expressions and conditions
+ *
+ * Author: Ján Vavro
+ * Login: xvavro05
+ */
+
 #ifndef IFJ_STACK_H
 #define IFJ_STACK_H
 

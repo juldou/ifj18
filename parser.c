@@ -10,14 +10,14 @@ int token;
 //temp
 string *value;
 string *temp;
-int line;
 int err;
 extern int prev_token;
 
 int assign(char *fun_id) {
-    // pravidlo "ID" = <value>
+    // pravidlo <assign> -> "ID" = <value>
     char previous_token_value[value->length + 1];
     strcpy(previous_token_value, value->str);
+    strCopyString(temp, value);
     switch (token) {
         case ROUNDL:
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
@@ -94,7 +94,7 @@ int assign(char *fun_id) {
 int fun_params(char *fun_id) {
     static size_t params_count = 0;
 
-    // pravidlo <ITEM><ITEM_LIST
+    // <FUN_PARAMS> -> (<ITEM><ITEM_LIST)
     switch (token) {
         case ROUNDR:
             GET_TOKEN();
@@ -134,6 +134,7 @@ int fun_params(char *fun_id) {
 
 
 int fun_declr() {
+    // <FUN_DECLR> -> DEF <ID> <FUN_PARAMS> EOL <STAT_LIST> END
     char previous_token_value[value->length + 1];
     strcpy(previous_token_value, value->str);
     strCopyString(temp, value);
@@ -162,7 +163,7 @@ int fun_declr() {
 
 
 int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
-    // pravidlo <ITEM><ITEM_LIST
+    // pravidlo <CALL_PARAMS> -> <ITEM><ITEM_LIST
     char previous_token_value[value->length + 1];
     static size_t params_count = 0;
     switch (token) {
@@ -193,7 +194,6 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
             params_count++;
             GEN_INSTR("DEFVAR TF@%%%d", params_count);
 
-            //todo dat do <>
             if (token == NUM_INT) {
                 GEN_INSTR("MOVE TF@%%%d int@%s", params_count, value->str);
             } else if (token == NUM_FLOAT || token == NUM_EXP) {
@@ -228,6 +228,7 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
 
 
 int fun_call(char *fun_id, char *called_from_fun) {
+    // pravidlo <FUN_CALL> ->
     if (!is_function(fun_id))
         return ERR_SEMANTIC_DEFINITION;
     if (!is_fun_defined(fun_id) && !is_fun_builtin(fun_id) && is_main_scope(called_from_fun))
@@ -264,11 +265,13 @@ int fun_call(char *fun_id, char *called_from_fun) {
 int stat_list(char *fun_id) {
     bool is_id = false;
     static int cnt = 0;
+    int label_id = 0;
     char previous_token_value[value->length + 1];
     strcpy(previous_token_value, value->str);
     switch (token) {
         case KEYWORD_IF:
             cnt++;
+            label_id = cnt;
             // pravidlo IF <EXPR> EOL <STAT_LIST> ELSE EOL <STAT_LIST> END
             GET_TOKEN();
             if ((err = bool_expr(fun_id)) != SYNTAX_OK) return err;
@@ -278,23 +281,25 @@ int stat_list(char *fun_id) {
 
             if ((err = stat_list(fun_id)) != SYNTAX_OK) return err;
 
-            GEN_INSTR("JUMP ELSE_END_%d", cnt);
+            GEN_INSTR("JUMP ELSE_END_%d", label_id);
 
             ACCEPT(KEYWORD_ELSE);
-            GEN_INSTR("LABEL ELSE_LABEL_%d", cnt);
+            GEN_INSTR("LABEL ELSE_LABEL_%d", label_id);
             ACCEPT(LEX_EOL);
 
             if ((err = stat_list(fun_id)) != SYNTAX_OK) return err;
 
             ACCEPT(KEYWORD_END);
             ACCEPT(LEX_EOL);
-            GEN_INSTR("LABEL ELSE_END_%d", cnt);
+            GEN_INSTR("LABEL ELSE_END_%d", label_id);
 
             return stat_list(fun_id);
 
         case KEYWORD_WHILE:
             cnt++;
-            GEN_INSTR("LABEL WHILE_START_%d", cnt);
+            label_id = cnt;
+
+            GEN_INSTR("LABEL WHILE_START_%d", label_id);
             // pravidlo WHILE <EXPR> DO EOL <STAT_LIST> END
             GET_TOKEN();
             if ((err = bool_expr(fun_id)) != SYNTAX_OK) return err;
@@ -309,8 +314,8 @@ int stat_list(char *fun_id) {
 
             ACCEPT(KEYWORD_END);
             ACCEPT(LEX_EOL);
-            GEN_INSTR("JUMP WHILE_START_%d", cnt);
-            GEN_INSTR("LABEL WHILE_END_%d", cnt);
+            GEN_INSTR("JUMP WHILE_START_%d", label_id);
+            GEN_INSTR("LABEL WHILE_END_%d", label_id);
             return stat_list(fun_id);
         case LEX_EOL:
             GET_TOKEN();
@@ -423,6 +428,7 @@ int program() {
 
         case ERR_LEXICAL:
             return ERR_LEXICAL;
+
         case KEYWORD_END:
         case KEYWORD_ELSE:
             GET_TOKEN();

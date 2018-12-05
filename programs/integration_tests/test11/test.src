@@ -7,18 +7,22 @@ end
 
 if(5==5) then
 print "\ndruha pravda"
+else
 end
 
 
 
 if(4==5) then
-print "pravda"
-elsif(5==6) then
-print "\npravda v elsif"
-elsif(7==9) then
-print "\npravda v elsif2"
+    print "pravda"
 else
-print "\nvsade nepravdy\n"
+    if(5==6) then
+        print "\npravda v elsif"
+    else
+        if(7==9) then
+            print "\npravda v elsif2"
+        else
+            print "\nvsade nepravdy\n"
+        end
+    end
 end
-
 

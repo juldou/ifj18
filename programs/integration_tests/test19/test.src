@@ -8,8 +8,3 @@ end
 y= inputf()
 a = x + y
 print a , "\n"
-a = defined? (y)
-print a , "\n"
-a = defined? (hohoh)
-print a , "\n"
-

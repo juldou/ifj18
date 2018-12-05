@@ -1,5 +1,6 @@
 #include "parser.h"
 #include <stdio.h>
+#include "error.h"
 
 int main() {
     int res = parse();
