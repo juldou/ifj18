@@ -1,6 +1,6 @@
 n = 1
 if n < 2 then
-=begin aha zas nejde scanner kurva
+aaa = 2 =begin aha zas nejde scanner
        result = 1
 =end
 else

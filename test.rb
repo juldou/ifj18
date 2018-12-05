@@ -1,6 +1,5 @@
-a = 54
-b = 54.5
-if (a < b) then
-    print b
+if ("piciak") then
+print "nejde to"
 else
+print "ide to"
 end

@@ -2,7 +2,7 @@ def f?(f)
 end
 
 =begin
-kokot
-=end a = b
+ko
+=end a=b
 
 a = nil

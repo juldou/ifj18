@@ -13,61 +13,11 @@ string *temp;
 int line;
 int err;
 extern int prev_token;
-char *values[] = {
-        "KEYWORD_DEF",
-        "KEYWORD_DO",
-        "KEYWORD_ELSE",
-        "KEYWORD_END",
-        "KEYWORD_IF",
-        "KEYWORD_NOT",
-        "KEYWORD_NIL",
-        "KEYWORD_THEN",
-        "KEYWORD_WHILE",
-        "ID",
-        "IDF",
-        "NUM_INT",
-        "NUM_FLOAT",
-        "NUM_EXP",
-        "STRING",
-        "LEX_EOL",
-        "COMMA",
-        "ROUNDL",
-        "ROUNDR",
-        "ASSIGN",
-        "PLUS",
-        "MINUS",
-        "MUL",
-        "DIV",
-        "LESS",
-        "MORE",
-        "LESS_EQUAL",
-        "MORE_EQUAL",
-        "EQUAL",
-        "NOT_EQUAL",
-
-        "START",
-        "LEX_EOF",
-        "NUM",
-        "COMMENT",
-        "BLOCK_COMMENT",
-        "IDENTIF",
-        "INPUTS",
-        "INPUTF",
-        "INPUTI",
-        "PRINT",
-        "ORD",
-        "CHR",
-        "SUBSTR",
-        "LENGTH",
-        "MAXTOKEN"
-
-};
 
 int assign(char *fun_id) {
     // pravidlo "ID" = <value>
-    char previous_token_value[value->length + 1];  // TODO: refactor descend
+    char previous_token_value[value->length + 1];
     strcpy(previous_token_value, value->str);
-    strCopyString(temp, value);
     switch (token) {
         case ROUNDL:
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
@@ -76,15 +26,34 @@ int assign(char *fun_id) {
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
 
+        case IDF:
         case ID:
-            if (semantic_token_is_function(temp->str)) {
-                GET_TOKEN();
+            strcpy(previous_token_value, value->str);
+
+            GET_TOKEN();
+
+            if (is_function(previous_token_value)) {
                 if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return SYNTAX_OK;
             }
 
-            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-            GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+            if (IS_VALID_PARAM || token == ROUNDL) {
+                insert_fun_to_st(previous_token_value, 0, false, false);
+                if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+                return SYNTAX_OK;
+            } else if (token == LEX_EOL) {
+                if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION) {
+                    insert_fun_to_st(previous_token_value, 0, false, false);
+                    if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+                    return SYNTAX_OK;
+                }
+            } else {
+                prev_token = token;
+                token = ID;
+                strcpy(value->str, previous_token_value);
+                if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+                else GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+            }
 
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
@@ -165,14 +134,14 @@ int fun_params(char *fun_id) {
 
 
 int fun_declr() {
-    char previous_token_value[value->length + 1];  // TODO: refactor descend
+    char previous_token_value[value->length + 1];
     strcpy(previous_token_value, value->str);
     strCopyString(temp, value);
     if (token != ID && token != IDF)
         return ERR_SYNTAX;
     GET_TOKEN();
 
-    if (semantic_check_fun_definition(previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
+    if (semantic_check_fun_defined(previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
 
     if (gen_fun_header(previous_token_value) == ERR_INTERNAL) return ERR_INTERNAL;
 
@@ -213,7 +182,7 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
         case CHR:
         case ID:
             strcpy(previous_token_value, value->str);
-            if (semantic_token_is_function(previous_token_value)) return ERR_SEMANTIC_OTHER;
+            if (is_function(previous_token_value)) return ERR_SEMANTIC_OTHER;
             if (semantic_check_var_defined(called_from_fun, previous_token_value) == ERR_SEMANTIC_DEFINITION)
                 return ERR_SEMANTIC_DEFINITION;
         case NUM_INT:
@@ -239,8 +208,6 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
                 GEN_INSTR("MOVE TF@%%%d nil@nil", params_count);
             }
 
-//            if (strcmp("print", fun_id) == 0) GEN_INSTR("WRITE TF@%%%d", params_count); // TODO: REMOVE
-
             // check if param is defined
             GET_TOKEN();
 
@@ -261,7 +228,10 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
 
 
 int fun_call(char *fun_id, char *called_from_fun) {
-    if (!semantic_token_is_function(fun_id)) return ERR_SEMANTIC_DEFINITION;
+    if (!is_function(fun_id))
+        return ERR_SEMANTIC_DEFINITION;
+    if (!is_fun_defined(fun_id) && !is_fun_builtin(fun_id) && is_main_scope(called_from_fun))
+        return ERR_SEMANTIC_DEFINITION;
 
     int brackets = 0;
     if (token == ROUNDL) {
@@ -292,6 +262,7 @@ int fun_call(char *fun_id, char *called_from_fun) {
 }
 
 int stat_list(char *fun_id) {
+    bool is_id = false;
     static int cnt = 0;
     char previous_token_value[value->length + 1];
     strcpy(previous_token_value, value->str);
@@ -356,17 +327,13 @@ int stat_list(char *fun_id) {
         case LEX_EOF:
             return SYNTAX_OK;
 
-        case IDF:
-            GET_TOKEN();
-            if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
-            return stat_list(fun_id);
         case ID:
             strcpy(previous_token_value, value->str);
 
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
-                if (!semantic_token_is_variable(previous_token_value, fun_id)) {
+                if (!is_variable(previous_token_value, fun_id)) {
                     //todo not found, mozno nie err internal
                     if (find_instr("LABEL *%s\n", fun_id) == ERR_INTERNAL) return ERR_INTERNAL;
                     if (insert_instr_after("MOVE TF@%s nil@nil\n", previous_token_value) == ERR_INTERNAL)
@@ -378,13 +345,19 @@ int stat_list(char *fun_id) {
 
                 if ((err = insert_var_to_st(previous_token_value, fun_id, true)) != 0) return err;
 
-                if ((err = assign(fun_id)) != SYNTAX_OK) return err; // TODO : maybe not
+                if ((err = assign(fun_id)) != SYNTAX_OK) return err;
                 GEN_INSTR("MOVE LF@%s GF@%s ", previous_token_value, "expr_res");
 
                 return stat_list(fun_id);
             }
+            is_id = true;
+        case IDF:
+            if (!is_id) {
+                strcpy(previous_token_value, value->str);
+                GET_TOKEN();
+            }
 
-            if (semantic_token_is_function(previous_token_value)) {
+            if (is_function(previous_token_value)) {
                 if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return stat_list(fun_id);
             }
@@ -393,17 +366,19 @@ int stat_list(char *fun_id) {
                 insert_fun_to_st(previous_token_value, 0, false, false);
                 if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return stat_list(fun_id);
-            } else {  //nepekny ohack
+            } else if (token == LEX_EOL) {
+                if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION) {
+                    insert_fun_to_st(previous_token_value, 0, false, false);
+                    if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+                    return stat_list(fun_id);
+                }
+            } else {
                 prev_token = token;
                 token = ID;
                 strcpy(value->str, previous_token_value);
                 if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-                else
-                    GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+                else GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
             }
-
-            if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION)
-                return ERR_SEMANTIC_DEFINITION;
 
             ACCEPT(LEX_EOL);
             return stat_list(fun_id);
@@ -412,7 +387,7 @@ int stat_list(char *fun_id) {
         case NUM_FLOAT:
         case STRING:
         case NUM_INT:
-//        case ROUNDL:
+        case ROUNDL:
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
             ACCEPT(LEX_EOL);
@@ -425,7 +400,7 @@ int stat_list(char *fun_id) {
         case ORD:
         case CHR:
         case SUBSTR:
-            strcpy(previous_token_value, value->str); // TODO: refactor descend
+            strcpy(previous_token_value, value->str);
             GET_TOKEN();
             if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
             return stat_list(fun_id);
@@ -442,7 +417,6 @@ int program() {
             GET_TOKEN();
             if ((err = fun_declr()) != SYNTAX_OK) return err;
             return program();
-            //todo
 
         case LEX_EOF:
             return SYNTAX_OK;
@@ -477,8 +451,9 @@ int parse() {
     GET_TOKEN();
     result = program();
 
-    if (err == SYNTAX_OK && !semantic_check_all_ids_defined()) return ERR_SEMANTIC_DEFINITION;
-    code_generate();
+    if (err == SYNTAX_OK && !all_ids_defined()) return ERR_SEMANTIC_DEFINITION;
+
+    if (err == SYNTAX_OK) code_generate();
 
     if (semantic_clean() == ERR_INTERNAL) return ERR_INTERNAL;
     if (code_gen_clean() == ERR_INTERNAL) return ERR_INTERNAL;

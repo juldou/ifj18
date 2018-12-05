@@ -31,7 +31,6 @@ typedef struct st_elem {
 } st_elem;
 
 typedef st_elem *st[SYMTABLE_SIZE];
-typedef st_elem *stl[SYMTABLE_SIZE];
 
 int hash_code(t_key key);
 
@@ -40,10 +39,6 @@ void st_init(st *st_ptr);
 st_elem *st_search(st *st_ptr, t_key key);
 
 int st_insert(st *st_ptr, t_key key, st_elem_types elem_type, elem_data *data);
-
-elem_data *st_read(st *st_ptr, t_key key);
-
-void st_delete(st *st_ptr, t_key key);
 
 void st_clear_elem_data(st_elem *elem);
 

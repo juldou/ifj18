@@ -1,0 +1,11 @@
+x=ord ("abc" , 1 )
+print x, "\n"
+
+
+a=1.22
+x=ord ("abc" , a )
+print x, "\n"
+
+a=5.22
+x=ord ("abc" , a )
+print x, "\n"

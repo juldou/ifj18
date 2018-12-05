@@ -13,7 +13,6 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 tests_failed=0
-#TODO matov dojebany scanner (escape sequence) sample3.rb
 
 echo -e "${NC}------------------STARTING TESTS----------------------"
 echo ""
@@ -72,6 +71,17 @@ for file in ./programs/return_value_5/*; do
     fi
 done
 
+for file in ./programs/return_value_1/*; do
+    echo -e "${NC}----------------------TEST $file----------------------"
+    ./ifj18 < ${file} > temp_out
+    if [ $? -eq 1 ]; then
+        echo -e "${GREEN} TEST PASSED"
+    else
+
+        echo -e "${RED} TEST FAILED"
+        let tests_failed+=1
+    fi
+done
 for file in ./programs/return_value_6/*; do
     echo -e "${NC}----------------------TEST $file----------------------"
     ./ifj18 < ${file} > temp_out
@@ -83,19 +93,6 @@ for file in ./programs/return_value_6/*; do
         let tests_failed+=1
     fi
 done
-
-# TODO ked to mato spravi
-#for file in ./programs/return_value_1/*; do
-#    echo -e "${NC}----------------------TEST $file----------------------"
-#    ./ifj18 < ${file} > temp_out
-#    if [ $? -eq 1 ]; then
-#        echo -e "${GREEN} TEST PASSED"
-#    else
-#
-#        echo -e "${RED} TEST FAILED"
-#        let tests_failed+=1
-#    fi
-#done
 
 for file in ./programs/valid_programs/*; do
     echo -e "${NC}----------------------TEST $file----------------------"
@@ -128,6 +125,28 @@ for file in ./programs/gen_tests_programs/in/*; do
         let tests_failed+=1
     fi
 done
+
+#for file in ./programs/integration_tests/*; do
+#    echo -e "${NC}----------------------TEST GEN PROGRAMS $file----------------------"
+#    echo ${file}/test.src
+#    ./ifj18 < ${file}/test.src  > temp_out
+#    if [ $travis_build -eq 1 ]; then
+#        docker run -ti -v $PWD:/test ubuntu:16.04 bash -c "cd /test/; ./ic18int temp_out <  ${file}/test.in " > interpret_out
+#    else
+#        ./ic18int temp_out  <  ${file}/test.in > interpret_out
+#    fi
+#
+#    filename=${file##*/}
+#    diff interpret_out ${file}/test.expected.out > temp_out
+#    if [ $? -eq 0 ]; then
+#        echo -e "${GREEN} TEST PASSED"
+#    else
+#
+#        echo -e "${RED} TEST FAILED"
+#        let tests_failed+=1
+#    fi
+#done
+
 
 echo ""
 echo -e "${NC}--------------------SUMMARY-----------------------"
