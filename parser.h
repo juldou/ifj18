@@ -1,10 +1,16 @@
-//
-// Created by janko on 11/5/18.
-//
-
+/**
+* School project to subject IFJ (Formal Languages and Compilers)
+* Compiler implementation of imperative language IFJ18
+*
+* Module for recursive descent parser
+*
+* Author: Jan Zauska  Julius Marko  Jan Vavro
+* Login:  xzausk00    xmarko17      xvavro05
+*/
 
 #ifndef IFJ_PARSER_H
 #define IFJ_PARSER_H
+
 #include "lex.h"
 
 #define SYNTAX_OK 101

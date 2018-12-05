@@ -1,3 +1,13 @@
+/**
+* School project to subject IFJ (Formal Languages and Compilers)
+* Compiler implementation of imperative language IFJ18
+*
+* Module for list data structure
+*
+* Author: Julius Marko  Jan Zauska
+* Login:  xmarko17      xzausk00
+*/
+
 #ifndef IFJ_LIST_H
 #define IFJ_LIST_H
 
@@ -11,7 +21,6 @@
 typedef struct tElem {
     struct tElem *ptr;
     char instruction[INSTR_LENGTH];
-//    char *instruction;
 } *tElemPtr;
 
 typedef struct {

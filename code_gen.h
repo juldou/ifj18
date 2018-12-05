@@ -1,3 +1,13 @@
+/**
+* School project to subject IFJ (Formal Languages and Compilers)
+* Compiler implementation of imperative language IFJ18
+*
+* Module for code generation - instructions and builtin functions gen.
+*
+* Author: Julius Marko  Jan Zauska
+* Login:  xmarko17      xzausk00
+*/
+
 #ifndef IFJ_CODE_GEN_H
 #define IFJ_CODE_GEN_H
 

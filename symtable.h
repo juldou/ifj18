@@ -1,3 +1,13 @@
+/**
+* School project to subject IFJ (Formal Languages and Compilers)
+* Compiler implementation of imperative language IFJ18
+*
+* Module for hash table used as symbol table
+*
+* Author: Julius Marko
+* Login:  xmarko17
+*/
+
 #ifndef _SYMTABLE_H_
 #define _SYMTABLE_H_
 

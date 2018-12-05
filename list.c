@@ -11,7 +11,6 @@ void DisposeList(tList *L) {
     tElemPtr next = NULL;
     while (actual != NULL) {  // iterate over list and delete elements (clean up memory)
         next = actual->ptr;
-//        free(actual->instruction);
         free(actual);
         actual = next;
     }
@@ -23,11 +22,6 @@ char *AppendToList(tList *L) {
     tElemPtr tElemToAddPtr = (tElemPtr) malloc(sizeof(struct tElem));
     if (tElemToAddPtr == NULL) return NULL;
     tElemToAddPtr->ptr = NULL;
-
-//    char *instruction = (char *) malloc(sizeof(char) * (instr_len + 1));
-//    if (instruction == NULL) return NULL;
-
-//    tElemToAddPtr->instruction = instruction;
 
     if (L->First == NULL) {
         L->First = tElemToAddPtr;
@@ -46,9 +40,6 @@ char *PostInsert(tList *L) {
         tElemPtr toInsert = (tElemPtr) malloc(sizeof(struct tElem));
         if (toInsert == NULL) return NULL;
         toInsert->ptr = L->Act->ptr;
-//        char *instruction = (char *) malloc(sizeof(char) * (strlen(val) + 1));
-//        if (instruction == NULL) return ERR_INTERNAL;
-//        toInsert->instruction = instruction;
         L->Act->ptr = toInsert;  // insert it after active elem.
         return toInsert->instruction;
     }

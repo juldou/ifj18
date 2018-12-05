@@ -1,6 +1,12 @@
-//
-// Created by janko on 11/5/18.
-//
+/**
+* School project to subject IFJ (Formal Languages and Compilers)
+* Compiler implementation of imperative language IFJ18
+*
+* Module for lexical analysis
+*
+* Author: Martin Rockar  Jan Zauska  Jan Vavro
+* Login:  xrocka00       xzausk00    xvavro05
+*/
 
 #ifndef IFJ_LEX_H
 #define IFJ_LEX_H
