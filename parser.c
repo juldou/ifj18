@@ -240,7 +240,7 @@ int fun_call(char *fun_id, char *called_from_fun) {
     }
 
     GEN_INSTR("%s", "CREATEFRAME");
-    unsigned par_count; // TODO: try to move params_count from params here
+    unsigned par_count;
     int err = params(fun_id, called_from_fun, &par_count);
     if (err != SYNTAX_OK) return err;
 
@@ -355,6 +355,7 @@ int stat_list(char *fun_id) {
             if (!is_id) {
                 strcpy(previous_token_value, value->str);
                 GET_TOKEN();
+                is_id = false;
             }
 
             if (is_function(previous_token_value)) {
@@ -362,11 +363,12 @@ int stat_list(char *fun_id) {
                 return stat_list(fun_id);
             }
 
+            /* insert ID as function not defined yet */
             if (IS_VALID_PARAM || token == ROUNDL) {
                 insert_fun_to_st(previous_token_value, 0, false, false);
                 if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return stat_list(fun_id);
-            } else if (token == LEX_EOL) {
+            } else if (token == LEX_EOL) { /* insert ID as function not defined yet */
                 if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION) {
                     insert_fun_to_st(previous_token_value, 0, false, false);
                     if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;

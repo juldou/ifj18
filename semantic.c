@@ -2,9 +2,11 @@
 #include "symtable.h"
 #include "semantic.h"
 
+/* symbol tables */
 st st_functions;
 st st_variables;
 
+/* init hash tables and add builtin funcs to st_functions */
 int semantic_prepare() {
     st_init(&st_functions);
     st_init(&st_variables);
@@ -12,6 +14,7 @@ int semantic_prepare() {
     return 0;
 }
 
+/* cleanup hash tables */
 int semantic_clean() {
     st_clear_all(&st_functions);
     st_clear_all(&st_variables);
@@ -177,7 +180,7 @@ int set_fun_defined(char *fun_id) {
     return elem->data->defined = true;
 }
 
-bool is_function(char *fun_id) {  // TODO: rename to just token_is_function
+bool is_function(char *fun_id) {
     st_elem *elem = st_search(&st_functions, fun_id);
     if (elem == NULL) return false;
     else return true;

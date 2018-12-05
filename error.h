@@ -1,3 +1,13 @@
+/**
+* School project to subject IFJ (Formal Languages and Compilers)
+* Compiler implementation of imperative language IFJ18
+*
+* Macros for error return codes
+*
+* Author: Julius Marko
+* Login:  xmarko17
+*/
+
 #ifndef _ERROR_H_
 #define _ERROR_H_
 
