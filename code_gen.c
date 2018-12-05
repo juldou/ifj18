@@ -128,6 +128,49 @@ int gen_builtin_fun(char *fun_id, unsigned params_count) {
     return 0;
 }
 
+
+bool is_print_fun(char *fun_id) {
+    return strcmp("print", fun_id) == 0;
+}
+
+
+/* generates label for jump if semantic check fails - 1 label for whole fun def */
+int gen_semantic_type_check_header(char *fun_id) {
+    GEN_INSTR("JUMP %s%s", "$SEMANTIC$CHECK$TYPE$", fun_id, "$END$LABEL$");
+    GEN_INSTR("LABEL %s%s", "$SEMANTIC$CHECK$TYPE$FAIL$", fun_id);
+    GEN_INSTR("EXIT int@%d", ERR_SEMANTIC_TYPE);
+    GEN_INSTR("LABEL %s%s", "$SEMANTIC$CHECK$TYPE$", fun_id, "$END$LABEL$");
+    return 0;
+}
+
+/* generates type check with given fun_id (to have unique labels for function) */
+int gen_semantic_type_check(char *fun_id, char *frame_var, char *desired_type) {
+    static int counter_params = 0;
+    GEN_INSTR("DEFVAR %s%s", frame_var, "$type");
+    GEN_INSTR("DEFVAR %s%s", frame_var, "$tmp");
+    GEN_INSTR("TYPE %s%s %s", frame_var, "$type", frame_var);
+
+    // if float and should be int -> do implicit conversion to int
+    if (strcmp(desired_type, "int") == 0) {
+        GEN_INSTR("JUMPIFEQ %s%s%d %s%s %s", "$IMPLICIT$FLOAT$CONVERTION$", fun_id, counter_params, frame_var, "$type", "string@float");
+        GEN_INSTR("JUMP %s%s%d", "$DO$SEMANTIC$CHECK$", fun_id, counter_params);  // skip this conversion
+
+        GEN_INSTR("LABEL %s%s%d", "$IMPLICIT$FLOAT$CONVERTION$", fun_id, counter_params);
+        GEN_INSTR("FLOAT2INT %s %s", frame_var, frame_var);
+        GEN_INSTR("JUMP %s%s%d", "$SEMANTIC$CHECK$TYPE$END$", fun_id, counter_params);
+    }
+
+    GEN_INSTR("LABEL %s%s%d", "$DO$SEMANTIC$CHECK$", fun_id, counter_params);
+    GEN_INSTR("MOVE %s%s %s", frame_var, "$tmp", frame_var);
+    GEN_INSTR("JUMPIFNEQ %s%s %s%s %s%s", "$SEMANTIC$CHECK$TYPE$FAIL$", fun_id, frame_var, "$type", "string@",
+              desired_type);
+
+    GEN_INSTR("LABEL %s%s%d", "$SEMANTIC$CHECK$TYPE$END$", fun_id, counter_params);
+    counter_params++;
+
+    return 0;
+}
+
 int gen_inputs() {
     if (gen_fun_header("inputs") == ERR_INTERNAL) return ERR_INTERNAL;
 
@@ -205,26 +248,6 @@ int gen_length() {
     return 0;
 }
 
-/* generates label for jump if semantic check fails - 1 label for whole fun def */
-int gen_semantic_type_check_header(char *fun_id) {
-    GEN_INSTR("JUMP %s%s", "$SEMANTIC$CHECK$TYPE$", fun_id, "$END$LABEL$");
-    GEN_INSTR("LABEL %s%s", "$SEMANTIC$CHECK$TYPE$FAIL$", fun_id);
-    GEN_INSTR("EXIT int@%d", ERR_SEMANTIC_TYPE);
-    GEN_INSTR("LABEL %s%s", "$SEMANTIC$CHECK$TYPE$", fun_id, "$END$LABEL$");
-    return 0;
-}
-
-/* generates type check with given fun_id (to have unique labels for function) */
-int gen_semantic_type_check(char *fun_id, char *frame_var, char *desired_type) {
-    GEN_INSTR("DEFVAR %s%s", frame_var, "$type");
-    GEN_INSTR("DEFVAR %s%s", frame_var, "$tmp");
-    GEN_INSTR("TYPE %s%s %s", frame_var, "$type", frame_var);
-    GEN_INSTR("MOVE %s%s %s", frame_var, "$tmp", frame_var);
-    GEN_INSTR("JUMPIFNEQ %s%s %s%s %s%s", "$SEMANTIC$CHECK$TYPE$FAIL$", fun_id, frame_var, "$type", "string@",
-              desired_type);
-    return 0;
-}
-
 int gen_substr() {
     if (gen_fun_header("substr") == ERR_INTERNAL) return ERR_INTERNAL;
     if (gen_semantic_type_check_header("substr") == ERR_INTERNAL) return ERR_INTERNAL;
@@ -254,6 +277,7 @@ int gen_substr() {
     GEN_INSTR("JUMPIFEQ %s %s %s", "$fail$substr$", "LF@$check$passed$", "bool@false"); // index out of bounds
     /* check third param: >= 0 */
     GEN_INSTR("GT %s %s %s", "LF@$greater$than$minus$one$", "LF@%3", "int@-1");
+    GEN_INSTR("JUMPIFEQ %s %s %s", "$fail$substr$end$", "LF@%3", "int@0");
     GEN_INSTR("JUMPIFEQ %s %s %s", "$fail$substr$", "LF@$greater$than$minus$one$", "bool@false"); // index out of bounds
 
     /* substring processing */
