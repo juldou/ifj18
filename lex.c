@@ -1,3 +1,8 @@
+/**
+ * Lexical analyser
+ * @author  Martin Rockar
+ * @version 1.0
+ */
 #include<stdio.h>
 #include<stdlib.h>
 #include<ctype.h>
@@ -5,7 +10,12 @@
 #include "lex.h"
 #include "error.h"
 
-
+/**
+ * Function compares string with reserved keywords,
+ * if there is a match,function returns value of a reserved word.
+ * @param   *tmp    string to compare
+ * @return          value of a keyword or -1 if it is an identifier
+ */
 int checkKeywords(char *tmp) {
 
     if (strcmp("def", tmp) == 0) return KEYWORD_DEF;
@@ -31,7 +41,11 @@ int checkKeywords(char *tmp) {
 }
 
 int prev_token = -1;
-
+/**
+ * Function stores previous token, if there is no token stored, function getTokenFromInput is called.
+ * @param   value   value of a token
+ * @return          previous token or calls function getTokenFromInput
+ */
 int getToken(string *value, int *line) {
     if (prev_token != -1) {
         int temp = prev_token;
@@ -40,7 +54,12 @@ int getToken(string *value, int *line) {
     }
     return getTokenFromInput(value, line);
 }
-
+/**
+ * Main function of a scanner, this function read characters from stdin and transform
+ * them into lexems(tokens)
+ * @param   value   value of a token
+ * @return          type of a token represented by integer number.
+ */
 int getTokenFromInput(string *value, int *line) {
     static int lineCount = 0;
     int s, state = START;
@@ -57,14 +76,14 @@ int getTokenFromInput(string *value, int *line) {
             }
         }
         switch (state) {
-
+        //main switch for states
             case START:
 
                 if (s == '\n') {
                     lineCount++;
                     (*line) = lineCount;
                     return LEX_EOL;
-                } else if (isspace(s));
+                } else if (isspace(s)); //skip white spaces
                 else if (islower(s) || s == '_') {
                     strAddChar(value, s);
                     s = fgetc(stdin);
@@ -82,6 +101,7 @@ int getTokenFromInput(string *value, int *line) {
                     strAddChar(value, s);
 
                     if (s == '0') {
+                        //check if first number of an multi digit number is not 0
                         s = fgetc(stdin);
                         if (isdigit(s)) {
                             return ERR_LEXICAL;
@@ -93,7 +113,7 @@ int getTokenFromInput(string *value, int *line) {
                     break;
                 } else {
                     switch (s) {
-                        //operatory
+                        //switch for operators
                         case '+':
                             return PLUS;
                         case '-':
@@ -128,6 +148,7 @@ int getTokenFromInput(string *value, int *line) {
                             state = STRING;
                             break;
                         case '#':
+                            //line comment
                             s = fgetc(stdin);
                             while (s != '\n') {
                                 if (s == EOF)
@@ -174,13 +195,13 @@ int getTokenFromInput(string *value, int *line) {
                 }
                 break;
             case STRING:
-
                 if (s == '#') {
                     strAddChar(value, '\\');
                     strAddChar(value, '0');
                     strAddChar(value, '3');
                     strAddChar(value, '5');
                 } else if (s == '\\') {
+                    //escape sequence
                     s = fgetc(stdin);
                     if (s == '"') {
                         strAddChar(value, '\\');
@@ -209,6 +230,7 @@ int getTokenFromInput(string *value, int *line) {
                         strAddChar(value, '2');
 
                     } else if (s == 'x') {
+                        //hexadecimal escape sequence
                         s = fgetc(stdin);
                         if (s >= 65 && s <= 70) {
                             res = ((s - 'A') + 10);
@@ -264,6 +286,7 @@ int getTokenFromInput(string *value, int *line) {
                         strAddChar(value, '3');
                         strAddChar(value, '5');
                     } else if (s == '\\') {
+                        //escape sequence
                         s = fgetc(stdin);
                         if (s == '"') {
                             strAddChar(value, '\\');
@@ -291,6 +314,7 @@ int getTokenFromInput(string *value, int *line) {
                             strAddChar(value, '9');
                             strAddChar(value, '2');
                         } else if (s == 'x') {
+                            //hexadecimal escape sequence
                             s = fgetc(stdin);
                             if (isupper(s)) {
                                 res = ((s - 'A') + 10);
@@ -366,7 +390,7 @@ int getTokenFromInput(string *value, int *line) {
                     } else {
                         ungetc(s, stdin);
                     }
-                    int a = checkKeywords(value->str);
+                    int a = checkKeywords(value->str);  //checks if string is a reserved word or an identifier
 
                     if (a == -1) {
                         if (value->str[value->length - 1] == '?' || value->str[value->length - 1] == '!')
@@ -379,7 +403,7 @@ int getTokenFromInput(string *value, int *line) {
                 }
                 break;
             case BLOCK_COMMENT:
-
+                //checking for end of a block comment (=end) in input
                 while (1) {
                     if (s == '\n') {
                         s = fgetc(stdin);
@@ -467,28 +491,13 @@ int getTokenFromInput(string *value, int *line) {
         }
     }
 }
-
+/**
+ * Function for checking if character is an operator.
+ * @param   symbol  character to check
+ * @return  true if character is an operator, else it return false
+ */
 bool isOperator(int symbol) {
     return ((symbol == '*' || symbol == '+' || symbol == '-' || symbol == '/' || symbol == ')') ||
             (symbol == '<' || symbol == '>' || symbol == '=' || symbol == ',')) ? true : false;
 }
 
-
-// int main() {
-//     int a;
-//     string *value;
-//     value = malloc(sizeof(string));
-//     if (value == NULL) return ERR_INTERNAL;
-//     if (strInit(value) == STR_ERROR) return ERR_INTERNAL;
-//     int line = 0;
-//
-//     do {
-//         a = getTokenFromInput(value, &line);
-//         printf("Value: %15s line: %5d type: %d\n", value->str, line, a);
-////         if (a == LEX_EOF) {
-////             break;
-////         }
-//
-//     } while (a != LEX_EOF);
-//     return 0;
-// }
