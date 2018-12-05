@@ -173,7 +173,7 @@ int gen_print(char *fun_id, unsigned params_count) {
     snprintf(fun_id_new, fun_id_len, "%s%d", fun_id, (int) params_count);
 
     /* fun exists, just call */
-    if (semantic_token_is_function(fun_id_new)) {
+    if (is_function(fun_id_new)) {
         GEN_INSTR("CALL *%s", fun_id_new);
         return 0;
     }
@@ -190,10 +190,6 @@ int gen_print(char *fun_id, unsigned params_count) {
 
     GEN_INSTR("CALL *%s", fun_id_new);
     return 0;
-}
-
-bool is_print_fun(char *fun_id) {
-    return strcmp("print", fun_id) == 0;
 }
 
 int gen_length() {

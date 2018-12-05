@@ -2,19 +2,19 @@
 #include "symtable.h"
 #include "semantic.h"
 
-st st_global; // for global funcs
-st st_local; // for local vars
+st st_functions;
+st st_variables;
 
 int semantic_prepare() {
-    st_init(&st_global);
-    st_init(&st_local);
+    st_init(&st_functions);
+    st_init(&st_variables);
     if (add_builtin_funcs_to_st() == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }
 
 int semantic_clean() {
-    st_clear_all(&st_global);
-    st_clear_all(&st_local);
+    st_clear_all(&st_functions);
+    st_clear_all(&st_variables);
     return 0;
 }
 
@@ -48,7 +48,7 @@ void init_fun_elem_data(elem_data *data, size_t params_count, bool defined, bool
 
 /* insert var to symtable */
 int insert_var_to_st(char *var_id, char *fun_id, bool defined) {
-    if (semantic_token_is_function(var_id)) return ERR_SEMANTIC_DEFINITION;
+    if (is_function(var_id)) return ERR_SEMANTIC_DEFINITION;
 
     size_t size = strlen(var_id) + strlen(fun_id) + 2;
     char var_key_in_ht[size];
@@ -57,19 +57,19 @@ int insert_var_to_st(char *var_id, char *fun_id, bool defined) {
     strcat(var_key_in_ht, "_");
     strcat(var_key_in_ht, fun_id);
 
-    st_elem *var = st_search(&st_local, var_key_in_ht);
+    st_elem *var = st_search(&st_variables, var_key_in_ht);
     if (var != NULL) return 0;
 
     elem_data *data = (elem_data *) malloc(sizeof(elem_data));
     if (data == NULL) return ERR_INTERNAL;
-    st_elem *fun = st_search(&st_global, fun_id);
+    st_elem *fun = st_search(&st_functions, fun_id);
     init_var_elem_data(data, fun, defined);
 
     data->id = (char *) malloc((strlen(var_id) + 1) * sizeof(char));
     if (data->id == NULL) return ERR_INTERNAL;
     strcpy(data->id, var_id);
 
-    if (st_insert(&st_local, var_key_in_ht, VARIABLE, data) == ERR_INTERNAL) return ERR_INTERNAL;
+    if (st_insert(&st_variables, var_key_in_ht, VARIABLE, data) == ERR_INTERNAL) return ERR_INTERNAL;
     return 0;
 }
 
@@ -84,11 +84,11 @@ int insert_fun_to_st(char *fun_id, size_t params_count, bool defined, bool is_bu
     if (data->id == NULL) return ERR_INTERNAL;
     strcpy(data->id, fun_id);
 
-    if (st_insert(&st_global, fun_id, FUNCTION, data) == ERR_INTERNAL) return ERR_INTERNAL;
+    if (st_insert(&st_functions, fun_id, FUNCTION, data) == ERR_INTERNAL) return ERR_INTERNAL;
     else return 0;
 }
 
-/* check is variable is defined */ // TODO: that function is bad! problem with ""
+/* check if variable is defined */
 int semantic_check_var_defined(char *fun_id, char *var_id) {
     size_t size = strlen(var_id) + strlen(fun_id) + 2;
     char var_key_in_ht[size];
@@ -97,10 +97,10 @@ int semantic_check_var_defined(char *fun_id, char *var_id) {
     strcat(var_key_in_ht, "_");
     strcat(var_key_in_ht, fun_id);
 
-    st_elem *fun = st_search(&st_global, fun_id);
-    st_elem *var = st_search(&st_local, var_key_in_ht);
+    st_elem *fun = st_search(&st_functions, fun_id);
+    st_elem *var = st_search(&st_variables, var_key_in_ht);
 
-    /* handle of case when var doesn't exist and we are not in any function decl */
+    /* handle of case when var doesn't exist and we are not in any function decl but MAIN scope */
     if (var == NULL && (strcmp(fun_id, "MAIN") == 0)) return ERR_SEMANTIC_DEFINITION;
 
     if (function_parameter_exists(fun, var_id)) return 0;
@@ -108,21 +108,21 @@ int semantic_check_var_defined(char *fun_id, char *var_id) {
     return ERR_SEMANTIC_DEFINITION;
 }
 
-int semantic_check_fun_definition(char *fun_id) {
+int semantic_check_fun_defined(char *fun_id) {
     /* check if var exists in global scope with same name */
-    if (semantic_token_is_variable(fun_id, "MAIN")) return ERR_SEMANTIC_DEFINITION;
+    if (is_variable(fun_id, "MAIN")) return ERR_SEMANTIC_DEFINITION;
 
     /* check if function with given fun_id was defined. If not -> add it to symtable */
     st_elem *fun;
-    if ((fun = st_search(&st_global, fun_id)) == NULL) return insert_fun_to_st(fun_id, 0, true, false);
+    if ((fun = st_search(&st_functions, fun_id)) == NULL) return insert_fun_to_st(fun_id, 0, true, false);
     if (fun->data->defined) return ERR_SEMANTIC_DEFINITION;
     else set_fun_defined(fun_id);
     return 0;
 }
 
-/* check that number of parameters in funtion call is correct */
+/* check that number of parameters in funtion call is equal to function definition */
 int semantic_check_fun_call_params(char *fun_id, size_t params_count) {
-    st_elem *elem = st_search(&st_global, fun_id);
+    st_elem *elem = st_search(&st_functions, fun_id);
     if (elem == NULL) {  // function is called but not defined yet
         if (insert_fun_to_st(fun_id, 0, false, false) == ERR_INTERNAL) return ERR_INTERNAL;
     } else {
@@ -152,10 +152,10 @@ bool function_parameter_exists(st_elem *elem, char *param) {
 
 /* add parameter to function declaration in symtable */
 int semantic_add_fun_param(char *fun_id, char *param) {
-    st_elem *elem = st_search(&st_global, fun_id);
+    st_elem *elem = st_search(&st_functions, fun_id);
 
     if (function_parameter_exists(elem, param)) return ERR_SEMANTIC_DEFINITION;
-    if (semantic_token_is_function(param)) return ERR_SEMANTIC_DEFINITION;
+    if (is_function(param)) return ERR_SEMANTIC_DEFINITION;
 
     elem->data->params = (char **) realloc(elem->data->params,
                                            sizeof(*(elem->data->params)) * (elem->data->params_count + 1));
@@ -173,27 +173,31 @@ int semantic_add_fun_param(char *fun_id, char *param) {
 }
 
 int set_fun_defined(char *fun_id) {
-    st_elem *elem = st_search(&st_global, fun_id);
+    st_elem *elem = st_search(&st_functions, fun_id);
     return elem->data->defined = true;
 }
 
-bool semantic_token_is_function(char *fun_id) {  // TODO: rename to just token_is_function
-    st_elem *elem = st_search(&st_global, fun_id);
+bool is_function(char *fun_id) {  // TODO: rename to just token_is_function
+    st_elem *elem = st_search(&st_functions, fun_id);
     if (elem == NULL) return false;
     else return true;
 }
 
 bool is_fun_builtin(char *fun_id) {
-    st_elem *elem = st_search(&st_global, fun_id);
+    st_elem *elem = st_search(&st_functions, fun_id);
     return elem->data->is_builtin;
 }
 
 bool is_fun_defined(char *fun_id) {
-    st_elem *elem = st_search(&st_global, fun_id);
+    st_elem *elem = st_search(&st_functions, fun_id);
     return elem->data->defined;
 }
 
-bool semantic_token_is_variable(char *var_id, char *fun_id) {
+bool is_print_fun(char *fun_id) {
+    return strcmp("print", fun_id) == 0;
+}
+
+bool is_variable(char *var_id, char *fun_id) {
     size_t size = strlen(var_id) + strlen(fun_id) + 2;
     char var_key_in_ht[size];
     strcpy(var_key_in_ht, "\0");
@@ -201,8 +205,8 @@ bool semantic_token_is_variable(char *var_id, char *fun_id) {
     strcat(var_key_in_ht, "_");
     strcat(var_key_in_ht, fun_id);
 
-    st_elem *fun = st_search(&st_global, fun_id);
-    st_elem *var = st_search(&st_local, var_key_in_ht);
+    st_elem *fun = st_search(&st_functions, fun_id);
+    st_elem *var = st_search(&st_variables, var_key_in_ht);
 
     if (var == NULL && (strcmp(fun_id, "MAIN") == 0)) return false;
     if (var == NULL && !function_parameter_exists(fun, var_id)) return false;
@@ -210,8 +214,9 @@ bool semantic_token_is_variable(char *var_id, char *fun_id) {
     return true;
 }
 
-bool semantic_check_all_ids_defined() {
-    st *st_ptr = &st_local;
+/* checks if all ids were defined */
+bool all_ids_defined() {
+    st *st_ptr = &st_variables;
     st_elem *tmp, *next;
     for (size_t i = 0; i < SYMTABLE_SIZE; ++i) {
         next = (*st_ptr)[i];
@@ -222,7 +227,7 @@ bool semantic_check_all_ids_defined() {
         }
     }
 
-    st_ptr = &st_global;
+    st_ptr = &st_functions;
     for (size_t i = 0; i < SYMTABLE_SIZE; ++i) {
         next = (*st_ptr)[i];
         while (next) {

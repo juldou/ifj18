@@ -11,11 +11,9 @@ int hash_code(t_key key) {
 }
 
 void st_init(st *st_ptr) {
-//    if (st_ptr) {
     for (int i = 0; i < SYMTABLE_SIZE; i++) {
         (*st_ptr)[i] = NULL;
     }
-//    }
 }
 
 st_elem *st_search(st *st_ptr, t_key key) {
@@ -60,40 +58,6 @@ int st_insert(st *st_ptr, t_key key, st_elem_types elem_type, elem_data *data) {
         (*st_ptr)[index] = tmp;
     }
     return 0;
-}
-
-elem_data *st_read(st *st_ptr, t_key key) {
-    if (st_ptr == NULL || key == NULL) {
-        return NULL;
-    }
-    st_elem *tmp = st_search(st_ptr, key);
-    if (tmp) {
-        return tmp->data;
-    }
-    return NULL;
-}
-
-void st_delete(st *st_ptr, t_key key) {
-    if (st_ptr == NULL || key == NULL) {
-        return;
-    }
-    int index = hash_code(key);
-    st_elem *tmp = (*st_ptr)[index], *prev = NULL;
-
-    while (tmp) {
-        if (strcmp(tmp->key, key) == 0) {
-            if (prev) { //item to be deleted is not first in list
-                prev->ptrnext = tmp->ptrnext;
-            } else { // -||- is first -||-
-                (*st_ptr)[index] = tmp->ptrnext;
-            }
-            free(tmp->key);
-            free(tmp);
-            return;
-        }
-        prev = tmp;
-        tmp = tmp->ptrnext;
-    }
 }
 
 void st_clear_elem_data(st_elem *elem) {
