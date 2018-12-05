@@ -204,8 +204,16 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
             params_count = 0;
             if (err != 0) return err;
             return SYNTAX_OK;
+        case INPUTS:
+        case INPUTI:
+        case INPUTF:
+        case LENGTH:
+        case SUBSTR:
+        case ORD:
+        case CHR:
         case ID:
             strcpy(previous_token_value, value->str);
+            if (semantic_token_is_function(previous_token_value)) return ERR_SEMANTIC_OTHER;
             if (semantic_check_var_defined(called_from_fun, previous_token_value) == ERR_SEMANTIC_DEFINITION)
                 return ERR_SEMANTIC_DEFINITION;
         case NUM_INT:
@@ -227,7 +235,7 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
                 GEN_INSTR("MOVE TF@%%%d string@%s", params_count, value->str);
             } else if (token == ID) {
                 GEN_INSTR("MOVE TF@%%%d LF@%s", params_count, value->str);
-            }else if (token == KEYWORD_NIL) {
+            } else if (token == KEYWORD_NIL) {
                 GEN_INSTR("MOVE TF@%%%d nil@nil", params_count);
             }
 
@@ -404,6 +412,7 @@ int stat_list(char *fun_id) {
         case NUM_FLOAT:
         case STRING:
         case NUM_INT:
+//        case ROUNDL:
             if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
             GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
             ACCEPT(LEX_EOL);
