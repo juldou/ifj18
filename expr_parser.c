@@ -10,7 +10,6 @@
 #define MATH 0
 #define BOOL 1
 
-
 extern int token;
 
 /*

@@ -4,6 +4,7 @@ c=7
 x=c+b
 if (a == nil) then
 print "param a je nil\n"
+else
 end
 print x, "\n"
 end

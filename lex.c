@@ -41,6 +41,7 @@ int checkKeywords(char *tmp) {
 }
 
 int prev_token = -1;
+
 /**
  * Function stores previous token, if there is no token stored, function getTokenFromInput is called.
  * @param   value   value of a token
@@ -54,6 +55,7 @@ int getToken(string *value, int *line) {
     }
     return getTokenFromInput(value, line);
 }
+
 /**
  * Main function of a scanner, this function read characters from stdin and transform
  * them into lexems(tokens)
@@ -65,6 +67,7 @@ int getTokenFromInput(string *value, int *line) {
     int s, state = START;
     int res = 0;
     int resTmp[4] = {0, 0, 0, '\0'};
+    static int isFirstToken = 1;
     strClear(value);
     while (1) {
 
@@ -76,13 +79,54 @@ int getTokenFromInput(string *value, int *line) {
             }
         }
         switch (state) {
-        //main switch for states
+            //main switch for states
             case START:
+                if (isFirstToken) {
+                    if (isFirstToken) {
+                        isFirstToken = 0;
+                    }
+                    if (s == '=') {
+                        while (!isspace(s)) {
+                            strAddChar(value, s);
+
+                            if (value->length > 6) {
+                                return ERR_LEXICAL;
+                            }
+
+                            s = fgetc(stdin);
+                        }
+                        if (strcmp(value->str, "=begin") == 0) {
+                            state = BLOCK_COMMENT;
+                            break;
+                        } else {
+                            return ERR_LEXICAL;
+                        }
+                    }
+                }
 
                 if (s == '\n') {
-                    lineCount++;
-                    (*line) = lineCount;
-                    return LEX_EOL;
+                    s = fgetc(stdin);
+                    if (s == '=') {
+                        while (!isspace(s)) {
+                            strAddChar(value, s);
+
+                            if (value->length > 6) {
+                                return ERR_LEXICAL;
+                            }
+
+                            s = fgetc(stdin);
+                        }
+                        if (strcmp(value->str, "=begin") == 0) {
+                            state = BLOCK_COMMENT;
+                            break;
+                        } else {
+                            return ERR_LEXICAL;
+                        }
+                    } else {
+                        ungetc(s, stdin);
+
+                        return LEX_EOL;
+                    }
                 } else if (isspace(s)); //skip white spaces
                 else if (islower(s) || s == '_') {
                     strAddChar(value, s);
@@ -160,22 +204,6 @@ int getTokenFromInput(string *value, int *line) {
                             s = fgetc(stdin);
                             if (s == '=') {
                                 return EQUAL;
-                            } else if (s == 'b') {
-                                while (!isspace(s)) {
-                                    strAddChar(value, s);
-
-                                    if (value->length > 5) {
-                                        return ERR_LEXICAL;
-                                    }
-
-                                    s = fgetc(stdin);
-                                }
-                                if (strcmp(value->str, "begin") == 0) {
-                                    state = BLOCK_COMMENT;
-                                    break;
-                                } else {
-                                    return ERR_LEXICAL;
-                                }
                             } else {
                                 ungetc(s, stdin);
 
@@ -274,7 +302,6 @@ int getTokenFromInput(string *value, int *line) {
                     strAddChar(value, '3');
                     strAddChar(value, '2');
                 } else if (s == '"') {
-                    state = START;
                     return STRING;
                 } else strAddChar(value, s);
                 while (1) {

@@ -1,5 +1,3 @@
-if ("piciak") then
-print "nejde to"
-else
-print "ide to"
+a = 1
+while a < do
 end
