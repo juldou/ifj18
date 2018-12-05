@@ -25,15 +25,35 @@ int assign(char *fun_id) {
 
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
+
+        case IDF:
         case ID:
-            if (semantic_token_is_function(temp->str)) {
-                GET_TOKEN();
+            strcpy(previous_token_value, value->str);
+
+            GET_TOKEN();
+
+            if (is_function(previous_token_value)) {
                 if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return SYNTAX_OK;
             }
 
-            if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
-            GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+            if (IS_VALID_PARAM || token == ROUNDL) {
+                insert_fun_to_st(previous_token_value, 0, false, false);
+                if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+                return SYNTAX_OK;
+            } else if (token == LEX_EOL) {
+                if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION) {
+                    insert_fun_to_st(previous_token_value, 0, false, false);
+                    if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+                    return SYNTAX_OK;
+                }
+            } else {
+                prev_token = token;
+                token = ID;
+                strcpy(value->str, previous_token_value);
+                if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
+                else GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+            }
 
             ACCEPT(LEX_EOL);
             return SYNTAX_OK;
@@ -122,7 +142,7 @@ int fun_declr() {
         return ERR_SYNTAX;
     GET_TOKEN();
 
-    if (semantic_check_fun_definition(previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
+    if (semantic_check_fun_defined(previous_token_value) == ERR_SEMANTIC_DEFINITION) return ERR_SEMANTIC_DEFINITION;
 
     if (gen_fun_header(previous_token_value) == ERR_INTERNAL) return ERR_INTERNAL;
 
@@ -163,7 +183,7 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
         case CHR:
         case ID:
             strcpy(previous_token_value, value->str);
-            if (semantic_token_is_function(previous_token_value)) return ERR_SEMANTIC_OTHER;
+            if (is_function(previous_token_value)) return ERR_SEMANTIC_OTHER;
             if (semantic_check_var_defined(called_from_fun, previous_token_value) == ERR_SEMANTIC_DEFINITION)
                 return ERR_SEMANTIC_DEFINITION;
         case NUM_INT:
@@ -209,7 +229,10 @@ int params(char *fun_id, char *called_from_fun, unsigned *par_count) {
 
 int fun_call(char *fun_id, char *called_from_fun) {
     // pravidlo <FUN_CALL> ->
-    if (!semantic_token_is_function(fun_id)) return ERR_SEMANTIC_DEFINITION;
+    if (!is_function(fun_id))
+        return ERR_SEMANTIC_DEFINITION;
+    if (!is_fun_defined(fun_id) && !is_fun_builtin(fun_id) && is_main_scope(called_from_fun))
+        return ERR_SEMANTIC_DEFINITION;
 
     int brackets = 0;
     if (token == ROUNDL) {
@@ -240,6 +263,7 @@ int fun_call(char *fun_id, char *called_from_fun) {
 }
 
 int stat_list(char *fun_id) {
+    bool is_id = false;
     static int cnt = 0;
     int label_id = 0;
     char previous_token_value[value->length + 1];
@@ -308,17 +332,14 @@ int stat_list(char *fun_id) {
         case LEX_EOF:
             return SYNTAX_OK;
 
-        case IDF:
-            GET_TOKEN();
-            if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
-            return stat_list(fun_id);
         case ID:
             strcpy(previous_token_value, value->str);
 
             GET_TOKEN();
             if (token == ASSIGN) {
                 GET_TOKEN();
-                if (!semantic_token_is_variable(previous_token_value, fun_id)) {
+                if (!is_variable(previous_token_value, fun_id)) {
+                    //todo not found, mozno nie err internal
                     if (find_instr("LABEL *%s\n", fun_id) == ERR_INTERNAL) return ERR_INTERNAL;
                     if (insert_instr_after("MOVE TF@%s nil@nil\n", previous_token_value) == ERR_INTERNAL)
                         return ERR_INTERNAL;
@@ -334,8 +355,14 @@ int stat_list(char *fun_id) {
 
                 return stat_list(fun_id);
             }
+            is_id = true;
+        case IDF:
+            if (!is_id) {
+                strcpy(previous_token_value, value->str);
+                GET_TOKEN();
+            }
 
-            if (semantic_token_is_function(previous_token_value)) {
+            if (is_function(previous_token_value)) {
                 if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return stat_list(fun_id);
             }
@@ -344,16 +371,20 @@ int stat_list(char *fun_id) {
                 insert_fun_to_st(previous_token_value, 0, false, false);
                 if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
                 return stat_list(fun_id);
+            } else if (token == LEX_EOL) {
+                if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION) {
+                    insert_fun_to_st(previous_token_value, 0, false, false);
+                    if ((err = fun_call(previous_token_value, fun_id)) != SYNTAX_OK) return err;
+                    return stat_list(fun_id);
+                }
             } else {
                 prev_token = token;
                 token = ID;
                 strcpy(value->str, previous_token_value);
                 if ((err = math_expr(fun_id)) != SYNTAX_OK) return err;
                 GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
+                else GEN_INSTR("MOVE %s %s", "LF@$retval", "GF@expr_res");
             }
-
-            if (semantic_check_var_defined(fun_id, previous_token_value) == ERR_SEMANTIC_DEFINITION)
-                return ERR_SEMANTIC_DEFINITION;
 
             ACCEPT(LEX_EOL);
             return stat_list(fun_id);
@@ -427,8 +458,9 @@ int parse() {
     GET_TOKEN();
     result = program();
 
-    if (err == SYNTAX_OK && !semantic_check_all_ids_defined()) return ERR_SEMANTIC_DEFINITION;
-    code_generate();
+    if (err == SYNTAX_OK && !all_ids_defined()) return ERR_SEMANTIC_DEFINITION;
+
+    if (err == SYNTAX_OK) code_generate();
 
     if (semantic_clean() == ERR_INTERNAL) return ERR_INTERNAL;
     if (code_gen_clean() == ERR_INTERNAL) return ERR_INTERNAL;

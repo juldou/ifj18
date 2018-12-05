@@ -128,12 +128,6 @@ int gen_builtin_fun(char *fun_id, unsigned params_count) {
     return 0;
 }
 
-
-bool is_print_fun(char *fun_id) {
-    return strcmp("print", fun_id) == 0;
-}
-
-
 /* generates label for jump if semantic check fails - 1 label for whole fun def */
 int gen_semantic_type_check_header(char *fun_id) {
     GEN_INSTR("JUMP %s%s", "$SEMANTIC$CHECK$TYPE$", fun_id, "$END$LABEL$");
@@ -216,7 +210,7 @@ int gen_print(char *fun_id, unsigned params_count) {
     snprintf(fun_id_new, fun_id_len, "%s%d", fun_id, (int) params_count);
 
     /* fun exists, just call */
-    if (semantic_token_is_function(fun_id_new)) {
+    if (is_function(fun_id_new)) {
         GEN_INSTR("CALL *%s", fun_id_new);
         return 0;
     }
